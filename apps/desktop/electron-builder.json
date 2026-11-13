@@ -1,0 +1,24 @@
+{
+  "appId": "com.mantu.desktop-app",
+  "productName": "LogixZen",
+  "asar": true,
+  "npmRebuild": false,
+  "directories": {
+    "output": "release"
+  },
+  "files": ["dist-electron/**/*", "out/**/*", "package.json", "!node_modules/**/*"],
+  "win": {
+    "icon": "logo.png",
+    "target": ["portable", "msi"]
+  },
+  "mac": {
+    "icon": "logo.png",
+    "target": "dmg",
+    "category": "public.app-category.developer-tools"
+  },
+  "linux": {
+    "icon": "logo.png",
+    "target": "AppImage",
+    "category": "Development"
+  }
+}

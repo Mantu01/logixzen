@@ -1,0 +1,230 @@
+[
+  {
+    "id": "aggregate-001",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Count All Students",
+    "description": "Write a query to count the total number of students.",
+    "datasetId": "school",
+    "hints": [
+      "Use COUNT(*) function",
+      "Counts all rows"
+    ],
+    "solutionSql": "SELECT COUNT(*) FROM students;",
+    "explanation": "COUNT(*) returns the total number of rows in a table.",
+    "tags": ["aggregate", "count"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-002",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Average Age",
+    "description": "Write a query to calculate the average age of all students.",
+    "datasetId": "school",
+    "hints": [
+      "Use AVG() function",
+      "Apply to age column"
+    ],
+    "solutionSql": "SELECT AVG(age) FROM students;",
+    "explanation": "AVG() calculates the mean value of a numeric column.",
+    "tags": ["aggregate", "average"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-003",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Maximum Age",
+    "description": "Write a query to find the oldest student's age.",
+    "datasetId": "school",
+    "hints": [
+      "Use MAX() function",
+      "Get the highest age value"
+    ],
+    "solutionSql": "SELECT MAX(age) FROM students;",
+    "explanation": "MAX() returns the largest value in a column.",
+    "tags": ["aggregate", "max"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-004",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Minimum Age",
+    "description": "Write a query to find the youngest student's age.",
+    "datasetId": "school",
+    "hints": [
+      "Use MIN() function",
+      "Get the lowest age value"
+    ],
+    "solutionSql": "SELECT MIN(age) FROM students;",
+    "explanation": "MIN() returns the smallest value in a column.",
+    "tags": ["aggregate", "min"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-005",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Sum of Credits",
+    "description": "Write a query to calculate the total credit hours across all courses.",
+    "datasetId": "school",
+    "hints": [
+      "Use SUM() function",
+      "Apply to credits column"
+    ],
+    "solutionSql": "SELECT SUM(credits) FROM courses;",
+    "explanation": "SUM() adds up all values in a numeric column.",
+    "tags": ["aggregate", "sum"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-006",
+    "topicId": "aggregate-functions",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "Aggregate Functions",
+    "description": "Which function returns the total of a column's values?",
+    "datasetId": "school",
+    "hints": [
+      "Think about addition",
+      "It's one of the basic aggregate functions"
+    ],
+    "solutionSql": "",
+    "explanation": "SUM() adds all values together to produce a total.",
+    "tags": ["aggregate", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "SUM()" },
+      { "id": "b", "text": "COUNT()" },
+      { "id": "c", "text": "AVG()" },
+      { "id": "d", "text": "TOTAL()" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "aggregate-007",
+    "topicId": "aggregate-functions",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Multiple Aggregates",
+    "description": "Write a query to get the count and average age of students.",
+    "datasetId": "school",
+    "hints": [
+      "Combine COUNT and AVG",
+      "Separate with comma"
+    ],
+    "solutionSql": "SELECT COUNT(*) as count, AVG(age) as avg_age FROM students;",
+    "explanation": "Multiple aggregate functions can be used in the same SELECT statement.",
+    "tags": ["aggregate", "multiple"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "aggregate-008",
+    "topicId": "aggregate-functions",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Aggregate Result",
+    "description": "What will this query return? SELECT COUNT(*) FROM courses;",
+    "datasetId": "school",
+    "hints": [
+      "How many courses are there?",
+      "COUNT(*) counts all rows"
+    ],
+    "solutionSql": "",
+    "explanation": "There are 5 courses in the database.",
+    "tags": ["aggregate", "count"],
+    "points": 15,
+    "expectedOutput": [{ "count": 5 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[5]]
+        }
+      }
+    ]
+  }
+]

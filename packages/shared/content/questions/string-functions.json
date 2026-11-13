@@ -1,0 +1,222 @@
+[
+  {
+    "id": "string-001",
+    "topicId": "string-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Upper Case Names",
+    "description": "Write a query to convert all student names to uppercase.",
+    "datasetId": "school",
+    "hints": [
+      "Use UPPER() function",
+      "Apply to name column"
+    ],
+    "solutionSql": "SELECT UPPER(name) FROM students;",
+    "explanation": "UPPER() converts text to uppercase letters.",
+    "tags": ["string", "upper"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "string-002",
+    "topicId": "string-functions",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Lower Case Names",
+    "description": "Write a query to convert all student names to lowercase.",
+    "datasetId": "school",
+    "hints": [
+      "Use LOWER() function",
+      "Apply to name column"
+    ],
+    "solutionSql": "SELECT LOWER(name) FROM students;",
+    "explanation": "LOWER() converts text to lowercase letters.",
+    "tags": ["string", "lower"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "string-003",
+    "topicId": "string-functions",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "String Length",
+    "description": "Write a query to get student names and their character lengths.",
+    "datasetId": "school",
+    "hints": [
+      "Use LENGTH() function",
+      "Select both name and length"
+    ],
+    "solutionSql": "SELECT name, LENGTH(name) as name_length FROM students;",
+    "explanation": "LENGTH() returns the number of characters in a string.",
+    "tags": ["string", "length"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "string-004",
+    "topicId": "string-functions",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "CONCAT Function",
+    "description": "Which function combines two or more strings in SQL?",
+    "datasetId": "school",
+    "hints": [
+      "Think about joining text",
+      "Common string function"
+    ],
+    "solutionSql": "",
+    "explanation": "CONCAT() joins multiple strings together.",
+    "tags": ["string", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "CONCAT()" },
+      { "id": "b", "text": "MERGE()" },
+      { "id": "c", "text": "JOIN()" },
+      { "id": "d", "text": "COMBINE()" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "string-005",
+    "topicId": "string-functions",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Substring Extract",
+    "description": "Write a query to get the first 3 characters of each student name.",
+    "datasetId": "school",
+    "hints": [
+      "Use SUBSTR() function",
+      "Syntax: SUBSTR(column, start, length)"
+    ],
+    "solutionSql": "SELECT SUBSTR(name, 1, 3) as short_name FROM students;",
+    "explanation": "SUBSTR() extracts a portion of a string starting at position 1 with length 3.",
+    "tags": ["string", "substring"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "string-006",
+    "topicId": "string-functions",
+    "type": "fill-blank",
+    "difficulty": "easy",
+    "title": "Complete String Function",
+    "description": "Complete the query to get the length of names: SELECT name, ___(name) as len FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "Function to get string length",
+      "Starts with L"
+    ],
+    "solutionSql": "SELECT name, LENGTH(name) as len FROM students;",
+    "explanation": "LENGTH() returns the number of characters in a string.",
+    "tags": ["string", "fill-blank"],
+    "points": 10,
+    "blankTemplate": "SELECT name, ___(name) as len FROM students;",
+    "acceptedAnswers": { "0": ["LENGTH", "LEN"] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "string-007",
+    "topicId": "string-functions",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "Concatenate Full Name",
+    "description": "Write a query to combine student name with their grade, formatted as 'Name (Grade)'.",
+    "datasetId": "school",
+    "hints": [
+      "Use CONCAT() or || operator",
+      "Include parentheses in output"
+    ],
+    "solutionSql": "SELECT CONCAT(name, ' (', grade, ')') as student_info FROM students;",
+    "explanation": "CONCAT() joins multiple strings together with the format specified.",
+    "tags": ["string", "concat"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "string-008",
+    "topicId": "string-functions",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict String Result",
+    "description": "What will this query return? SELECT LENGTH('LogixZen');",
+    "datasetId": "school",
+    "hints": [
+      "Count the characters",
+      "L-o-g-i-x-Z-e-n"
+    ],
+    "solutionSql": "",
+    "explanation": "'LogixZen' has 8 characters.",
+    "tags": ["string", "length"],
+    "points": 15,
+    "expectedOutput": [{ "LENGTH('LogixZen')": 8 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["LENGTH('LogixZen')"],
+          "rows": [[8]]
+        }
+      }
+    ]
+  }
+]

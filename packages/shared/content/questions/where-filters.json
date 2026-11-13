@@ -1,0 +1,280 @@
+[
+  {
+    "id": "where-001",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Filter by Grade",
+    "description": "Write a query to get all students who are in the 'Freshman' grade.",
+    "datasetId": "school",
+    "hints": [
+      "Use WHERE to filter results",
+      "The column is grade",
+      "Use = for comparison"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE grade = 'Freshman';",
+    "explanation": "The WHERE clause filters rows based on a condition. Only rows where grade equals 'Freshman' will be returned.",
+    "tags": ["where", "filter"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-002",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Filter by Age",
+    "description": "Write a query to get students who are older than 20 years old.",
+    "datasetId": "school",
+    "hints": [
+      "Use WHERE with > operator",
+      "The column is age"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE age > 20;",
+    "explanation": "The > operator selects values greater than the specified number.",
+    "tags": ["where", "comparison"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-003",
+    "topicId": "where-filters",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "AND Operator",
+    "description": "Which query gets students who are Freshmen AND older than 20?",
+    "datasetId": "school",
+    "hints": [
+      "AND requires both conditions to be true",
+      "Combine conditions with AND"
+    ],
+    "solutionSql": "",
+    "explanation": "The AND operator requires all conditions to be true for a row to be included.",
+    "tags": ["where", "logical"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "SELECT * FROM students WHERE grade = 'Freshman' AND age > 20;" },
+      { "id": "b", "text": "SELECT * FROM students WHERE grade = 'Freshman' OR age > 20;" },
+      { "id": "c", "text": "SELECT * FROM students WHERE grade = 'Freshman' OR age > 20;" },
+      { "id": "d", "text": "SELECT * FROM students WHERE grade = 'Freshman' AND age < 20;" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "where-004",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Multiple Conditions",
+    "description": "Write a query to get students who are in grade 'Senior' OR older than 21.",
+    "datasetId": "school",
+    "hints": [
+      "Use OR to combine conditions",
+      "Either condition can be true"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE grade = 'Senior' OR age > 21;",
+    "explanation": "The OR operator returns rows where at least one condition is true.",
+    "tags": ["where", "logical"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-005",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "IN Operator",
+    "description": "Write a query to get students whose grade is either 'Freshman' or 'Senior'.",
+    "datasetId": "school",
+    "hints": [
+      "Use IN to check multiple values",
+      "Syntax: column IN (value1, value2)"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE grade IN ('Freshman', 'Senior');",
+    "explanation": "The IN operator allows you to specify multiple values in a WHERE clause.",
+    "tags": ["where", "in-operator"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-006",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "LIKE Pattern Match",
+    "description": "Write a query to get all teachers whose department starts with 'C'.",
+    "datasetId": "school",
+    "hints": [
+      "Use LIKE with % wildcard",
+      "'C%' matches any string starting with C"
+    ],
+    "solutionSql": "SELECT * FROM teachers WHERE department LIKE 'C%';",
+    "explanation": "The LIKE operator with % wildcard matches any sequence of characters.",
+    "tags": ["where", "like"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-007",
+    "topicId": "where-filters",
+    "type": "debug-query",
+    "difficulty": "medium",
+    "title": "Fix WHERE Clause",
+    "description": "This query has an error. Fix it: SELECT name FROM students WHERE age = 'twenty';",
+    "datasetId": "school",
+    "hints": [
+      "Age is a number, not a string",
+      "Remove quotes around the number"
+    ],
+    "solutionSql": "SELECT name FROM students WHERE age = 20;",
+    "explanation": "Numeric values should not be enclosed in quotes. Use = 20 instead of = 'twenty'.",
+    "tags": ["debug", "where"],
+    "points": 15,
+    "brokenQuery": "SELECT name FROM students WHERE age = 'twenty';",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-008",
+    "topicId": "where-filters",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "Combined Conditions",
+    "description": "Write a query to get students who are Freshmen OR Sophomores, but only if they are older than 19.",
+    "datasetId": "school",
+    "hints": [
+      "Use parentheses to group conditions",
+      "Combine OR and AND properly"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE (grade = 'Freshman' OR grade = 'Sophomore') AND age > 19;",
+    "explanation": "Parentheses control the order of evaluation. The OR condition is evaluated first, then AND with age.",
+    "tags": ["where", "complex"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "where-009",
+    "topicId": "where-filters",
+    "type": "fill-blank",
+    "difficulty": "easy",
+    "title": "Complete the WHERE Clause",
+    "description": "Complete the query to get teachers from the Math department: SELECT * FROM teachers WHERE department ___ 'Math';",
+    "datasetId": "school",
+    "hints": [
+      "Use = for equality comparison",
+      "The operator goes between column and value"
+    ],
+    "solutionSql": "SELECT * FROM teachers WHERE department = 'Math';",
+    "explanation": "The = operator checks for equality between the column value and the specified string.",
+    "tags": ["where", "fill-blank"],
+    "points": 10,
+    "blankTemplate": "SELECT * FROM teachers WHERE department ___ 'Math';",
+    "acceptedAnswers": { "0": ["="] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "where-010",
+    "topicId": "where-filters",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Filter Results",
+    "description": "What will this query return? SELECT COUNT(*) FROM students WHERE grade = 'Senior';",
+    "datasetId": "school",
+    "hints": [
+      "How many seniors are there?",
+      "COUNT(*) counts all matching rows"
+    ],
+    "solutionSql": "",
+    "explanation": "This query counts the number of students in the Senior grade. There are 2 seniors in the data.",
+    "tags": ["where", "aggregate"],
+    "points": 15,
+    "expectedOutput": [{ "count": 2 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[2]]
+        }
+      }
+    ]
+  }
+]

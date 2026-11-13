@@ -1,0 +1,223 @@
+[
+  {
+    "id": "join-001",
+    "topicId": "joins",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Simple INNER JOIN",
+    "description": "Write a query to get student names and their course titles using JOIN.",
+    "datasetId": "school",
+    "hints": [
+      "Join students and enrollments tables",
+      "Then join with courses"
+    ],
+    "solutionSql": "SELECT s.name, c.title FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id;",
+    "explanation": "INNER JOIN combines rows from multiple tables based on matching conditions.",
+    "tags": ["join", "inner"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "join-002",
+    "topicId": "joins",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Join with Filter",
+    "description": "Write a query to get teacher names and their course titles.",
+    "datasetId": "school",
+    "hints": [
+      "Join teachers and courses tables",
+      "Match on teacher_id"
+    ],
+    "solutionSql": "SELECT t.name, c.title FROM teachers t JOIN courses c ON t.id = c.teacher_id;",
+    "explanation": "JOIN connects teachers to their courses using the teacher_id foreign key.",
+    "tags": ["join", "teacher"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "join-003",
+    "topicId": "joins",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "JOIN Types",
+    "description": "Which JOIN returns only matching rows from both tables?",
+    "datasetId": "school",
+    "hints": [
+      "It's the most common JOIN type",
+      "Also called inner join"
+    ],
+    "solutionSql": "",
+    "explanation": "INNER JOIN returns only rows where there's a match in both tables.",
+    "tags": ["join", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "INNER JOIN" },
+      { "id": "b", "text": "LEFT JOIN" },
+      { "id": "c", "text": "RIGHT JOIN" },
+      { "id": "d", "text": "CROSS JOIN" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "join-004",
+    "topicId": "joins",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "Multiple JOINs",
+    "description": "Write a query to get student names, course titles, and teacher names.",
+    "datasetId": "school",
+    "hints": [
+      "Join three tables",
+      "students -> enrollments -> courses -> teachers"
+    ],
+    "solutionSql": "SELECT s.name, c.title, t.name as teacher_name FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id JOIN teachers t ON c.teacher_id = t.id;",
+    "explanation": "Multiple JOINs connect several tables to get comprehensive data.",
+    "tags": ["join", "multiple"],
+    "points": 25,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "join-005",
+    "topicId": "joins",
+    "type": "debug-query",
+    "difficulty": "medium",
+    "title": "Fix JOIN Syntax",
+    "description": "This query has an error. Fix it: SELECT * FROM students JOIN enrollments students.id = enrollments.student_id;",
+    "datasetId": "school",
+    "hints": [
+      "Missing ON keyword",
+      "JOIN needs ON clause"
+    ],
+    "solutionSql": "SELECT * FROM students JOIN enrollments ON students.id = enrollments.student_id;",
+    "explanation": "JOIN requires the ON keyword to specify the join condition.",
+    "tags": ["debug", "join"],
+    "points": 15,
+    "brokenQuery": "SELECT * FROM students JOIN enrollments students.id = enrollments.student_id;",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "join-006",
+    "topicId": "joins",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "LEFT JOIN Example",
+    "description": "Write a query to get all students and their courses, including students with no enrollments.",
+    "datasetId": "school",
+    "hints": [
+      "Use LEFT JOIN to keep all students",
+      "Right table is enrollments"
+    ],
+    "solutionSql": "SELECT s.name, c.title FROM students s LEFT JOIN enrollments e ON s.id = e.student_id LEFT JOIN courses c ON e.course_id = c.id;",
+    "explanation": "LEFT JOIN keeps all rows from the left table even if there's no match in the right table.",
+    "tags": ["join", "left"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "join-007",
+    "topicId": "joins",
+    "type": "fill-blank",
+    "difficulty": "medium",
+    "title": "Complete JOIN Query",
+    "description": "Complete the query: SELECT * FROM students ___ enrollments ON students.id = enrollments.student_id;",
+    "datasetId": "school",
+    "hints": [
+      "Keyword to join tables",
+      "Most common join type"
+    ],
+    "solutionSql": "SELECT * FROM students JOIN enrollments ON students.id = enrollments.student_id;",
+    "explanation": "JOIN (or INNER JOIN) connects tables based on matching conditions.",
+    "tags": ["join", "fill-blank"],
+    "points": 10,
+    "blankTemplate": "SELECT * FROM students ___ enrollments ON students.id = enrollments.student_id;",
+    "acceptedAnswers": { "0": ["JOIN", "INNER JOIN"] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "join-008",
+    "topicId": "joins",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict JOIN Result",
+    "description": "What will this query return? SELECT COUNT(*) FROM students JOIN enrollments ON students.id = enrollments.student_id;",
+    "datasetId": "school",
+    "hints": [
+      "How many enrollment records exist?",
+      "Each enrollment creates one row"
+    ],
+    "solutionSql": "",
+    "explanation": "The JOIN creates one row per enrollment record. There are 10 enrollments.",
+    "tags": ["join", "count"],
+    "points": 15,
+    "expectedOutput": [{ "count": 10 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[10]]
+        }
+      }
+    ]
+  }
+]

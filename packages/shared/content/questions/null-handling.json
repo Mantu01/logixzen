@@ -1,0 +1,195 @@
+[
+  {
+    "id": "null-001",
+    "topicId": "null-handling",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Find NULL Values",
+    "description": "Write a query to find all students who have a NULL phone number.",
+    "datasetId": "school",
+    "hints": [
+      "Use IS NULL to check for NULL",
+      "Cannot use = NULL"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE phone IS NULL;",
+    "explanation": "NULL represents missing or unknown values. Use IS NULL to check for them.",
+    "tags": ["null", "is-null"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "null-002",
+    "topicId": "null-handling",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Find Non-NULL Values",
+    "description": "Write a query to find all students who have a non-NULL phone number.",
+    "datasetId": "school",
+    "hints": [
+      "Use IS NOT NULL",
+      "Opposite of IS NULL"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE phone IS NOT NULL;",
+    "explanation": "IS NOT NULL checks for values that are present (not missing).",
+    "tags": ["null", "is-not-null"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "null-003",
+    "topicId": "null-handling",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "NULL Comparison",
+    "description": "How do you check if a value is NULL in SQL?",
+    "datasetId": "school",
+    "hints": [
+      "Cannot use = operator",
+      "Special syntax required"
+    ],
+    "solutionSql": "",
+    "explanation": "NULL cannot be compared with = or !=. Must use IS NULL or IS NOT NULL.",
+    "tags": ["null", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "WHERE column IS NULL" },
+      { "id": "b", "text": "WHERE column = NULL" },
+      { "id": "c", "text": "WHERE column == NULL" },
+      { "id": "d", "text": "WHERE NULL(column)" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "null-004",
+    "topicId": "null-handling",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Replace NULL with Default",
+    "description": "Write a query to show student names, replacing NULL phone with 'N/A'.",
+    "datasetId": "school",
+    "hints": [
+      "Use COALESCE() function",
+      "Returns first non-NULL value"
+    ],
+    "solutionSql": "SELECT name, COALESCE(phone, 'N/A') as phone FROM students;",
+    "explanation": "COALESCE() returns the first non-NULL value from its arguments.",
+    "tags": ["null", "coalesce"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "null-005",
+    "topicId": "null-handling",
+    "type": "debug-query",
+    "difficulty": "medium",
+    "title": "Fix NULL Query",
+    "description": "This query has an error. Fix it: SELECT * FROM students WHERE phone = NULL;",
+    "datasetId": "school",
+    "hints": [
+      "Cannot use = with NULL",
+      "Use IS NULL instead"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE phone IS NULL;",
+    "explanation": "NULL comparisons must use IS NULL, not = NULL, because NULL represents unknown.",
+    "tags": ["debug", "null"],
+    "points": 15,
+    "brokenQuery": "SELECT * FROM students WHERE phone = NULL;",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "null-006",
+    "topicId": "null-handling",
+    "type": "fill-blank",
+    "difficulty": "easy",
+    "title": "Complete NULL Check",
+    "description": "Complete the query to find records with missing email: SELECT * FROM students WHERE email ___ NULL;",
+    "datasetId": "school",
+    "hints": [
+      "Use IS keyword for NULL",
+      "Not = operator"
+    ],
+    "solutionSql": "SELECT * FROM students WHERE email IS NULL;",
+    "explanation": "IS NULL is the correct syntax for checking NULL values.",
+    "tags": ["null", "fill-blank"],
+    "points": 10,
+    "blankTemplate": "SELECT * FROM students WHERE email ___ NULL;",
+    "acceptedAnswers": { "0": ["IS"] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "null-007",
+    "topicId": "null-handling",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict NULL Behavior",
+    "description": "What will this query return? SELECT COUNT(phone) FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "COUNT() ignores NULL values",
+      "How many non-NULL phones?"
+    ],
+    "solutionSql": "",
+    "explanation": "COUNT(column) counts non-NULL values only. It excludes NULL entries.",
+    "tags": ["null", "count"],
+    "points": 15,
+    "expectedOutput": [{ "count": 3 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[3]]
+        }
+      }
+    ]
+  }
+]

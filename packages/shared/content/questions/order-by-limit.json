@@ -1,0 +1,231 @@
+[
+  {
+    "id": "orderby-001",
+    "topicId": "order-by",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Order by Name",
+    "description": "Write a query to get all students sorted by name alphabetically.",
+    "datasetId": "school",
+    "hints": [
+      "Use ORDER BY clause",
+      "Default sort is ascending (A-Z)"
+    ],
+    "solutionSql": "SELECT * FROM students ORDER BY name;",
+    "explanation": "ORDER BY sorts results. Without DESC, sorting is ascending by default.",
+    "tags": ["order-by", "basics"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-002",
+    "topicId": "order-by",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Order by Age Descending",
+    "description": "Write a query to get all students sorted by age from oldest to youngest.",
+    "datasetId": "school",
+    "hints": [
+      "Use ORDER BY with DESC",
+      "DESC means descending order"
+    ],
+    "solutionSql": "SELECT * FROM students ORDER BY age DESC;",
+    "explanation": "DESC keyword sorts in descending order (highest to lowest).",
+    "tags": ["order-by", "descending"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-003",
+    "topicId": "order-by",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Limit Results",
+    "description": "Write a query to get the first 2 students from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use LIMIT to restrict rows",
+      "LIMIT 2 returns only 2 rows"
+    ],
+    "solutionSql": "SELECT * FROM students LIMIT 2;",
+    "explanation": "LIMIT restricts the number of rows returned by the query.",
+    "tags": ["order-by", "limit"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-004",
+    "topicId": "order-by",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "ORDER BY Syntax",
+    "description": "Which clause is used to sort query results?",
+    "datasetId": "school",
+    "hints": [
+      "Think about sorting order",
+      "It comes after FROM and WHERE"
+    ],
+    "solutionSql": "",
+    "explanation": "ORDER BY is the clause used to sort result sets.",
+    "tags": ["order-by", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "ORDER BY" },
+      { "id": "b", "text": "SORT BY" },
+      { "id": "c", "text": "GROUP BY" },
+      { "id": "d", "text": "FILTER BY" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "orderby-005",
+    "topicId": "order-by",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Sort by Multiple Columns",
+    "description": "Write a query to get students sorted by grade first, then by age descending within each grade.",
+    "datasetId": "school",
+    "hints": [
+      "List multiple columns in ORDER BY",
+      "Apply DESC to the last column"
+    ],
+    "solutionSql": "SELECT * FROM students ORDER BY grade, age DESC;",
+    "explanation": "Multiple columns are sorted in the order listed. Secondary sorting applies within groups of the first column.",
+    "tags": ["order-by", "multiple"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-006",
+    "topicId": "order-by",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Top 3 Courses",
+    "description": "Write a query to get the 3 courses with the highest credit hours.",
+    "datasetId": "school",
+    "hints": [
+      "ORDER BY credits DESC",
+      "LIMIT 3"
+    ],
+    "solutionSql": "SELECT * FROM courses ORDER BY credits DESC LIMIT 3;",
+    "explanation": "Combining ORDER BY with LIMIT gives you the top N records.",
+    "tags": ["order-by", "limit"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-007",
+    "topicId": "order-by",
+    "type": "debug-query",
+    "difficulty": "medium",
+    "title": "Fix Sort Order",
+    "description": "This query should return students sorted by age ascending, but it's wrong. Fix it: SELECT * FROM students ORDER BY age DESC;",
+    "datasetId": "school",
+    "hints": [
+      "ASC is ascending (default)",
+      "Remove DESC for ascending order"
+    ],
+    "solutionSql": "SELECT * FROM students ORDER BY age ASC;",
+    "explanation": "ASC means ascending order (lowest to highest). It's the default, so you can omit it.",
+    "tags": ["debug", "order-by"],
+    "points": 15,
+    "brokenQuery": "SELECT * FROM students ORDER BY age DESC;",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "orderby-008",
+    "topicId": "order-by",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Sorted Output",
+    "description": "What will this query return? SELECT name FROM students ORDER BY name LIMIT 2;",
+    "datasetId": "school",
+    "hints": [
+      "Sort names alphabetically",
+      "Take the first 2"
+    ],
+    "solutionSql": "",
+    "explanation": "Names sorted alphabetically: Alice, Bob, Charlie, Diana, Eve. First 2 are Alice and Bob.",
+    "tags": ["order-by", "predict"],
+    "points": 15,
+    "expectedOutput": [{ "name": "Alice" }, { "name": "Bob" }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["name"],
+          "rows": [["Alice"], ["Bob"]]
+        }
+      }
+    ]
+  }
+]

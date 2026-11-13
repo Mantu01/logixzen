@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "es2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@logixzen/shared": ["../../packages/shared/src/index.ts"],
+      "@logixzen/shared/sql-engine": ["../../packages/shared/src/sql-engine/index.ts"],
+      "@logixzen/shared/sql-engine/statementSplitter": ["../../packages/shared/src/sql-engine/statementSplitter.ts"],
+      "@logixzen/shared/sql-engine/resultComparator": ["../../packages/shared/src/sql-engine/resultComparator.ts"],
+      "@logixzen/shared/sql-engine/types": ["../../packages/shared/src/sql-engine/types.ts"],
+      "@logixzen/shared/content": ["../../packages/shared/src/content/index.ts"],
+      "@logixzen/shared/practice": ["../../packages/shared/src/practice/index.ts"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}

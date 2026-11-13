@@ -1,0 +1,44 @@
+appId: com.logixzen.app
+productName: LogixZen
+directories:
+  buildResources: build
+  output: release
+files:
+  - dist/**/*
+  - '!dist/**/*.ts'
+  - '!**/node_modules/*'
+  - '!**/*.test.ts'
+  - '!**/*.test.tsx'
+extraResources:
+  - from: packages/shared/content
+    to: content
+    filter:
+      - '**/*.json'
+mac:
+  category: public.category.development
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Development
+npmRebuild: false
+publish:
+  provider: github
+  releaseType: release
+asar: true
+asarUnpack:
+  - '**/better-sqlite3/**/*'
+  - '**/keytar/**/*'

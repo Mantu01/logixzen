@@ -1,0 +1,31 @@
+{
+  "name": "@logixzen/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.tsx",
+  "scripts": {
+    "dev": "expo start --android",
+    "build:android": "eas build --platform android",
+    "test": "jest",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~58.0.0",
+    "expo-router": "~5.0.0",
+    "expo-sqlite": "~15.0.0",
+    "expo-status-bar": "~2.0.0",
+    "expo-font": "~13.0.0",
+    "react": "19.0.0",
+    "react-native": "0.79.6",
+    "react-native-paper": "^5.14.0",
+    "react-native-safe-area-context": "~5.0.0",
+    "react-native-screens": "~4.0.0",
+    "zustand": "^5.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.0.0",
+    "typescript": "^5.5.0",
+    "babel-preset-expo": "^12.0.0"
+  }
+}

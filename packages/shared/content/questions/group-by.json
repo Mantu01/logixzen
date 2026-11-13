@@ -1,0 +1,233 @@
+[
+  {
+    "id": "groupby-001",
+    "topicId": "group-by",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Count by Grade",
+    "description": "Write a query to count students in each grade.",
+    "datasetId": "school",
+    "hints": [
+      "Use GROUP BY with grade",
+      "Combine with COUNT(*)"
+    ],
+    "solutionSql": "SELECT grade, COUNT(*) as count FROM students GROUP BY grade;",
+    "explanation": "GROUP BY groups rows with the same grade, and COUNT(*) counts each group.",
+    "tags": ["group-by", "count"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "groupby-002",
+    "topicId": "group-by",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Average Age by Grade",
+    "description": "Write a query to calculate the average age of students in each grade.",
+    "datasetId": "school",
+    "hints": [
+      "Use AVG() with GROUP BY",
+      "Group by grade column"
+    ],
+    "solutionSql": "SELECT grade, AVG(age) as avg_age FROM students GROUP BY grade;",
+    "explanation": "GROUP BY creates groups, and AVG() calculates the mean for each group.",
+    "tags": ["group-by", "average"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "groupby-003",
+    "topicId": "group-by",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Count by Department",
+    "description": "Write a query to count teachers in each department.",
+    "datasetId": "school",
+    "hints": [
+      "GROUP BY department",
+      "Use COUNT(*)"
+    ],
+    "solutionSql": "SELECT department, COUNT(*) as count FROM teachers GROUP BY department;",
+    "explanation": "Each department forms a group, and COUNT(*) tallies teachers per department.",
+    "tags": ["group-by", "departments"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "groupby-004",
+    "topicId": "group-by",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "GROUP BY Purpose",
+    "description": "What does the GROUP BY clause do?",
+    "datasetId": "school",
+    "hints": [
+      "It organizes data",
+      "It works with aggregates"
+    ],
+    "solutionSql": "",
+    "explanation": "GROUP BY groups rows that have the same values into summary rows.",
+    "tags": ["group-by", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "Groups rows with same values" },
+      { "id": "b", "text": "Sorts results alphabetically" },
+      { "id": "c", "text": "Filters rows before grouping" },
+      { "id": "d", "text": "Joins tables together" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "groupby-005",
+    "topicId": "group-by",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "HAVING Clause",
+    "description": "Write a query to get grades that have more than 1 student enrolled.",
+    "datasetId": "school",
+    "hints": [
+      "Use GROUP BY with grade",
+      "Use HAVING to filter groups",
+      "HAVING comes after GROUP BY"
+    ],
+    "solutionSql": "SELECT grade, COUNT(*) as count FROM students GROUP BY grade HAVING COUNT(*) > 1;",
+    "explanation": "HAVING filters groups after aggregation, unlike WHERE which filters rows before grouping.",
+    "tags": ["group-by", "having"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "groupby-006",
+    "topicId": "group-by",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Group Result",
+    "description": "What will this query return? SELECT grade, COUNT(*) FROM students GROUP BY grade;",
+    "datasetId": "school",
+    "hints": [
+      "How many students per grade?",
+      "Freshman: 2, Sophomore: 2, Senior: 1"
+    ],
+    "solutionSql": "",
+    "explanation": "The query groups students by grade and counts each group.",
+    "tags": ["group-by", "predict"],
+    "points": 15,
+    "expectedOutput": [{ "grade": "Freshman", "count": 2 }, { "grade": "Sophomore", "count": 2 }, { "grade": "Senior", "count": 1 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["grade", "count"],
+          "rows": [["Freshman", 2], ["Sophomore", 2], ["Senior", 1]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "groupby-007",
+    "topicId": "group-by",
+    "type": "debug-query",
+    "difficulty": "hard",
+    "title": "Fix GROUP BY Error",
+    "description": "This query has an error. Fix it: SELECT grade, name FROM students GROUP BY grade;",
+    "datasetId": "school",
+    "hints": [
+      "name is not aggregated",
+      "Remove non-aggregated columns from SELECT"
+    ],
+    "solutionSql": "SELECT grade, COUNT(*) as count FROM students GROUP BY grade;",
+    "explanation": "When using GROUP BY, all selected columns must either be in the GROUP BY clause or used in an aggregate function.",
+    "tags": ["debug", "group-by"],
+    "points": 20,
+    "brokenQuery": "SELECT grade, name FROM students GROUP BY grade;",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "groupby-008",
+    "topicId": "group-by",
+    "type": "query",
+    "difficulty": "hard",
+    "title": "Total Credits by Department",
+    "description": "Write a query to get the total credit hours offered by each department.",
+    "datasetId": "school",
+    "hints": [
+      "Join courses and teachers tables",
+      "GROUP BY department",
+      "Use SUM(credits)"
+    ],
+    "solutionSql": "SELECT t.department, SUM(c.credits) as total_credits FROM courses c JOIN teachers t ON c.teacher_id = t.id GROUP BY t.department;",
+    "explanation": "JOIN connects courses with teachers, then GROUP BY department sums credits per department.",
+    "tags": ["group-by", "join", "sum"],
+    "points": 25,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  }
+]

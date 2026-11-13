@@ -1,0 +1,7 @@
+export { useAiStore } from './store'
+export { aiService } from './service'
+export type { AiMessage, AiHintResult, AiErrorDiagnosis } from './service'
+export { useAiChat } from './hooks/useAiChat'
+export { useAiHint } from './hooks/useAiHint'
+export type { AiConfig } from './config'
+export { DEFAULT_AI_CONFIG, AI_CONFIG_KEY } from './config'

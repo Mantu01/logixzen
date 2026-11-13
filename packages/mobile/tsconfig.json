@@ -1,0 +1,61 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+    "jsx": "react-native",
+    "lib": [
+      "ES2022"
+    ],
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@logixzen/shared": [
+        "../shared/src/index.ts"
+      ],
+      "@logixzen/shared/sql-engine": [
+        "../shared/src/sql-engine/index.ts"
+      ],
+      "@logixzen/shared/sql-engine/statementSplitter": [
+        "../shared/src/sql-engine/statementSplitter.ts"
+      ],
+      "@logixzen/shared/sql-engine/resultComparator": [
+        "../shared/src/sql-engine/resultComparator.ts"
+      ],
+      "@logixzen/shared/sql-engine/types": [
+        "../shared/src/sql-engine/types.ts"
+      ],
+      "@logixzen/shared/content": [
+        "../shared/src/content/index.ts"
+      ],
+      "@logixzen/shared/practice": [
+        "../shared/src/practice/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
+}

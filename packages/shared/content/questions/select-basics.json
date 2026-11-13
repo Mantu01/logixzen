@@ -1,0 +1,425 @@
+[
+  {
+    "id": "select-001",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Select All Students",
+    "description": "Write a query to retrieve all columns from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use SELECT * to get all columns",
+      "The table name is students",
+      "End with a semicolon"
+    ],
+    "solutionSql": "SELECT * FROM students;",
+    "explanation": "SELECT * retrieves all columns from the specified table. Use FROM to specify which table to query.",
+    "tags": ["select", "basics"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-002",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Select Student Names",
+    "description": "Write a query to retrieve only the name column from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Specify only the column you need after SELECT",
+      "The column name is name",
+      "The table is students"
+    ],
+    "solutionSql": "SELECT name FROM students;",
+    "explanation": "Instead of *, list specific columns to retrieve only the data you need. This is more efficient than SELECT *.",
+    "tags": ["select", "columns"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-003",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Select Distinct Grades",
+    "description": "Write a query to get all unique grade values from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT to remove duplicates",
+      "The column is grade",
+      "Table is students"
+    ],
+    "solutionSql": "SELECT DISTINCT grade FROM students;",
+    "explanation": "DISTINCT removes duplicate values from the result set, showing each unique grade only once.",
+    "tags": ["select", "distinct"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-004",
+    "topicId": "select-basics",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "SELECT Clause Purpose",
+    "description": "What does the SELECT clause do in SQL?",
+    "datasetId": "school",
+    "hints": [
+      "Think about what data you get back",
+      "It works with FROM to specify the source"
+    ],
+    "solutionSql": "",
+    "explanation": "SELECT specifies which columns to retrieve from the database. It defines the output structure of your query.",
+    "tags": ["select", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "Specifies which columns to retrieve" },
+      { "id": "b", "text": "Creates a new table" },
+      { "id": "c", "text": "Deletes rows from a table" },
+      { "id": "d", "text": "Connects to the database" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "select-005",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Count Students",
+    "description": "Write a query to count how many students are in the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use COUNT(*) to count all rows",
+      "The table is students"
+    ],
+    "solutionSql": "SELECT COUNT(*) FROM students;",
+    "explanation": "COUNT(*) returns the total number of rows in a table. It counts all rows including those with NULL values.",
+    "tags": ["select", "aggregate"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-006",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Select Students with Age",
+    "description": "Write a query to get student names and their ages, sorted by age descending.",
+    "datasetId": "school",
+    "hints": [
+      "Select name and age columns",
+      "Use ORDER BY with DESC for descending",
+      "Sort by age"
+    ],
+    "solutionSql": "SELECT name, age FROM students ORDER BY age DESC;",
+    "explanation": "ORDER BY sorts the results. DESC means descending (highest first). Without DESC, sorting is ascending by default.",
+    "tags": ["select", "order-by"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-007",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Top 3 Students by Age",
+    "description": "Write a query to get the 3 oldest students from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use ORDER BY age DESC",
+      "Use LIMIT 3 to get only the first 3",
+      "Select name and age"
+    ],
+    "solutionSql": "SELECT name, age FROM students ORDER BY age DESC LIMIT 3;",
+    "explanation": "LIMIT restricts the number of rows returned. Combined with ORDER BY, it lets you get the top N records.",
+    "tags": ["select", "limit"],
+    "points": 15,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": true,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-008",
+    "topicId": "select-basics",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "Table Alias Syntax",
+    "description": "Which syntax correctly creates a table alias for 'students' as 's'?",
+    "datasetId": "school",
+    "hints": [
+      "The alias comes after the table name",
+      "AS is optional but recommended"
+    ],
+    "solutionSql": "",
+    "explanation": "Table aliases shorten long table names and make queries more readable. The syntax is: table_name AS alias.",
+    "tags": ["select", "aliases"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "FROM students AS s" },
+      { "id": "b", "text": "FROM s AS students" },
+      { "id": "c", "text": "FROM students WITH s" },
+      { "id": "d", "text": "FROM s students" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "select-009",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Concatenate Name Fields",
+    "description": "Write a query that returns each student's full name as 'LastName, FirstName' format. Since our table only has one name column, just select name and grade together.",
+    "datasetId": "school",
+    "hints": [
+      "Use comma to separate columns in SELECT",
+      "Get name and grade columns"
+    ],
+    "solutionSql": "SELECT name, grade FROM students;",
+    "explanation": "You can select multiple columns by separating them with commas. The order in SELECT determines the column order in the result.",
+    "tags": ["select", "columns"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-010",
+    "topicId": "select-basics",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Query Output",
+    "description": "What will this query return? SELECT COUNT(DISTINCT grade) FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "How many unique grades are there?",
+      "COUNT(DISTINCT ...) counts unique values"
+    ],
+    "solutionSql": "",
+    "explanation": "COUNT(DISTINCT grade) counts the number of unique grade values. In our data: Freshman, Sophomore, Senior = 3 unique grades.",
+    "tags": ["select", "aggregate", "distinct"],
+    "points": 20,
+    "expectedOutput": [{ "count": 3 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[3]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "select-011",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "List All Courses",
+    "description": "Write a query to get all course titles from the courses table.",
+    "datasetId": "school",
+    "hints": [
+      "The table is courses",
+      "The column is title"
+    ],
+    "solutionSql": "SELECT title FROM courses;",
+    "explanation": "Simple SELECT on a single column returns all values in that column, one per row.",
+    "tags": ["select", "basics"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-012",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Students in Science Department",
+    "description": "This query has an error. Fix it: SELECT name, age FORM students WHERE grade = 'Freshman';",
+    "datasetId": "school",
+    "hints": [
+      "Check the keyword spelling",
+      "FROM is misspelled"
+    ],
+    "solutionSql": "SELECT name, age FROM students WHERE grade = 'Freshman';",
+    "explanation": "SQL keywords must be spelled correctly. 'FORM' is not a valid SQL keyword; use 'FROM' instead.",
+    "tags": ["debug", "syntax"],
+    "points": 15,
+    "brokenQuery": "SELECT name, age FORM students WHERE grade = 'Freshman';",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-013",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Get Teacher Subjects",
+    "description": "Write a query to get the subject and department for each teacher.",
+    "datasetId": "school",
+    "hints": [
+      "Table is teachers",
+      "Columns are subject and department"
+    ],
+    "solutionSql": "SELECT subject, department FROM teachers;",
+    "explanation": "Multiple columns are selected by listing them separated by commas after SELECT.",
+    "tags": ["select", "multi-column"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "select-014",
+    "topicId": "select-basics",
+    "type": "fill-blank",
+    "difficulty": "easy",
+    "title": "Fill in the SELECT Statement",
+    "description": "Complete the query to get all student names: SELECT ___ FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "Use * to select all columns",
+      "The wildcard character is asterisk"
+    ],
+    "solutionSql": "SELECT * FROM students;",
+    "explanation": "The asterisk (*) is a wildcard that represents all columns in a table.",
+    "tags": ["select", "wildcard"],
+    "points": 10,
+    "blankTemplate": "SELECT ___ FROM students;",
+    "acceptedAnswers": { "0": ["*"] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "select-015",
+    "topicId": "select-basics",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Enrollment Count per Student",
+    "description": "Write a query to get each student's name and how many courses they are enrolled in.",
+    "datasetId": "school",
+    "hints": [
+      "Join students and enrollments tables",
+      "Use COUNT(*) to count enrollments",
+      "Group by student name"
+    ],
+    "solutionSql": "SELECT s.name, COUNT(*) as enrollment_count FROM students s JOIN enrollments e ON s.id = e.student_id GROUP BY s.name;",
+    "explanation": "JOIN combines rows from two tables. COUNT(*) with GROUP BY gives the count per group. The alias 'as enrollment_count' names the result column.",
+    "tags": ["select", "join", "aggregate"],
+    "points": 20,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": true
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  }
+]

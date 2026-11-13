@@ -1,0 +1,11 @@
+[
+  { "id": "select-basics", "title": "SELECT Basics", "description": "Learn the fundamentals of SELECT statements", "order": 0 },
+  { "id": "where-filters", "title": "WHERE Filters", "description": "Filter data with WHERE clause", "order": 1 },
+  { "id": "order-by-limit", "title": "ORDER BY & LIMIT", "description": "Sort and limit query results", "order": 2 },
+  { "id": "distinct", "title": "DISTINCT", "description": "Remove duplicate values", "order": 3 },
+  { "id": "aggregate-functions", "title": "Aggregate Functions", "description": "COUNT, SUM, AVG, MAX, MIN", "order": 4 },
+  { "id": "group-by", "title": "GROUP BY & HAVING", "description": "Group and filter aggregated data", "order": 5 },
+  { "id": "joins", "title": "JOINs", "description": "Combine tables with JOINs", "order": 6 },
+  { "id": "string-functions", "title": "String Functions", "description": "Manipulate text data", "order": 7 },
+  { "id": "null-handling", "title": "NULL Handling", "description": "Work with missing values", "order": 8 }
+]

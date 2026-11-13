@@ -1,0 +1,223 @@
+[
+  {
+    "id": "distinct-001",
+    "topicId": "distinct",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Unique Grades",
+    "description": "Write a query to get all unique grade values from the students table.",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT keyword",
+      "Place it after SELECT"
+    ],
+    "solutionSql": "SELECT DISTINCT grade FROM students;",
+    "explanation": "DISTINCT removes duplicate values, showing each unique grade only once.",
+    "tags": ["distinct", "basics"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "distinct-002",
+    "topicId": "distinct",
+    "type": "query",
+    "difficulty": "easy",
+    "title": "Unique Departments",
+    "description": "Write a query to get all unique departments from the teachers table.",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT on department column",
+      "Table is teachers"
+    ],
+    "solutionSql": "SELECT DISTINCT department FROM teachers;",
+    "explanation": "DISTINCT returns only unique values from the specified column.",
+    "tags": ["distinct", "departments"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "distinct-003",
+    "topicId": "distinct",
+    "type": "mcq-single",
+    "difficulty": "easy",
+    "title": "DISTINCT Purpose",
+    "description": "What does the DISTINCT keyword do in SQL?",
+    "datasetId": "school",
+    "hints": [
+      "It affects duplicates",
+      "It works with SELECT"
+    ],
+    "solutionSql": "",
+    "explanation": "DISTINCT eliminates duplicate rows from the result set.",
+    "tags": ["distinct", "theory"],
+    "points": 10,
+    "options": [
+      { "id": "a", "text": "Removes duplicate rows" },
+      { "id": "b", "text": "Sorts results alphabetically" },
+      { "id": "c", "text": "Limits the number of rows" },
+      { "id": "d", "text": "Joins multiple tables" }
+    ],
+    "correctOptionId": "a",
+    "validation": { "mode": "mcq" },
+    "testCases": [
+      { "id": "tc-1", "expected": { "type": "literal", "columns": ["result"], "rows": [["correct"]] } }
+    ]
+  },
+  {
+    "id": "distinct-004",
+    "topicId": "distinct",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Distinct Course Titles",
+    "description": "Write a query to get all unique course titles.",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT with title column",
+      "Table is courses"
+    ],
+    "solutionSql": "SELECT DISTINCT title FROM courses;",
+    "explanation": "DISTINCT ensures each course title appears only once.",
+    "tags": ["distinct", "courses"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "distinct-005",
+    "topicId": "distinct",
+    "type": "predict-output",
+    "difficulty": "medium",
+    "title": "Predict Distinct Grades",
+    "description": "What will this query return? SELECT COUNT(DISTINCT grade) FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "How many unique grades exist?",
+      "Freshman, Sophomore, Senior = 3"
+    ],
+    "solutionSql": "",
+    "explanation": "There are 3 unique grades: Freshman, Sophomore, and Senior.",
+    "tags": ["distinct", "count"],
+    "points": 15,
+    "expectedOutput": [{ "count": 3 }],
+    "validation": {
+      "mode": "predict-output",
+      "orderMatters": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": {
+          "type": "literal",
+          "columns": ["count"],
+          "rows": [[3]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "distinct-006",
+    "topicId": "distinct",
+    "type": "fill-blank",
+    "difficulty": "easy",
+    "title": "Complete DISTINCT Query",
+    "description": "Complete the query to get unique subjects: SELECT ___ subject FROM teachers;",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT before the column name",
+      "It goes right after SELECT"
+    ],
+    "solutionSql": "SELECT DISTINCT subject FROM teachers;",
+    "explanation": "DISTINCT keyword removes duplicate subject values.",
+    "tags": ["distinct", "fill-blank"],
+    "points": 10,
+    "blankTemplate": "SELECT ___ subject FROM teachers;",
+    "acceptedAnswers": { "0": ["DISTINCT"] },
+    "validation": { "mode": "fill-blank" }
+  },
+  {
+    "id": "distinct-007",
+    "topicId": "distinct",
+    "type": "debug-query",
+    "difficulty": "medium",
+    "title": "Fix DISTINCT Syntax",
+    "description": "This query has an error. Fix it: SELECT grade DISTINCT FROM students;",
+    "datasetId": "school",
+    "hints": [
+      "DISTINCT goes before the column",
+      "Not after the column"
+    ],
+    "solutionSql": "SELECT DISTINCT grade FROM students;",
+    "explanation": "DISTINCT must come immediately after SELECT, before the column name.",
+    "tags": ["debug", "distinct"],
+    "points": 15,
+    "brokenQuery": "SELECT grade DISTINCT FROM students;",
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  },
+  {
+    "id": "distinct-008",
+    "topicId": "distinct",
+    "type": "query",
+    "difficulty": "medium",
+    "title": "Distinct Credit Values",
+    "description": "Write a query to get all unique credit hour values from courses.",
+    "datasetId": "school",
+    "hints": [
+      "Use DISTINCT on credits column",
+      "Table is courses"
+    ],
+    "solutionSql": "SELECT DISTINCT credits FROM courses;",
+    "explanation": "DISTINCT shows only the unique credit values available.",
+    "tags": ["distinct", "credits"],
+    "points": 10,
+    "validation": {
+      "mode": "result-match",
+      "orderMatters": false,
+      "columnNamesMatter": false
+    },
+    "testCases": [
+      {
+        "id": "tc-1",
+        "expected": { "type": "fromSolution" }
+      }
+    ]
+  }
+]
