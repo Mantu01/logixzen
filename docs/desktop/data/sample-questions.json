@@ -132,11 +132,14 @@
       "points": 5,
       "solutionSql": "SELECT * FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -163,11 +166,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name, email FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -194,11 +200,14 @@
       "points": 5,
       "solutionSql": "SELECT DISTINCT department_id FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -225,11 +234,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE status = 'Active'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -256,11 +268,14 @@
       "points": 5,
       "solutionSql": "SELECT COUNT(*) AS total_students FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -286,11 +301,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE gpa > 3.5",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -317,11 +335,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE enrollment_date >= '2022-01-01' AND enrollment_date < '2023-01-01'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -347,11 +368,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name FROM teachers WHERE department_id = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -377,11 +401,14 @@
       "points": 5,
       "solutionSql": "SELECT title, price FROM books WHERE price < 12.00",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -407,11 +434,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE department_id <> 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -438,11 +468,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE advisor_teacher_id IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -469,11 +502,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, gender FROM students WHERE gender = 'Female'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -500,11 +536,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, city, state FROM students WHERE status = 'Active' AND state = 'IL'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -531,11 +570,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, last_name, hire_date FROM teachers WHERE hire_date > '2015-01-01'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -562,11 +604,14 @@
       "points": 8,
       "solutionSql": "SELECT course_number, section, room FROM courses WHERE subject_id = 2 AND semester = 'Fall' AND year = 2023",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -593,11 +638,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, gpa FROM students WHERE gpa BETWEEN 3.0 AND 3.5",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -624,11 +672,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, department_id FROM teachers WHERE department_id IN (1, 2, 3)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -655,11 +706,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE last_name LIKE 'J%'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -686,11 +740,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, phone FROM students WHERE phone IS NOT NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -717,11 +774,14 @@
       "points": 7,
       "solutionSql": "SELECT title, published_year FROM books WHERE published_year BETWEEN 1940 AND 1965",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -749,11 +809,14 @@
       "points": 9,
       "solutionSql": "SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date > '2024-01-31'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -780,11 +843,14 @@
       "points": 6,
       "solutionSql": "SELECT course_number, subject_id FROM courses WHERE subject_id IN (1, 2, 3, 5)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -811,11 +877,14 @@
       "points": 8,
       "solutionSql": "SELECT student_id, grade FROM enrollments WHERE grade IS NOT NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -841,11 +910,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, last_name, birth_year FROM authors WHERE birth_year < 1900",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -872,11 +944,14 @@
       "points": 7,
       "solutionSql": "SELECT name, budget FROM departments WHERE budget > 200000",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -903,11 +978,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -934,11 +1012,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name, salary FROM teachers ORDER BY salary ASC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -965,11 +1046,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC LIMIT 5",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -997,11 +1081,14 @@
       "points": 8,
       "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE enrollment_date >= '2021-01-01' AND enrollment_date < '2022-01-01' ORDER BY first_name",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1028,11 +1115,14 @@
       "points": 6,
       "solutionSql": "SELECT title, price FROM books ORDER BY price DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1060,11 +1150,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, enrollment_date FROM students ORDER BY enrollment_date DESC LIMIT 3",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1091,11 +1184,14 @@
       "points": 6,
       "solutionSql": "SELECT name, budget FROM departments ORDER BY budget DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1123,11 +1219,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC, last_name ASC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1154,11 +1253,14 @@
       "points": 5,
       "solutionSql": "SELECT COUNT(*) AS total_students FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1185,11 +1287,14 @@
       "points": 5,
       "solutionSql": "SELECT AVG(gpa) AS avg_gpa FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1217,11 +1322,14 @@
       "points": 7,
       "solutionSql": "SELECT MAX(salary) AS max_salary, MIN(salary) AS min_salary FROM teachers",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1249,11 +1357,14 @@
       "points": 8,
       "solutionSql": "SELECT SUM(price * stock) AS total_value FROM books",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1281,11 +1392,14 @@
       "points": 7,
       "solutionSql": "SELECT COUNT(*) AS active_teachers FROM teachers WHERE is_active = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1312,11 +1426,14 @@
       "points": 7,
       "solutionSql": "SELECT SUM(amount_awarded) AS total_scholarship FROM student_scholarships",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1346,11 +1463,14 @@
       "points": 12,
       "solutionSql": "SELECT d.name, COUNT(t.id) AS teacher_count, SUM(t.salary) AS total_salary FROM departments d LEFT JOIN teachers t ON d.id = t.department_id GROUP BY d.id, d.name ORDER BY total_salary DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1379,11 +1499,14 @@
       "points": 10,
       "solutionSql": "SELECT e.course_id, ROUND(AVG(er.marks_obtained), 1) AS avg_marks FROM exams e JOIN exam_results er ON e.id = er.exam_id GROUP BY e.course_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1411,11 +1534,14 @@
       "points": 6,
       "solutionSql": "SELECT department_id, COUNT(*) AS student_count FROM students GROUP BY department_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1443,11 +1569,14 @@
       "points": 7,
       "solutionSql": "SELECT department_id, ROUND(AVG(gpa), 2) AS avg_gpa FROM students GROUP BY department_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1474,11 +1603,14 @@
       "points": 7,
       "solutionSql": "SELECT subject_id, COUNT(*) AS course_count FROM courses GROUP BY subject_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1506,11 +1638,14 @@
       "points": 9,
       "solutionSql": "SELECT department_id, COUNT(*) AS student_count FROM students GROUP BY department_id HAVING COUNT(*) > 3",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1538,11 +1673,14 @@
       "points": 7,
       "solutionSql": "SELECT status, COUNT(*) AS enrollment_count FROM enrollments GROUP BY status ORDER BY enrollment_count DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1570,11 +1708,14 @@
       "points": 8,
       "solutionSql": "SELECT category, SUM(stock) AS total_stock FROM books GROUP BY category ORDER BY total_stock DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1603,11 +1744,14 @@
       "points": 10,
       "solutionSql": "SELECT student_id, COUNT(*) AS course_count FROM enrollments WHERE status IN ('Completed', 'In Progress') GROUP BY student_id HAVING COUNT(*) > 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1637,11 +1781,14 @@
       "points": 12,
       "solutionSql": "SELECT course_id, ROUND(AVG(attendance_percentage), 1) AS avg_attendance FROM enrollments WHERE status = 'Completed' GROUP BY course_id HAVING AVG(attendance_percentage) >= 80 ORDER BY avg_attendance DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1669,11 +1816,14 @@
       "points": 7,
       "solutionSql": "SELECT s.first_name, s.last_name, d.name AS department_name FROM students s JOIN departments d ON s.department_id = d.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1700,11 +1850,14 @@
       "points": 6,
       "solutionSql": "SELECT t.first_name, t.last_name, d.name AS department FROM teachers t JOIN departments d ON t.department_id = d.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1732,11 +1885,14 @@
       "points": 9,
       "solutionSql": "SELECT c.course_number, sub.name AS subject_name, t.first_name || ' ' || t.last_name AS teacher_name FROM courses c JOIN subjects sub ON c.subject_id = sub.id JOIN teachers t ON c.teacher_id = t.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1764,11 +1920,14 @@
       "points": 9,
       "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.grade FROM enrollments e JOIN students s ON e.student_id = s.id JOIN courses c ON e.course_id = c.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1797,11 +1956,14 @@
       "points": 10,
       "solutionSql": "SELECT b.title, a.first_name || ' ' || a.last_name AS author_name FROM books b JOIN book_authors ba ON b.id = ba.book_id JOIN authors a ON ba.author_id = a.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1830,11 +1992,14 @@
       "points": 10,
       "solutionSql": "SELECT s.first_name, s.last_name, e.title, er.marks_obtained FROM exam_results er JOIN students s ON er.student_id = s.id JOIN exams e ON er.exam_id = e.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1862,11 +2027,14 @@
       "points": 10,
       "solutionSql": "SELECT s.first_name, s.last_name, b.title, l.loan_date, l.status FROM loans l JOIN students s ON l.student_id = s.id JOIN books b ON l.book_id = b.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1895,11 +2063,14 @@
       "points": 12,
       "solutionSql": "SELECT c.course_number, c.section, COUNT(e.id) AS enrolled_students FROM courses c LEFT JOIN enrollments e ON c.id = e.course_id AND e.status IN ('Enrolled', 'In Progress') GROUP BY c.id, c.course_number, c.section",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1927,11 +2098,14 @@
       "points": 9,
       "solutionSql": "SELECT d.name AS department_name, t.first_name || ' ' || t.last_name AS head_teacher FROM departments d LEFT JOIN teachers t ON d.head_teacher_id = t.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1959,11 +2133,14 @@
       "points": 10,
       "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.grade FROM enrollments e JOIN students s ON e.student_id = s.id JOIN courses c ON e.course_id = c.id WHERE e.grade IN ('F', 'D+', 'D', 'D-', 'F+')",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -1992,11 +2169,14 @@
       "points": 11,
       "solutionSql": "SELECT s.first_name, s.last_name, sh.name AS scholarship_name, ss.amount_awarded FROM student_scholarships ss JOIN students s ON ss.student_id = s.id JOIN scholarships sh ON ss.scholarship_id = sh.id ORDER BY ss.amount_awarded DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2025,11 +2205,14 @@
       "points": 12,
       "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.title, er.marks_obtained, e.total_marks FROM exam_results er JOIN students s ON er.student_id = s.id JOIN exams e ON er.exam_id = e.id JOIN courses c ON e.course_id = c.id ORDER BY s.last_name, e.exam_date",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2057,11 +2240,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE gpa > (SELECT AVG(gpa) FROM students)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2089,11 +2275,14 @@
       "points": 9,
       "solutionSql": "SELECT course_number FROM courses WHERE teacher_id IN (SELECT id FROM teachers WHERE department_id = 1)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2121,11 +2310,14 @@
       "points": 11,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE department_id = (SELECT department_id FROM students WHERE first_name = 'Alice' AND last_name = 'Johnson') AND first_name != 'Alice'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2153,11 +2345,14 @@
       "points": 10,
       "solutionSql": "SELECT title FROM books WHERE subject_id IN (SELECT subject_id FROM books GROUP BY subject_id HAVING COUNT(*) > 2)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2169,27 +2364,30 @@
       "type": "query",
       "topicId": "subqueries",
       "difficulty": "hard",
-      "title": "Students with no enrollments",
-      "description": "Return first_name, last_name of students who have never been enrolled in any course.",
+      "title": "Students who never took an exam",
+      "description": "Return first_name, last_name of students who have never appeared in any exam result.",
       "datasetId": "school",
       "hints": [
-        "NOT IN subquery finds students absent from enrollments",
-        "DISTINCT ensures no duplicates",
-        "Students with no enrollments won't appear in the subquery"
+        "NOT IN subquery finds students absent from exam_results",
+        "DISTINCT keeps the subquery result clean",
+        "Students with no exam results won't appear in the subquery"
       ],
-      "explanation": "NOT IN with a subquery identifies missing relationships.",
+      "explanation": "NOT IN with a subquery identifies missing relationships — here, students without exam records.",
       "tags": [
         "subquery",
         "not-in"
       ],
       "points": 11,
-      "solutionSql": "SELECT first_name, last_name FROM students WHERE id NOT IN (SELECT DISTINCT student_id FROM enrollments)",
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE id NOT IN (SELECT DISTINCT student_id FROM exam_results)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2217,11 +2415,14 @@
       "points": 10,
       "solutionSql": "SELECT course_number FROM courses WHERE enrolled_count > (SELECT AVG(enrolled_count) FROM courses)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2249,11 +2450,14 @@
       "points": 11,
       "solutionSql": "SELECT first_name, last_name FROM teachers WHERE id NOT IN (SELECT DISTINCT teacher_id FROM courses)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2281,11 +2485,14 @@
       "points": 12,
       "solutionSql": "SELECT c.course_number, MAX(er.marks_obtained) AS highest_marks FROM courses c JOIN exams e ON c.id = e.course_id JOIN exam_results er ON e.id = er.exam_id GROUP BY c.id, c.course_number",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2313,11 +2520,14 @@
       "points": 10,
       "solutionSql": "SELECT DISTINCT s.first_name, s.last_name FROM students s JOIN exam_results er ON s.id = er.student_id WHERE er.marks_obtained > 90",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2333,7 +2543,8 @@
       "description": "Return subject code and name for subjects whose exam average marks exceed 80.",
       "datasetId": "school",
       "hints": [
-        "Nested subquery: group exams by subject",
+        "Nested subquery: group exam results by subject via courses",
+        "exams link to courses (course_id), courses carry subject_id",
         "HAVING AVG > 80 finds strong subjects",
         "Outer query gets subject codes and names"
       ],
@@ -2343,13 +2554,16 @@
         "nested-avg"
       ],
       "points": 13,
-      "solutionSql": "SELECT sub.code, sub.name FROM subjects sub WHERE sub.id IN (SELECT e.subject_id FROM exams e JOIN exam_results er ON e.id = er.exam_id GROUP BY e.subject_id HAVING AVG(er.marks_obtained) > 80)",
+      "solutionSql": "SELECT sub.code, sub.name FROM subjects sub WHERE sub.id IN (SELECT c.subject_id FROM exams e JOIN courses c ON e.course_id = c.id JOIN exam_results er ON e.id = er.exam_id GROUP BY c.subject_id HAVING AVG(er.marks_obtained) > 80)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2361,28 +2575,31 @@
       "type": "query",
       "topicId": "set-operations",
       "difficulty": "medium",
-      "title": "Students and teachers in same city",
-      "description": "Return first_name and city from students and teachers who share the same city (use UNION).",
+      "title": "Students and teachers combined via UNION",
+      "description": "Return first_name of every student labeled 'Student' and every teacher labeled 'Teacher' in a single result (use UNION).",
       "datasetId": "school",
       "hints": [
         "UNION combines distinct results from two queries",
-        "First query gets students",
-        "Second gets teachers",
-        "UNION removes duplicates automatically"
+        "First query gets students with a 'Student' role label",
+        "Second gets teachers with a 'Teacher' role label",
+        "UNION removes duplicate first names automatically"
       ],
-      "explanation": "UNION merges two result sets while eliminating duplicates.",
+      "explanation": "UNION merges two result sets while eliminating duplicates. Role labels keep students and teachers distinguishable.",
       "tags": [
         "set",
         "union"
       ],
       "points": 8,
-      "solutionSql": "SELECT first_name, city FROM students UNION SELECT first_name, city FROM teachers",
+      "solutionSql": "SELECT first_name, 'Student' AS role FROM students UNION SELECT first_name, 'Teacher' AS role FROM teachers",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2394,27 +2611,31 @@
       "type": "query",
       "topicId": "set-operations",
       "difficulty": "medium",
-      "title": "Names from Springfield",
-      "description": "Return all first_names from students and teachers located in Springfield (no duplicates).",
+      "title": "Active students and active teachers",
+      "description": "Return first_name of all active students and active teachers combined (no duplicates) using UNION.",
       "datasetId": "school",
       "hints": [
-        "Filter both tables to Springfield",
-        "UNION combines distinct names",
-        "Both source tables share the same city"
+        "Students have a status column; teachers have is_active",
+        "Filter students WHERE status = 'Active'",
+        "Filter teachers WHERE is_active = 1",
+        "UNION merges both lists without duplicates"
       ],
-      "explanation": "Springfield appears as the city for all sample records.",
+      "explanation": "Each table filters by its own active flag; UNION combines the results and deduplicates names.",
       "tags": [
         "set",
         "union-filter"
       ],
       "points": 8,
-      "solutionSql": "SELECT first_name FROM students WHERE city = 'Springfield' UNION SELECT first_name FROM teachers WHERE city = 'Springfield'",
+      "solutionSql": "SELECT first_name FROM students WHERE status = 'Active' UNION SELECT first_name FROM teachers WHERE is_active = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2443,11 +2664,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name FROM students EXCEPT SELECT first_name FROM students WHERE department_id = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2476,11 +2700,14 @@
       "points": 9,
       "solutionSql": "SELECT course_number FROM courses WHERE semester = 'Fall' AND year = 2023 INTERSECT SELECT course_number FROM courses WHERE semester = 'Spring' AND year = 2024",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2507,11 +2734,14 @@
       "points": 10,
       "solutionSql": "SELECT first_name FROM students WHERE status = 'Active' EXCEPT SELECT first_name FROM students WHERE status = 'Graduated'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2539,11 +2769,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name FROM teachers WHERE department_id = 1 UNION SELECT first_name FROM students WHERE department_id = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2571,11 +2804,14 @@
       "points": 12,
       "solutionSql": "SELECT s.first_name, s.last_name FROM students s JOIN enrollments e1 ON s.id = e1.student_id JOIN courses c1 ON e1.course_id = c1.id JOIN enrollments e2 ON s.id = e2.student_id JOIN courses c2 ON e2.course_id = c2.id WHERE c1.course_number = 'CS101' AND c2.course_number = 'MATH101'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2587,13 +2823,13 @@
       "type": "query",
       "topicId": "set-operations",
       "difficulty": "hard",
-      "title": "Students with A and F grades",
-      "description": "Return distinct first_name, last_name of students who have both an A grade and an F grade in any enrollments.",
+      "title": "Students with A and B+ grades",
+      "description": "Return distinct first_name, last_name of students who have both an A grade and a B+ grade in any enrollments.",
       "datasetId": "school",
       "hints": [
         "Join enrollments twice on the same student",
-        "One copy requires grade = A",
-        "Other copy requires grade = F",
+        "One copy requires grade = 'A'",
+        "Other copy requires grade = 'B+'",
         "DISTINCT avoids duplicates"
       ],
       "explanation": "A student appearing in two enrollment copies with different grades satisfies the condition.",
@@ -2602,13 +2838,16 @@
         "dual-enrollment"
       ],
       "points": 12,
-      "solutionSql": "SELECT DISTINCT s.first_name, s.last_name FROM students s JOIN enrollments e1 ON s.id = e1.student_id JOIN enrollments e2 ON s.id = e2.student_id WHERE e1.grade = 'A' AND e2.grade = 'F'",
+      "solutionSql": "SELECT DISTINCT s.first_name, s.last_name FROM students s JOIN enrollments e1 ON s.id = e1.student_id JOIN enrollments e2 ON s.id = e2.student_id WHERE e1.grade = 'A' AND e2.grade = 'B+'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2636,11 +2875,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name || ' ' || last_name AS full_name FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2668,11 +2910,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, UPPER(email) AS email_upper FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2699,11 +2944,14 @@
       "points": 6,
       "solutionSql": "SELECT first_name, LENGTH(first_name) AS name_length FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2731,11 +2979,14 @@
       "points": 8,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE LOWER(email) LIKE '%alice%'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2763,11 +3014,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, SUBSTR(email, INSTR(email, '@') + 1) AS domain FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2795,11 +3049,14 @@
       "points": 11,
       "solutionSql": "SELECT title, CASE WHEN LOWER(title) LIKE 'a %' THEN SUBSTR(title, 3) WHEN LOWER(title) LIKE 'an %' THEN SUBSTR(title, 4) WHEN LOWER(title) LIKE 'the %' THEN SUBSTR(title, 5) ELSE title END AS sort_title FROM books ORDER BY sort_title",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2825,11 +3082,14 @@
       "points": 3,
       "solutionSql": "SELECT date('now')",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2858,11 +3118,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, date_of_birth, CAST((julianday('2024-01-01') - julianday(date_of_birth)) / 365.25 AS INTEGER) AS age FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2889,11 +3152,14 @@
       "points": 7,
       "solutionSql": "SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date < '2024-02-01'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2920,11 +3186,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, CAST(strftime('%Y', enrollment_date) AS INTEGER) AS enrollment_year FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2952,11 +3221,14 @@
       "points": 10,
       "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE CAST(strftime('%Y', enrollment_date) AS INTEGER) % 2 = 0",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -2984,11 +3256,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, CAST((julianday('2024-06-01') - julianday(enrollment_date)) / 30.44 AS INTEGER) AS months_enrolled FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3015,11 +3290,14 @@
       "points": 5,
       "solutionSql": "SELECT first_name, last_name FROM students WHERE advisor_teacher_id IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3047,11 +3325,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, COALESCE(CAST(advisor_teacher_id AS TEXT), 'Unassigned') AS advisor FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3079,11 +3360,14 @@
       "points": 8,
       "solutionSql": "SELECT SUM(CASE WHEN grade IS NOT NULL THEN 1 ELSE 0 END) AS graded, SUM(CASE WHEN grade IS NULL THEN 1 ELSE 0 END) AS ungraded FROM enrollments",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3111,11 +3395,14 @@
       "points": 9,
       "solutionSql": "SELECT first_name, address, city, state FROM students WHERE address IS NULL OR city IS NULL OR state IS NULL OR zip_code IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3142,11 +3429,14 @@
       "points": 7,
       "solutionSql": "SELECT student_id, book_id, loan_date FROM loans WHERE status = 'Active' AND return_date IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3158,27 +3448,30 @@
       "type": "query",
       "topicId": "null-handling",
       "difficulty": "hard",
-      "title": "Exam results with NULL marks",
-      "description": "Return exam title and course_number for exams where at least one result has NULL marks_obtained.",
+      "title": "Exams with no recorded results",
+      "description": "Return exam title and course_number for exams that have no rows in exam_results.",
       "datasetId": "school",
       "hints": [
-        "Subquery finds exam_ids with NULL marks",
-        "Outer query gets exam details",
-        "JOIN through exams to courses"
+        "NOT IN subquery finds exams absent from exam_results",
+        "JOIN exams to courses for the course_number",
+        "Several exams in the dataset have no results yet"
       ],
-      "explanation": "NULL marks_obtained may indicate a student skipped the exam.",
+      "explanation": "NOT IN with a subquery identifies exams that exist but have no recorded results.",
       "tags": [
         "null",
         "missing-score"
       ],
       "points": 10,
-      "solutionSql": "SELECT e.title, c.course_number FROM exams e JOIN courses c ON e.course_id = c.id WHERE e.id IN (SELECT exam_id FROM exam_results WHERE marks_obtained IS NULL)",
+      "solutionSql": "SELECT e.title, c.course_number FROM exams e JOIN courses c ON e.course_id = c.id WHERE e.id NOT IN (SELECT DISTINCT exam_id FROM exam_results)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3206,11 +3499,14 @@
       "points": 10,
       "solutionSql": "SELECT first_name, last_name, department_id, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS gpa_rank FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3238,11 +3534,14 @@
       "points": 10,
       "solutionSql": "SELECT student_id, scholarship_id, amount_awarded, SUM(amount_awarded) OVER (PARTITION BY student_id ORDER BY amount_awarded) AS running_total FROM student_scholarships",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3270,11 +3569,14 @@
       "points": 11,
       "solutionSql": "SELECT course_id, student_id, grade, grade_points, ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY grade_points DESC NULLS LAST) AS enrollment_rank FROM enrollments WHERE status = 'Completed'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3302,11 +3604,14 @@
       "points": 12,
       "solutionSql": "SELECT first_name, last_name, gpa, ROUND(gpa - AVG(gpa) OVER (PARTITION BY department_id), 2) AS gpa_deviation FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3334,11 +3639,14 @@
       "points": 11,
       "solutionSql": "SELECT student_id, course_id, enrollment_date, LAG(enrollment_date, 1) OVER (PARTITION BY student_id ORDER BY enrollment_date) AS prev_enrollment FROM enrollments",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3366,11 +3674,14 @@
       "points": 14,
       "solutionSql": "SELECT c.course_number, s.first_name, s.last_name, er.marks_obtained, ROUND(100.0 * (RANK() OVER (PARTITION BY e.course_id ORDER BY er.marks_obtained) - 1) / (COUNT(*) OVER (PARTITION BY e.course_id) - 1), 1) AS percentile_rank FROM exam_results er JOIN exams e ON er.exam_id = e.id JOIN courses c ON e.course_id = c.id JOIN students s ON er.student_id = s.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3398,11 +3709,14 @@
       "points": 8,
       "solutionSql": "WITH high_gpa AS (SELECT first_name, last_name, gpa FROM students WHERE gpa >= 3.5) SELECT * FROM high_gpa",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3430,11 +3744,14 @@
       "points": 9,
       "solutionSql": "WITH dept_avg AS (SELECT department_id, ROUND(AVG(gpa), 2) AS avg_gpa FROM students GROUP BY department_id) SELECT d.name, da.avg_gpa FROM dept_avg da JOIN departments d ON da.department_id = d.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3462,11 +3779,14 @@
       "points": 12,
       "solutionSql": "WITH ranked AS (SELECT first_name, last_name, department_id, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS rnk FROM students) SELECT first_name, last_name, department_id, gpa FROM ranked WHERE rnk = 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3482,7 +3802,7 @@
       "description": "Using a CTE, show semester and total enrollments per semester for Fall 2023 and Spring 2024.",
       "datasetId": "school",
       "hints": [
-        "Group enrollments by semester and year",
+        "Join enrollments to courses — semester and year live on courses",
         "Count statuses that indicate activity",
         "Format period as semester + year"
       ],
@@ -3492,13 +3812,16 @@
         "semester-counts"
       ],
       "points": 10,
-      "solutionSql": "WITH sem_counts AS (SELECT semester, year, COUNT(*) AS cnt FROM enrollments WHERE status IN ('Completed', 'In Progress') GROUP BY semester, year) SELECT semester || ' ' || CAST(year AS TEXT) AS period, cnt FROM sem_counts ORDER BY year, semester",
+      "solutionSql": "WITH sem_counts AS (SELECT c.semester, c.year, COUNT(*) AS cnt FROM enrollments e JOIN courses c ON e.course_id = c.id WHERE e.status IN ('Completed', 'In Progress') GROUP BY c.semester, c.year) SELECT semester || ' ' || CAST(year AS TEXT) AS period, cnt FROM sem_counts ORDER BY year, semester",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3526,11 +3849,14 @@
       "points": 11,
       "solutionSql": "WITH overdue AS (SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date < '2024-02-01') SELECT s.first_name, s.last_name, b.title, o.due_date FROM overdue o JOIN students s ON o.student_id = s.id JOIN books b ON o.book_id = b.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3558,11 +3884,14 @@
       "points": 13,
       "solutionSql": "WITH teacher_counts AS (SELECT department_id, COUNT(*) AS tc FROM teachers GROUP BY department_id), subject_counts AS (SELECT department_id, COUNT(*) AS sc FROM subjects GROUP BY department_id) SELECT d.name, COALESCE(tc.tc, 0) AS teachers, COALESCE(sc.sc, 0) AS subjects FROM departments d LEFT JOIN teacher_counts tc ON d.id = tc.department_id LEFT JOIN subject_counts sc ON d.id = sc.department_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3591,11 +3920,14 @@
       "brokenQuery": "INSERT INTO students VALUES (31, 'Nina', 'Patel');",
       "solutionSql": "INSERT INTO students (id, first_name, last_name, email, date_of_birth, gender, status, gpa, department_id, advisor_teacher_id) VALUES (31, 'Nina', 'Patel', 'nina.patel@logixzen.edu', '2003-04-10', 'Female', 'Active', 3.60, 2, 5)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3604,11 +3936,11 @@
     },
     {
       "id": "q-111",
-      "type": "debug-query",
+      "type": "dml-check",
       "topicId": "dml",
       "difficulty": "medium",
       "title": "Update a student GPA",
-      "description": "Fix the UPDATE statement to change student id=5's GPA to 3.90.",
+      "description": "Write an UPDATE statement that changes student id=5's GPA to 3.90. Exactly one row should be affected.",
       "datasetId": "school",
       "hints": [
         "SET specifies the column and new value",
@@ -3621,19 +3953,13 @@
         "update"
       ],
       "points": 7,
-      "brokenQuery": "UPDATE students SET gpa = 3.90",
-      "solutionSql": "UPDATE students SET gpa = 3.90 WHERE id = 5",
       "validation": {
-        "mode": "result-match"
+        "mode": "dml-check"
       },
-      "testCases": [
-        {
-          "id": "tc-1",
-          "expected": {
-            "type": "fromSolution"
-          }
-        }
-      ]
+      "testCases": [],
+      "dmlStatement": "UPDATE students SET gpa = 3.90 WHERE id = 5",
+      "verificationQuery": "SELECT gpa FROM students WHERE id = 5",
+      "expectedChanges": 1
     },
     {
       "id": "q-112",
@@ -3657,11 +3983,14 @@
       "brokenQuery": "DELETE students WHERE status = 'Dropped'",
       "solutionSql": "DELETE FROM enrollments WHERE status = 'Dropped'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3688,13 +4017,16 @@
       ],
       "points": 10,
       "brokenQuery": "INSERT INTO books VALUES (21, '978-0-00-000000-0', '1984 Special Edition', 14.99, 10, 'Fiction', 9);",
-      "solutionSql": "INSERT INTO books (id, isbn, title, price, stock, category, subject_id) VALUES (21, '978-0-00-000000-0', '1984 Special Edition', 14.99, 10, 'Fiction', 9)\nINSERT INTO book_authors (book_id, author_id) VALUES (21, 2)",
+      "solutionSql": "INSERT INTO books (id, isbn, title, price, stock, category, subject_id) VALUES (21, '978-0-00-000000-0', '1984 Special Edition', 14.99, 10, 'Fiction', 9);\nINSERT INTO book_authors (book_id, author_id) VALUES (21, 2);",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3703,11 +4035,11 @@
     },
     {
       "id": "q-114",
-      "type": "debug-query",
+      "type": "dml-check",
       "topicId": "dml",
       "difficulty": "medium",
       "title": "Update book prices with discount",
-      "description": "Fix the UPDATE statement to reduce all Fiction book prices by 10 percent.",
+      "description": "Write an UPDATE statement that reduces the price of every Fiction book by 10 percent, rounded to 2 decimal places. All 13 Fiction books should be affected.",
       "datasetId": "school",
       "hints": [
         "Use ROUND to keep prices to 2 decimal places",
@@ -3720,30 +4052,24 @@
         "calc-update"
       ],
       "points": 9,
-      "brokenQuery": "UPDATE books SET price = price * 0.9",
-      "solutionSql": "UPDATE books SET price = ROUND(price * 0.9, 2) WHERE category = 'Fiction'",
       "validation": {
-        "mode": "result-match"
+        "mode": "dml-check"
       },
-      "testCases": [
-        {
-          "id": "tc-1",
-          "expected": {
-            "type": "fromSolution"
-          }
-        }
-      ]
+      "testCases": [],
+      "dmlStatement": "UPDATE books SET price = ROUND(price * 0.9, 2) WHERE category = 'Fiction'",
+      "verificationQuery": "SELECT title, ROUND(price, 2) AS discounted_price FROM books WHERE category = 'Fiction'",
+      "expectedChanges": 13
     },
     {
       "id": "q-115",
-      "type": "debug-query",
+      "type": "dml-check",
       "topicId": "dml",
       "difficulty": "hard",
       "title": "Archive completed exams",
-      "description": "Fix the UPDATE to mark all enrollments for Fall 2023 courses as Completed if they are In Progress.",
+      "description": "Write an UPDATE that marks all In Progress enrollments for Spring 2024 courses as Completed. All 22 in-progress rows should be affected.",
       "datasetId": "school",
       "hints": [
-        "Subquery finds Fall 2023 course IDs",
+        "Subquery finds Spring 2024 course IDs",
         "Outer UPDATE changes In Progress to Completed for those courses",
         "Nested subqueries in UPDATE are supported by SQLite"
       ],
@@ -3753,19 +4079,13 @@
         "subquery-update"
       ],
       "points": 11,
-      "brokenQuery": "UPDATE enrollments SET status = 'Completed'",
-      "solutionSql": "UPDATE enrollments SET status = 'Completed' WHERE status = 'In Progress' AND course_id IN (SELECT id FROM courses WHERE semester = 'Fall' AND year = 2023)",
       "validation": {
-        "mode": "result-match"
+        "mode": "dml-check"
       },
-      "testCases": [
-        {
-          "id": "tc-1",
-          "expected": {
-            "type": "fromSolution"
-          }
-        }
-      ]
+      "testCases": [],
+      "dmlStatement": "UPDATE enrollments SET status = 'Completed' WHERE status = 'In Progress' AND course_id IN (SELECT id FROM courses WHERE semester = 'Spring' AND year = 2024)",
+      "verificationQuery": "SELECT COUNT(*) AS completed_count FROM enrollments WHERE status = 'Completed'",
+      "expectedChanges": 22
     },
     {
       "id": "q-116",
@@ -3789,11 +4109,14 @@
       "brokenQuery": "CREATE TABLE grading_logs (id, exam_id, grader_notes)",
       "solutionSql": "CREATE TABLE grading_logs (id INTEGER PRIMARY KEY, exam_id INTEGER NOT NULL, grader_notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3822,11 +4145,14 @@
       "brokenQuery": "ALTER TABLE students ADD phone_alternate TEXT",
       "solutionSql": "ALTER TABLE students ADD COLUMN phone_alternate TEXT",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3855,11 +4181,14 @@
       "brokenQuery": "CREATE VIEW v_student_transcript AS SELECT * FROM students JOIN enrollments",
       "solutionSql": "CREATE VIEW v_student_transcript AS SELECT s.id AS student_id, s.first_name || ' ' || s.last_name AS full_name, c.course_number, e.grade, e.enrollment_date FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3888,11 +4217,14 @@
       "brokenQuery": "CREATE INDEX ON students(department_id)",
       "solutionSql": "CREATE INDEX idx_students_department ON students(department_id)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3920,11 +4252,14 @@
       "points": 9,
       "solutionSql": "SELECT d.name, t.first_name || ' ' || t.last_name AS head_name FROM departments d JOIN teachers t ON d.head_teacher_id = t.id WHERE d.head_teacher_id IS NOT NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3952,11 +4287,14 @@
       "points": 10,
       "solutionSql": "SELECT SUBSTR(email, INSTR(email, '@') + 1) AS domain, COUNT(*) AS cnt FROM students GROUP BY SUBSTR(email, INSTR(email, '@') + 1) HAVING COUNT(*) > 1",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -3984,11 +4322,14 @@
       "points": 11,
       "solutionSql": "SELECT e.id FROM enrollments e LEFT JOIN courses c ON e.course_id = c.id WHERE c.id IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4016,11 +4357,14 @@
       "points": 12,
       "solutionSql": "SELECT l.id, l.student_id, l.book_id FROM loans l LEFT JOIN students s ON l.student_id = s.id LEFT JOIN books b ON l.book_id = b.id WHERE s.id IS NULL OR b.id IS NULL",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4048,11 +4392,14 @@
       "points": 9,
       "solutionSql": "SELECT id AS course_id, max_students - enrolled_count AS available_spots FROM courses WHERE id = 1 AND enrolled_count < max_students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4080,11 +4427,14 @@
       "points": 8,
       "solutionSql": "SELECT name, budget, budget - 80000 AS surplus FROM departments WHERE budget > 80000",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4112,11 +4462,14 @@
       "points": 11,
       "solutionSql": "SELECT fall.course_number, fall.year AS fall_year, spring.year AS spring_year FROM courses fall JOIN courses spring ON fall.course_number = spring.course_number WHERE fall.semester = 'Fall' AND fall.year = 2023 AND spring.semester = 'Spring' AND spring.year = 2024",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4144,11 +4497,14 @@
       "points": 11,
       "solutionSql": "SELECT st.department_id, d.name, SUM(ss.amount_awarded) AS total_awarded FROM student_scholarships ss JOIN students st ON ss.student_id = st.id JOIN departments d ON st.department_id = d.id GROUP BY st.department_id, d.name ORDER BY total_awarded DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4176,11 +4532,14 @@
       "points": 13,
       "solutionSql": "SELECT department_id, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status = 'Graduated' THEN 1 ELSE 0 END) AS graduated, SUM(CASE WHEN status = 'Suspended' THEN 1 ELSE 0 END) AS suspended, SUM(CASE WHEN status = 'Withdrawn' THEN 1 ELSE 0 END) AS withdrawn FROM students GROUP BY department_id",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4209,11 +4568,14 @@
       "points": 12,
       "solutionSql": "SELECT first_name, last_name, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS class_rank FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4241,11 +4603,14 @@
       "points": 13,
       "solutionSql": "SELECT s.first_name, s.last_name FROM students s JOIN exam_results er ON s.id = er.student_id GROUP BY s.id, s.first_name, s.last_name HAVING AVG(er.marks_obtained) > (SELECT AVG(marks_obtained) FROM exam_results)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4273,11 +4638,14 @@
       "points": 12,
       "solutionSql": "SELECT sub.name, COUNT(DISTINCT c.id) AS total_courses, COUNT(e.id) AS total_enrollments FROM subjects sub LEFT JOIN courses c ON sub.id = c.subject_id LEFT JOIN enrollments e ON c.id = e.course_id GROUP BY sub.id, sub.name ORDER BY total_enrollments DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4305,11 +4673,14 @@
       "points": 14,
       "solutionSql": "SELECT c.course_number, ROUND(AVG(CASE WHEN e.exam_type = 'Midterm' THEN er.marks_obtained END), 1) AS midterm_avg, ROUND(AVG(CASE WHEN e.exam_type = 'Final' THEN er.marks_obtained END), 1) AS final_avg FROM exams e JOIN exam_results er ON e.id = er.exam_id JOIN courses c ON e.course_id = c.id GROUP BY c.id, c.course_number HAVING AVG(CASE WHEN e.exam_type = 'Final' THEN er.marks_obtained END) > AVG(CASE WHEN e.exam_type = 'Midterm' THEN er.marks_obtained END)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4337,11 +4708,14 @@
       "points": 10,
       "solutionSql": "SELECT SUM(price * stock) AS projected_revenue FROM books WHERE stock > 0",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4369,11 +4743,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE id = 10",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4401,11 +4778,14 @@
       "points": 7,
       "solutionSql": "SELECT first_name, last_name, email FROM students",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4433,11 +4813,14 @@
       "points": 9,
       "solutionSql": "SELECT CASE WHEN EXISTS (SELECT 1 FROM students WHERE email = 'bob.smith@logixzen.edu') THEN 1 ELSE 0 END",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4465,11 +4848,14 @@
       "points": 10,
       "solutionSql": "SELECT department_id, COUNT(*) AS active_count FROM students WHERE status = 'Active' GROUP BY department_id ORDER BY active_count DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4496,11 +4882,14 @@
       "points": 3,
       "solutionSql": "SELECT 'id' AS primary_key_column",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4614,11 +5003,14 @@
       "points": 8,
       "solutionSql": "SELECT 'students' AS tbl, 'department_id' AS fk_col UNION ALL SELECT 'students', 'advisor_teacher_id' UNION ALL SELECT 'courses', 'subject_id' UNION ALL SELECT 'courses', 'teacher_id' UNION ALL SELECT 'enrollments', 'student_id' UNION ALL SELECT 'enrollments', 'course_id' UNION ALL SELECT 'books', 'subject_id' UNION ALL SELECT 'loans', 'student_id' UNION ALL SELECT 'loans', 'book_id' UNION ALL SELECT 'exams', 'course_id' UNION ALL SELECT 'exam_results', 'exam_id' UNION ALL SELECT 'exam_results', 'student_id' UNION ALL SELECT 'scholarships', 'department_id'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4646,11 +5038,14 @@
       "points": 11,
       "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, c.section, c.semester, c.year, e.grade FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id WHERE e.status = 'Completed' ORDER BY s.last_name, c.year, c.semester",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4678,11 +5073,14 @@
       "points": 10,
       "solutionSql": "SELECT s.first_name, s.last_name, b.title, l.due_date FROM loans l JOIN students s ON l.student_id = s.id JOIN books b ON l.book_id = b.id WHERE l.status = 'Active'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4711,11 +5109,14 @@
       "points": 12,
       "solutionSql": "SELECT DISTINCT s.first_name, s.last_name, s.gpa FROM students s JOIN enrollments e ON s.id = e.student_id WHERE s.gpa >= 3.5 AND s.status = 'Active' AND e.status = 'Completed'",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4743,11 +5144,14 @@
       "points": 12,
       "solutionSql": "SELECT d.name, d.budget AS total_budget, COALESCE(SUM(t.salary), 0) AS total_salaries, d.budget - COALESCE(SUM(t.salary), 0) AS surplus_deficit FROM departments d LEFT JOIN teachers t ON d.id = t.department_id GROUP BY d.id, d.name, d.budget ORDER BY surplus_deficit DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4775,11 +5179,14 @@
       "points": 9,
       "solutionSql": "SELECT course_number, section, semester, year, enrolled_count, max_students, max_students - enrolled_count AS open_seats FROM courses ORDER BY semester, year, course_number",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4807,11 +5214,14 @@
       "points": 11,
       "solutionSql": "SELECT s.first_name, s.last_name, SUM(ss.amount_awarded) AS total_received FROM students s JOIN student_scholarships ss ON s.id = ss.student_id GROUP BY s.id, s.first_name, s.last_name ORDER BY total_received DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4839,11 +5249,14 @@
       "points": 10,
       "solutionSql": "SELECT e.title, e.exam_date, e.exam_type, e.total_marks, c.course_number, t.first_name || ' ' || t.last_name AS instructor FROM exams e JOIN courses c ON e.course_id = c.id JOIN teachers t ON c.teacher_id = t.id ORDER BY e.exam_date",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4871,11 +5284,14 @@
       "points": 11,
       "solutionSql": "SELECT s.first_name, s.last_name, COUNT(l.id) AS total_loans, SUM(l.fine) AS total_fines FROM students s LEFT JOIN loans l ON s.id = l.student_id GROUP BY s.id, s.first_name, s.last_name ORDER BY total_loans DESC",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4903,11 +5319,14 @@
       "points": 14,
       "solutionSql": "SELECT s.first_name, s.last_name, s.gpa, s.department_id FROM students s WHERE s.gpa > (SELECT AVG(s2.gpa) FROM students s2 WHERE s2.department_id = s.department_id)",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4935,11 +5354,14 @@
       "points": 13,
       "solutionSql": "SELECT s.code, s.name, p.code AS prereq_code FROM subjects s LEFT JOIN subjects p ON s.prerequisite_subject_id = p.id ORDER BY s.code",
       "validation": {
-        "mode": "result-match"
+        "mode": "result-match",
+        "orderMatters": false,
+        "columnNamesMatter": false
       },
       "testCases": [
         {
           "id": "tc-1",
+          "description": "Verifies the query returns the same result as the solution SQL",
           "expected": {
             "type": "fromSolution"
           }
@@ -4989,7 +5411,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "mcq-1001",
@@ -5035,7 +5458,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "mcq-1002",
@@ -5081,7 +5505,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "mcq-1003",
@@ -5127,7 +5552,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "mcq-1004",
@@ -5173,7 +5599,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "mcq-1005",
@@ -5219,7 +5646,8 @@
       "validation": {
         "mode": "mcq"
       },
-      "testCases": []
+      "testCases": [],
+      "datasetId": "school"
     },
     {
       "id": "fb-1006",
@@ -5247,7 +5675,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1007",
@@ -5270,13 +5699,13 @@
       "blankTemplate": "SELECT * FROM students WHERE gpa ___ 3.5;",
       "acceptedAnswers": {
         "0": [
-          ">",
           ">"
         ]
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1008",
@@ -5304,7 +5733,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1009",
@@ -5333,7 +5763,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1010",
@@ -5361,7 +5792,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1011",
@@ -5390,7 +5822,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1012",
@@ -5418,7 +5851,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1013",
@@ -5446,7 +5880,8 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1014",
@@ -5474,35 +5909,38 @@
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "fb-1015",
       "topicId": "string-functions",
-      "difficulty": "medium",
-      "title": "Fill in the substring position function",
-      "description": "Complete the function call to extract the domain from email.\n\nSUBSTR(email, INSTR(email, '@' + ___)",
+      "difficulty": "easy",
+      "title": "Fill in the UPPER function",
+      "description": "Complete the function call to convert a student's first name to uppercase.\n\n___(first_name)",
       "hints": [
-        "We need to shift past the @ character itself",
-        "Adding 1 to the found position skips over @"
+        "We want to convert text to all uppercase letters",
+        "This built-in string function takes a column name as its argument"
       ],
-      "explanation": "INSTR locates the @ sign; SUBSTR extracts from position + 1 onward, skipping the delimiter.",
+      "explanation": "UPPER() converts a string to all uppercase characters.",
       "tags": [
         "string-function",
-        "substr",
+        "upper",
         "blank"
       ],
-      "points": 7,
+      "points": 5,
       "type": "fill-blank",
-      "blankTemplate": "SUBSTR(email, INSTR(email, '@') + ___ )",
+      "blankTemplate": "SELECT ___(first_name) AS upper_name FROM students;",
       "acceptedAnswers": {
         "0": [
-          "1"
+          "UPPER",
+          "upper"
         ]
       },
       "validation": {
         "mode": "fill-blank"
-      }
+      },
+      "datasetId": "school"
     },
     {
       "id": "po-1016",
@@ -5546,7 +5984,8 @@
             ]
           }
         }
-      ]
+      ],
+      "datasetId": "school"
     },
     {
       "id": "po-1017",
@@ -5556,9 +5995,10 @@
       "description": "What is the result of:\n\nSELECT SUM(price) FROM books WHERE category = 'Fiction'",
       "hints": [
         "Sum only adds the price values from Fiction books",
-        "You can compute manually: 9.99 + 14.99 + 12.99 = ?"
+        "Fiction is the largest category — 13 books",
+        "Every Fiction book has a non-null price"
       ],
-      "explanation": "SQLite SUM ignores NULL values but adds all non-null prices. For Fiction books (price 9.99, 14.99, 12.99), the sum is 37.97.",
+      "explanation": "SUM ignores NULL values and adds all non-null prices. The 13 Fiction books sum to 145.37.",
       "tags": [
         "aggregate",
         "sum",
@@ -5568,7 +6008,7 @@
       "type": "predict-output",
       "expectedOutput": [
         {
-          "answer": "37.97"
+          "answer": "145.37"
         }
       ],
       "validation": {
@@ -5584,12 +6024,13 @@
             ],
             "rows": [
               [
-                "37.97"
+                "145.37"
               ]
             ]
           }
         }
-      ]
+      ],
+      "datasetId": "school"
     },
     {
       "id": "po-1018",
@@ -5610,9 +6051,6 @@
       "points": 8,
       "type": "predict-output",
       "expectedOutput": [
-        {
-          "answer": "'Unassigned'"
-        },
         {
           "answer": "Unassigned"
         }
@@ -5635,7 +6073,8 @@
             ]
           }
         }
-      ]
+      ],
+      "datasetId": "school"
     },
     {
       "id": "po-1019",
@@ -5659,9 +6098,6 @@
       "type": "predict-output",
       "expectedOutput": [
         {
-          "answer": "'Aj'"
-        },
-        {
           "answer": "Aj"
         }
       ],
@@ -5683,7 +6119,8 @@
             ]
           }
         }
-      ]
+      ],
+      "datasetId": "school"
     }
   ]
 }

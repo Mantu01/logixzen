@@ -1,5 +1,6 @@
 -- ============================================================
 -- LogixZen Sample Databases
+-- ============================== school ==============================
 -- School Management System
 -- Schema + Seed Data
 -- ============================================================
@@ -273,20 +274,20 @@ INSERT INTO students (id, first_name, last_name, email, phone, date_of_birth, ge
 (8, 'Henry', 'Moore', 'henry.moore@logixzen.edu', '555-1008', '2002-06-14', 'Male', '258 Spruce Avenue', 'Springfield', 'IL', '62708', '2022-09-01', 'Active', 3.23, 5, 15),
 (9, 'Isla', 'Taylor', 'isla.taylor@logixzen.edu', '555-1009', '2003-02-28', 'Female', '369 Ash Boulevard', 'Springfield', 'IL', '62709', '2023-09-01', 'Active', 3.55, 3, 9),
 (10, 'Jack', 'Anderson', 'jack.anderson@logixzen.edu', '555-1010', '2001-08-19', 'Male', '741 Poplar Way', 'Springfield', 'IL', '62710', '2021-09-01', 'Graduated', 3.72, 1, 1),
-(11, 'Karen', 'Thomas', 'karen.thomas@logixzen.edu', '555-1011', '2002-04-07', 'Female', '852 Willow Path', 'Springfield', 'IL', '62711', '2022-09-01', 'Active', 3.08, 6, 18),
+(11, 'Karen', 'Thomas', 'karen.thomas@logixzen.edu', '555-1011', '2002-04-07', 'Female', '852 Willow Path', 'Springfield', 'IL', '62711', '2022-09-01', 'Active', 3.08, 6, NULL),
 (12, 'Leo', 'Jackson', 'leo.jackson@logixzen.edu', '555-1012', '2001-10-13', 'Male', '963 Hickory Lane', 'Springfield', 'IL', '62712', '2021-09-01', 'Active', 3.44, 7, 20),
 (13, 'Mia', 'White', 'mia.white@logixzen.edu', '555-1013', '2003-01-22', 'Female', '174 Sycamore Drive', 'Springfield', 'IL', '62713', '2023-09-01', 'Active', 3.92, 8, 23),
 (14, 'Noah', 'Harris', 'noah.harris@logixzen.edu', '555-1014', '2002-07-05', 'Male', '285 Magnolia Court', 'Springfield', 'IL', '62714', '2022-09-01', 'Active', 2.88, 4, 12),
 (15, 'Olivia', 'Martin', 'olivia.martin@logixzen.edu', '555-1015', '2001-03-30', 'Female', '396 Dogwood Street', 'Springfield', 'IL', '62715', '2021-09-01', 'Active', 3.61, 2, 5),
 (16, 'Paul', 'Garcia', 'paul.garcia@logixzen.edu', '555-1016', '2002-12-11', 'Male', '507 Redwood Avenue', 'Springfield', 'IL', '62716', '2022-09-01', 'Suspended', 2.10, 1, 1),
-(17, 'Quinn', 'Martinez', 'quinn.martinez@logixzen.edu', '555-1017', '2003-06-26', 'Other', '618 Sequoia Road', 'Springfield', 'IL', '62717', '2023-09-01', 'Active', 3.38, 3, 9),
+(17, 'Quinn', 'Martinez', 'quinn.martinez@logixzen.edu', '555-1017', '2003-06-26', 'Other', '618 Sequoia Road', 'Springfield', 'IL', NULL, '2023-09-01', 'Active', 3.38, 3, 9),
 (18, 'Rachel', 'Robinson', 'rachel.robinson@logixzen.edu', '555-1018', '2001-05-09', 'Female', '729 Cypress Lane', 'Springfield', 'IL', '62718', '2021-09-01', 'Active', 3.75, 5, 15),
-(19, 'Sam', 'Clark', 'sam.clark@logixzen.edu', '555-1019', '2002-08-18', 'Male', '830 Juniper Way', 'Springfield', 'IL', '62719', '2022-09-01', 'Active', 3.02, 6, 18),
+(19, 'Sam', 'Clark', 'sam.clark@logixzen.edu', '555-1019', '2002-08-18', 'Male', '830 Juniper Way', 'Springfield', 'IL', '62719', '2022-09-01', 'Active', 3.02, 6, NULL),
 (20, 'Tara', 'Rodriguez', 'tara.rodriguez@logixzen.edu', '555-1020', '2001-11-04', 'Female', '941 Palm Drive', 'Springfield', 'IL', '62720', '2021-09-01', 'Graduated', 3.88, 7, 20),
 (21, 'Uma', 'Lewis', 'uma.lewis@logixzen.edu', '555-1021', '2003-03-21', 'Female', '152 Olive Court', 'Springfield', 'IL', '62721', '2023-09-01', 'Active', 3.65, 8, 23),
 (22, 'Victor', 'Lee', 'victor.lee@logixzen.edu', '555-1022', '2002-10-07', 'Male', '263 Fig Street', 'Springfield', 'IL', '62722', '2022-09-01', 'Active', 2.75, 1, 1),
 (23, 'Wendy', 'Walker', 'wendy.walker@logixzen.edu', '555-1023', '2001-02-14', 'Female', '374 Date Avenue', 'Springfield', 'IL', '62723', '2021-09-01', 'Active', 3.53, 2, 5),
-(24, 'Xavier', 'Hall', 'xavier.hall@logixzen.edu', '555-1024', '2002-05-03', 'Male', '485 Mango Road', 'Springfield', 'IL', '62724', '2022-09-01', 'Active', 3.18, 4, 12),
+(24, 'Xavier', 'Hall', 'xavier.hall@logixzen.edu', '555-1024', '2002-05-03', 'Male', '485 Mango Road', 'Springfield', 'IL', NULL, '2022-09-01', 'Active', 3.18, 4, 12),
 (25, 'Yolanda', 'Allen', 'yolanda.allen@logixzen.edu', '555-1025', '2003-09-16', 'Female', '596 Lemon Lane', 'Springfield', 'IL', '62725', '2023-09-01', 'Active', 3.82, 3, 9),
 (26, 'Zack', 'Young', 'zack.young@logixzen.edu', '555-1026', '2001-04-28', 'Male', '607 Apple Court', 'Springfield', 'IL', '62726', '2021-09-01', 'Active', 2.98, 5, 15),
 (27, 'Amy', 'Hernandez', 'amy.hernandez@logixzen.edu', '555-1027', '2002-01-09', 'Female', '718 Berry Drive', 'Springfield', 'IL', '62727', '2022-09-01', 'Active', 3.47, 6, 18),
@@ -391,7 +392,7 @@ INSERT INTO enrollments (id, student_id, course_id, enrollment_date, grade, grad
 (64, 28, 13, '2023-09-01', 'B+', 3.33, 'Completed', 88.0),
 (65, 29, 13, '2023-09-01', 'A', 4.0, 'Completed', 95.0),
 (66, 29, 5, '2023-09-01', 'A-', 3.67, 'Completed', 92.0),
-(67, 30, 1, '2023-09-01', 'F', 0.0, 'Withdrawn', 30.0),
+(67, 30, 1, '2023-09-01', 'F', 0.0, 'Dropped', 30.0),
 -- Spring 2024 current enrollments
 (68, 1, 14, '2024-01-15', NULL, NULL, 'In Progress', 78.0),
 (69, 1, 15, '2024-01-15', NULL, NULL, 'In Progress', 82.0),
@@ -404,13 +405,13 @@ INSERT INTO enrollments (id, student_id, course_id, enrollment_date, grade, grad
 (76, 9, 17, '2024-01-15', NULL, NULL, 'In Progress', 91.0),
 (77, 10, 14, '2024-01-15', NULL, NULL, 'In Progress', 87.0),
 (78, 10, 15, '2024-01-15', NULL, NULL, 'In Progress', 84.0),
-(79, 13, 13, '2024-01-15', NULL, NULL, 'In Progress', 92.0),
+(79, 13, 17, '2024-01-15', NULL, NULL, 'In Progress', 92.0),
 (80, 13, 16, '2024-01-15', NULL, NULL, 'In Progress', 89.0),
 (81, 15, 16, '2024-01-15', NULL, NULL, 'In Progress', 81.0),
 (82, 18, 18, '2024-01-15', NULL, NULL, 'In Progress', 86.0),
 (83, 20, 19, '2024-01-15', NULL, NULL, 'In Progress', 90.0),
 (84, 21, 20, '2024-01-15', NULL, NULL, 'In Progress', 88.0),
-(85, 21, 5, '2024-01-15', NULL, NULL, 'In Progress', 85.0),
+(85, 21, 15, '2024-01-15', NULL, NULL, 'In Progress', 85.0),
 (86, 23, 16, '2024-01-15', NULL, NULL, 'In Progress', 82.0),
 (87, 25, 17, '2024-01-15', NULL, NULL, 'In Progress', 93.0),
 (88, 28, 19, '2024-01-15', NULL, NULL, 'In Progress', 87.0),
@@ -432,7 +433,13 @@ INSERT INTO authors (id, first_name, last_name, bio, nationality, birth_year, de
 (7, 'Ernest', 'Hemingway', 'American novelist and short story writer, Nobel laureate', 'American', 1899, 1961),
 (8, 'Agatha', 'Christie', 'English writer known as the Queen of Crime', 'British', 1890, 1976),
 (9, 'Charles', 'Dickens', 'English writer and social critic, created some of literature''s most iconic characters', 'British', 1812, 1870),
-(10, 'Mark', 'Twain', 'American writer and humorist, known for Adventures of Huckleberry Finn', 'American', 1835, 1910);
+(10, 'Mark', 'Twain', 'American writer and humorist, known for Adventures of Huckleberry Finn', 'American', 1835, 1910),
+(11, 'Aldous', 'Huxley', 'English writer and philosopher, author of Brave New World', 'British', 1894, 1963),
+(12, 'Richard', 'Dawkins', 'British evolutionary biologist, author of The Selfish Gene', 'British', 1941, NULL),
+(13, 'Stephen', 'Hawking', 'English theoretical physicist, author of A Brief History of Time', 'British', 1942, 2018),
+(14, 'Charles', 'Darwin', 'English naturalist, author of The Origin of Species', 'British', 1809, 1882),
+(15, 'James', 'Watson', 'American molecular biologist, co-discoverer of DNA structure', 'American', 1928, NULL),
+(16, 'Carl', 'Sagan', 'American astronomer and science communicator, author of Cosmos', 'American', 1934, 1996);
 
 -- Books
 INSERT INTO books (id, isbn, title, description, published_year, price, stock, category, subject_id) VALUES
@@ -461,8 +468,8 @@ INSERT INTO books (id, isbn, title, description, published_year, price, stock, c
 INSERT INTO book_authors (book_id, author_id) VALUES
 (1, 1), (2, 2), (3, 3), (4, 6), (5, 7),
 (6, 1), (7, 5), (8, 2), (9, 6), (10, 3),
-(11, 2), (12, 12), (13, 9), (14, 10), (15, 3),
-(16, 23), (17, 14), (18, 23), (19, 14), (20, 14);
+(11, 2), (12, 11), (13, 9), (14, 10), (15, 3),
+(16, 12), (17, 13), (18, 14), (19, 15), (20, 16);
 
 -- Loans
 INSERT INTO loans (id, student_id, book_id, loan_date, due_date, return_date, fine, status) VALUES
@@ -478,13 +485,13 @@ INSERT INTO loans (id, student_id, book_id, loan_date, due_date, return_date, fi
 (10, 7, 7, '2023-12-01', '2023-12-15', '2023-12-18', 1.0, 'Returned'),
 (11, 9, 5, '2023-12-10', '2023-12-24', '2023-12-22', 0.0, 'Returned'),
 (12, 10, 2, '2023-12-15', '2024-01-05', '2024-01-04', 0.0, 'Returned'),
-(13, 13, 18, '2024-01-10', '2024-01-24', NULL, '0.0', 'Active'),
-(14, 13, 19, '2024-01-10', '2024-01-24', NULL, '0.0', 'Active'),
-(15, 21, 16, '2024-01-15', '2024-01-29', NULL, '0.0', 'Active'),
-(16, 25, 17, '2024-01-15', '2024-01-29', NULL, '0.0', 'Active'),
-(17, 29, 20, '2024-01-20', '2024-02-03', NULL, '0.0', 'Active'),
+(13, 13, 18, '2024-01-10', '2024-01-24', NULL, 0.0, 'Active'),
+(14, 13, 19, '2024-01-10', '2024-01-24', NULL, 0.0, 'Active'),
+(15, 21, 16, '2024-01-15', '2024-01-29', NULL, 0.0, 'Active'),
+(16, 25, 17, '2024-01-15', '2024-01-29', NULL, 0.0, 'Active'),
+(17, 29, 20, '2024-01-20', '2024-02-03', NULL, 0.0, 'Active'),
 (18, 6, 11, '2024-01-20', '2024-02-03', '2024-02-10', 3.5, 'Returned'),
-(19, 14, 9, '2024-01-22', '2024-02-05', NULL, '0.0', 'Active'),
+(19, 14, 9, '2024-01-22', '2024-02-05', NULL, 0.0, 'Active'),
 (20, 22, 14, '2024-01-25', '2024-02-08', '2024-02-15', 3.5, 'Returned');
 
 -- Exams
@@ -552,14 +559,14 @@ INSERT INTO exam_results (id, exam_id, student_id, marks_obtained, submitted_at)
 (31, 9, 15, 85.0, '2023-10-16 14:35:00'),
 (32, 9, 23, 82.0, '2023-10-16 14:28:00'),
 (33, 9, 26, 70.0, '2023-10-16 14:20:00'),
-(34, 9, 33, 94.0, '2023-10-16 14:32:00'),
+(34, 9, 8, 94.0, '2023-10-16 14:32:00'),
 -- Calculus Final (exam 10)
 (35, 10, 3, 98.0, '2023-12-14 10:00:00'),
 (36, 10, 7, 90.0, '2023-12-14 10:05:00'),
 (37, 10, 15, 87.0, '2023-12-14 09:55:00'),
 (38, 10, 23, 84.0, '2023-12-14 10:02:00'),
 (39, 10, 26, 72.0, '2023-12-14 10:10:00'),
-(40, 10, 33, 95.0, '2023-12-14 10:08:00'),
+(40, 10, 10, 95.0, '2023-12-14 10:08:00'),
 -- Physics Midterm (exam 12)
 (41, 12, 5, 82.0, '2023-10-17 14:30:00'),
 (42, 12, 6, 65.0, '2023-10-17 14:25:00'),
@@ -578,7 +585,7 @@ INSERT INTO scholarships (id, name, description, amount, GPA_requirement, min_ag
 (1, 'Merit Scholarship', 'For students with outstanding academic performance', 5000.00, 3.5, 18, 25, NULL, 1),
 (2, 'Need-Based Grant', 'Financial assistance for students demonstrating need', 3000.00, 2.0, 18, 30, NULL, 1),
 (3, 'CS Department Award', 'Exclusive to Computer Science majors', 2500.00, 3.0, 18, 25, 1, 1),
-(4, ' STEM Scholarship', 'For students pursuing science or mathematics', 4000.00, 3.2, 18, 25, NULL, 1),
+(4, 'STEM Scholarship', 'For students pursuing science or mathematics', 4000.00, 3.2, 18, 25, NULL, 1),
 (5, 'Athletic Excellence', 'For student athletes maintaining good grades', 3500.00, 2.5, 18, 25, NULL, 1),
 (6, 'First-Generation College', 'Support for first-generation college students', 2000.00, 2.0, 18, 25, NULL, 1),
 (7, 'Engineering Innovator', 'For creative problem-solving in engineering', 3000.00, 3.0, 18, 25, 1, 1),
