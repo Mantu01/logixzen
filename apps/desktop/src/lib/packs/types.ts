@@ -45,9 +45,3 @@ export interface PackSummary {
   topics: number;
   notes: number;
 }
-
-export const PACK_STORAGE_KEYS = {
-  databases: "pack:databases",
-  questions: "pack:questions",
-  notes: "pack:notes",
-} as const;

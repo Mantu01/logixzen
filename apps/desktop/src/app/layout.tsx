@@ -14,7 +14,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "LogixZen",
-  description: "Offline-first practice workspace for SQL and beyond.",
+  description: "Practice environments that run entirely on your machine.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

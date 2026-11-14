@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { z } from "zod";
 import { nativeStorage } from "@/lib/native-storage";
+import { dateKey } from "@/lib/date-key";
 
 export interface QuestionResult {
   timestamp: number;
@@ -22,6 +22,7 @@ export interface BadgeState {
 
 export interface EditorSettings {
   editorFontSize: number;
+  resultFontSize: number;
 }
 
 export interface ProgressExportFile {
@@ -53,8 +54,8 @@ interface ProgressActions {
   earnBadge: (badgeId: string) => void;
   saveLastPosition: (topicId: string, questionId: string) => void;
   exportProgress: () => string;
-  importProgress: (data: string) => { ok: boolean; message: string };
-  setFontSize: (size: number) => void;
+  setEditorFontSize: (size: number) => void;
+  setResultFontSize: (size: number) => void;
   resetProgress: () => void;
 }
 
@@ -64,7 +65,13 @@ const EMPTY_STREAK: StreakState = { currentStreak: 0, lastActiveDate: "", longes
 const PROGRESS_VERSION = 3;
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return dateKey();
+}
+
+function dayBefore(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return dateKey(date);
 }
 
 function safeMap<T>(value: unknown, validate: (item: unknown) => boolean): Map<string, T> {
@@ -78,28 +85,6 @@ function safeMap<T>(value: unknown, validate: (item: unknown) => boolean): Map<s
   return map;
 }
 
-const ExportSchema = z.object({
-  version: z.number().optional(),
-  solvedQuestions: z.array(z.tuple([z.string(), z.object({
-    timestamp: z.number(),
-    attempts: z.number().min(1),
-    bestTimeMs: z.number().min(0),
-    hintsUsed: z.number().min(0),
-  })])),
-  totalPoints: z.number(),
-  streak: z.object({
-    currentStreak: z.number(),
-    lastActiveDate: z.string(),
-    longestStreak: z.number(),
-  }),
-  activity: z.array(z.tuple([z.string(), z.number()])).optional(),
-  badges: z.array(z.tuple([z.string(), z.object({ timestamp: z.number() })])).optional(),
-  lastPosition: z
-    .object({ topicId: z.string(), questionId: z.string() })
-    .nullable()
-    .optional(),
-});
-
 export const useProgressStore = create<ProgressStore>()(
   persist(
     (set, get) => ({
@@ -109,7 +94,7 @@ export const useProgressStore = create<ProgressStore>()(
       activity: new Map(),
       lastPosition: null,
       badges: { earned: new Map() },
-      settings: { editorFontSize: 14 },
+      settings: { editorFontSize: 14, resultFontSize: 13 },
 
       markSolved: (questionId, timeMs, hintsUsed) => {
         const attempts = (get().solvedQuestions.get(questionId)?.attempts ?? 0) + 1;
@@ -141,7 +126,7 @@ export const useProgressStore = create<ProgressStore>()(
         const day = today();
         let nextStreak = state.streak.currentStreak;
         if (state.streak.lastActiveDate !== day) {
-          const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+          const yesterday = dayBefore(1);
           nextStreak = state.streak.lastActiveDate === yesterday ? state.streak.currentStreak + 1 : 1;
           set((current) => ({
             streak: {
@@ -179,31 +164,11 @@ export const useProgressStore = create<ProgressStore>()(
         return JSON.stringify(file, null, 2);
       },
 
-      importProgress: (data) => {
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(data);
-        } catch {
-          return { ok: false, message: "File is not valid JSON" };
-        }
-        const result = ExportSchema.safeParse(parsed);
-        if (!result.success) {
-          return { ok: false, message: "This file is not a LogixZen progress export" };
-        }
-        const value = result.data;
-        set({
-          solvedQuestions: new Map(value.solvedQuestions),
-          totalPoints: value.totalPoints,
-          streak: value.streak,
-          activity: new Map(value.activity ?? []),
-          badges: { earned: new Map(value.badges ?? []) },
-          lastPosition: value.lastPosition ?? null,
-        });
-        return { ok: true, message: "Progress restored" };
-      },
-
-      setFontSize: (editorFontSize) =>
+      setEditorFontSize: (editorFontSize) =>
         set((state) => ({ settings: { ...state.settings, editorFontSize } })),
+
+      setResultFontSize: (resultFontSize) =>
+        set((state) => ({ settings: { ...state.settings, resultFontSize } })),
 
       resetProgress: () =>
         set({
@@ -240,7 +205,7 @@ export const useProgressStore = create<ProgressStore>()(
           streak: (value.streak as StreakState | undefined) ?? current.streak,
           lastPosition: (value.lastPosition as ProgressState["lastPosition"] | undefined) ?? null,
           totalPoints: typeof value.totalPoints === "number" ? value.totalPoints : current.totalPoints,
-          settings: (value.settings as EditorSettings | undefined) ?? current.settings,
+          settings: { ...current.settings, ...((value.settings as Partial<EditorSettings> | undefined) ?? {}) },
         };
       },
       migrate: () => ({
@@ -250,7 +215,7 @@ export const useProgressStore = create<ProgressStore>()(
         activity: new Map(),
         lastPosition: null,
         badges: { earned: new Map() },
-        settings: { editorFontSize: 14 },
+        settings: { editorFontSize: 14, resultFontSize: 13 },
       }),
     },
   ),

@@ -2,8 +2,6 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AiClient } from "@/features/ai/AiClient";
 import type {
-  AlternativeQuery,
-  AlternativeQueryRequest,
   ErrorExplanationRequest,
   HintRequest,
   QueryExplanationRequest,
@@ -35,7 +33,6 @@ interface AiState {
   generateHint: (request: HintRequest) => Promise<string>;
   explainError: (request: ErrorExplanationRequest) => Promise<string>;
   explainQuery: (request: QueryExplanationRequest) => Promise<string>;
-  suggestAlternatives: (request: AlternativeQueryRequest) => Promise<AlternativeQuery[]>;
   clearApiKey: () => Promise<void>;
 }
 
@@ -89,7 +86,6 @@ export const useAiStore = create<AiState>()(
       generateHint: (request) => client(get()).generateHint(request),
       explainError: (request) => client(get()).explainError(request),
       explainQuery: (request) => client(get()).explainQuery(request),
-      suggestAlternatives: (request) => client(get()).suggestAlternatives(request),
 
       clearApiKey: async () => {
         await window.logixzen?.secrets.delete("ai_api_key");

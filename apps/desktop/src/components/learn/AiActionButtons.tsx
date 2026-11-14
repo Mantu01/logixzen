@@ -4,6 +4,10 @@ import { useCallback, useState } from "react";
 import { FileText, Lightbulb, Loader2, MessageSquare, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAiStore } from "@/stores/useAiStore";
+import { usePackStore } from "@/stores/usePackStore";
+import { useProgressStore } from "@/stores/useProgressStore";
+import { useQueryHistoryStore } from "@/stores/useQueryHistoryStore";
+import { tablesFromDataset } from "@/lib/dataset-from-sql";
 import type { Question } from "@logixzen/shared/content";
 
 interface AiActionButtonsProps {
@@ -27,9 +31,28 @@ export function AiActionButtons({
   const generateHint = useAiStore((state) => state.generateHint)
   const explainError = useAiStore((state) => state.explainError)
   const explainQuery = useAiStore((state) => state.explainQuery)
+  const privacy = useAiStore((state) => state.privacySettings)
+  const datasets = usePackStore((state) => state.databases)
+  const history = useQueryHistoryStore((state) => state.history)
+  const solvedQuestions = useProgressStore((state) => state.solvedQuestions)
+  const totalPoints = useProgressStore((state) => state.totalPoints)
+  const streak = useProgressStore((state) => state.streak.currentStreak)
   const [loading, setLoading] = useState<string | null>(null)
 
-  const privacy = { sendSchemaOnly: true, sendHistory: false, sendProgress: false }
+  const context = useCallback(() => {
+    const dataset = datasets.find((item) => item.id === question.datasetId)
+    return {
+      question,
+      sql: studentAnswer,
+      privacySettings: privacy,
+      schema: privacy.sendSchemaOnly && dataset ? tablesFromDataset(dataset) : undefined,
+      history: privacy.sendHistory ? history.map((entry) => entry.query) : undefined,
+      progress:
+        privacy.sendProgress
+          ? { solved: solvedQuestions.size, points: totalPoints, streak }
+          : undefined,
+    }
+  }, [question, studentAnswer, privacy, datasets, history, solvedQuestions, totalPoints, streak])
 
   const run = useCallback(
     async (kind: "hint" | "error" | "query", action: () => Promise<string>, done: (text: string) => void) => {
@@ -59,10 +82,9 @@ export function AiActionButtons({
             "hint",
             () =>
               generateHint({
-                question,
+                ...context(),
                 currentHintIndex: question.hints.length,
                 studentAttemptCount: 0,
-                privacySettings: privacy,
               }),
             onHint,
           )
@@ -79,13 +101,7 @@ export function AiActionButtons({
           onClick={() =>
             void run(
               "error",
-              () =>
-                explainError({
-                  question,
-                  sql: studentAnswer,
-                  errorMessage,
-                  privacySettings: privacy,
-                }),
+              () => explainError({ ...context(), errorMessage }),
               onExplainError,
             )
           }
@@ -101,13 +117,7 @@ export function AiActionButtons({
         onClick={() =>
           void run(
             "query",
-            () =>
-              explainQuery({
-                question,
-                sql: studentAnswer,
-                result: null,
-                privacySettings: privacy,
-              }),
+            () => explainQuery(context()),
             onExplainQuery,
           )
         }
@@ -118,3 +128,4 @@ export function AiActionButtons({
     </div>
   )
 }
+

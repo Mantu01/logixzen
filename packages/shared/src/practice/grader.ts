@@ -117,6 +117,7 @@ export async function gradeQuestion(
         ? failedVisible[0]!.message ?? 'Incorrect result.'
         : 'Incorrect. Try again.'
 
+  let techniqueMessage = ''
   if ('requiredTechniques' in validation && validation.requiredTechniques) {
     const techCheck = checkTechniques(studentSql, validation.requiredTechniques, validation.forbiddenTechniques)
     if (!techCheck.passed) {

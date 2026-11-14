@@ -1,0 +1,5689 @@
+{
+  "version": 2,
+  "topics": [
+    {
+      "id": "select-basics",
+      "title": "SELECT Basics",
+      "order": 0
+    },
+    {
+      "id": "where-filters",
+      "title": "WHERE Filters",
+      "order": 1
+    },
+    {
+      "id": "order-by",
+      "title": "ORDER BY & LIMIT",
+      "order": 2
+    },
+    {
+      "id": "aggregate-functions",
+      "title": "Aggregate Functions",
+      "order": 3
+    },
+    {
+      "id": "group-by",
+      "title": "GROUP BY & HAVING",
+      "order": 4
+    },
+    {
+      "id": "joins",
+      "title": "JOINs",
+      "order": 5
+    },
+    {
+      "id": "subqueries",
+      "title": "Subqueries",
+      "order": 6
+    },
+    {
+      "id": "set-operations",
+      "title": "Set Operations",
+      "order": 7
+    },
+    {
+      "id": "string-functions",
+      "title": "String Functions",
+      "order": 8
+    },
+    {
+      "id": "date-functions",
+      "title": "Date Functions",
+      "order": 9
+    },
+    {
+      "id": "null-handling",
+      "title": "NULL Handling",
+      "order": 10
+    },
+    {
+      "id": "window-functions",
+      "title": "Window Functions",
+      "order": 11
+    },
+    {
+      "id": "cte",
+      "title": "CTEs & Views",
+      "order": 12
+    },
+    {
+      "id": "dml",
+      "title": "DML Operations",
+      "order": 13
+    },
+    {
+      "id": "ddl",
+      "title": "DDL Operations",
+      "order": 14
+    },
+    {
+      "id": "index-constraints",
+      "title": "Indexes & Constraints",
+      "order": 15
+    },
+    {
+      "id": "transactions",
+      "title": "Transactions",
+      "order": 16
+    },
+    {
+      "id": "advanced-select",
+      "title": "Advanced SELECT",
+      "order": 17
+    },
+    {
+      "id": "performance",
+      "title": "Query Performance",
+      "order": 18
+    },
+    {
+      "id": "database-design",
+      "title": "Database Design",
+      "order": 19
+    },
+    {
+      "id": "real-world",
+      "title": "Real-World Scenarios",
+      "order": 20
+    },
+    {
+      "id": "challenge",
+      "title": "Challenge Problems",
+      "order": 21
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-001",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select all students",
+      "description": "Write a query to return every column from the students table.",
+      "datasetId": "school",
+      "hints": [
+        "Use SELECT * from students"
+      ],
+      "explanation": "The asterisk selects all columns from the specified table.",
+      "tags": [
+        "select",
+        "basics"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT * FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-002",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select specific student columns",
+      "description": "Return only first name, last name, and email of all students.",
+      "datasetId": "school",
+      "hints": [
+        "List the column names you need",
+        "Separate them with commas"
+      ],
+      "explanation": "Selecting specific columns is more efficient than SELECT * when you only need certain fields.",
+      "tags": [
+        "select",
+        "projection"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name, email FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-003",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select distinct departments",
+      "description": "Show all unique department IDs from the students table.",
+      "datasetId": "school",
+      "hints": [
+        "Use DISTINCT to eliminate duplicates",
+        "Target the department_id column"
+      ],
+      "explanation": "DISTINCT removes duplicate values from the result set.",
+      "tags": [
+        "select",
+        "distinct"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT DISTINCT department_id FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-004",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select active students full name",
+      "description": "Return the first name and last name of students who are Active.",
+      "datasetId": "school",
+      "hints": [
+        "Add a WHERE clause to filter by status",
+        "Remember status values include Active"
+      ],
+      "explanation": "Filtering with WHERE lets you narrow down results to records meeting a condition.",
+      "tags": [
+        "select",
+        "where"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE status = 'Active'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-005",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Count all students",
+      "description": "How many students are in the database? Return the count.",
+      "datasetId": "school",
+      "hints": [
+        "Use COUNT(*) to count all rows",
+        "No WHERE clause needed — count everything"
+      ],
+      "explanation": "COUNT(*) returns the total number of rows in a table.",
+      "tags": [
+        "select",
+        "aggregate"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT COUNT(*) AS total_students FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-006",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select students with GPA above 3.5",
+      "description": "Return first_name, last_name, and gpa for students with GPA greater than 3.5.",
+      "datasetId": "school",
+      "hints": [
+        "Filter with WHERE gpa > 3.5"
+      ],
+      "explanation": "Comparison operators like > work directly on numeric columns.",
+      "tags": [
+        "select",
+        "filter"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE gpa > 3.5",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-007",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "medium",
+      "title": "Select students enrolled in 2022",
+      "description": "Return first_name and enrollment_date for students who enrolled in 2022.",
+      "datasetId": "school",
+      "hints": [
+        "Filter by enrollment_date between Jan 1 2022 and Dec 31 2022",
+        "Use >= and < for date ranges"
+      ],
+      "explanation": "Date comparisons in SQLite work lexicographically with YYYY-MM-DD format.",
+      "tags": [
+        "select",
+        "date"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE enrollment_date >= '2022-01-01' AND enrollment_date < '2023-01-01'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-008",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select teachers in CS department",
+      "description": "Return first name and last name of teachers whose department_id is 1.",
+      "datasetId": "school",
+      "hints": [
+        "Filter teachers by department_id = 1"
+      ],
+      "explanation": "Simple equality filter retrieves all matching rows.",
+      "tags": [
+        "select",
+        "filter"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name FROM teachers WHERE department_id = 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-009",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select books under 12 dollars",
+      "description": "Return title and price of books costing less than $12.",
+      "datasetId": "school",
+      "hints": [
+        "Filter with WHERE price < 12"
+      ],
+      "explanation": "Relational operators can filter any numeric column.",
+      "tags": [
+        "select",
+        "filter"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT title, price FROM books WHERE price < 12.00",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-010",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "medium",
+      "title": "Select students not in department 1",
+      "description": "Return first_name, last_name for students NOT in Computer Science (department_id != 1).",
+      "datasetId": "school",
+      "hints": [
+        "Use <> or != for NOT EQUAL"
+      ],
+      "explanation": "The <> operator checks for inequality.",
+      "tags": [
+        "select",
+        "not-equal"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE department_id <> 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-011",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "medium",
+      "title": "Select students with NULL advisor",
+      "description": "Return first_name and last_name of students whose advisor_teacher_id is NULL.",
+      "datasetId": "school",
+      "hints": [
+        "Use IS NULL to check for null values",
+        "NOT = NULL does NOT work in SQL"
+      ],
+      "explanation": "SQL uses IS NULL / IS NOT NULL instead of = / != for null checks.",
+      "tags": [
+        "select",
+        "null"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE advisor_teacher_id IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-012",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Select female students",
+      "description": "Return first_name and gender of all female students.",
+      "datasetId": "school",
+      "hints": [
+        "Filter by gender = Female",
+        "Select two columns"
+      ],
+      "explanation": "String literals in SQL are wrapped in single quotes.",
+      "tags": [
+        "select",
+        "string-filter"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, gender FROM students WHERE gender = 'Female'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-013",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "medium",
+      "title": "Select active students in Illinois",
+      "description": "Return first_name, city, state for active students in Illinois.",
+      "datasetId": "school",
+      "hints": [
+        "Combine conditions with AND",
+        "Match both status and state"
+      ],
+      "explanation": "AND combines multiple conditions — all must be true.",
+      "tags": [
+        "select",
+        "and"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, city, state FROM students WHERE status = 'Active' AND state = 'IL'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-014",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "medium",
+      "title": "Select teachers hired after 2015",
+      "description": "Return first_name, last_name, hire_date for teachers hired after January 1, 2015.",
+      "datasetId": "school",
+      "hints": [
+        "Filter by hire_date > '2015-01-01'",
+        "Include hire_date in output"
+      ],
+      "explanation": "Date strings in ISO format sort correctly with comparison operators.",
+      "tags": [
+        "select",
+        "date-filter"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, last_name, hire_date FROM teachers WHERE hire_date > '2015-01-01'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-015",
+      "type": "query",
+      "topicId": "select-basics",
+      "difficulty": "hard",
+      "title": "Select courses subject 2 Fall 2023",
+      "description": "Return course_number, section, room for courses in subject 2, semester Fall, year 2023.",
+      "datasetId": "school",
+      "hints": [
+        "Chain three conditions with AND",
+        "Match subject_id, semester, and year"
+      ],
+      "explanation": "Multiple AND conditions narrow results incrementally.",
+      "tags": [
+        "select",
+        "join-prep"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT course_number, section, room FROM courses WHERE subject_id = 2 AND semester = 'Fall' AND year = 2023",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-016",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "easy",
+      "title": "Students with GPA between 3.0 and 3.5",
+      "description": "Return first_name and gpa for students whose GPA is between 3.0 and 3.5 inclusive.",
+      "datasetId": "school",
+      "hints": [
+        "BETWEEN is inclusive on both ends",
+        "Use BETWEEN low AND high"
+      ],
+      "explanation": "BETWEEN simplifies range queries — it includes both boundary values.",
+      "tags": [
+        "where",
+        "range"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, gpa FROM students WHERE gpa BETWEEN 3.0 AND 3.5",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-017",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "easy",
+      "title": "Teachers in specific departments",
+      "description": "Return first_name and department_id for teachers in departments 1, 2, or 3.",
+      "datasetId": "school",
+      "hints": [
+        "Use IN to check against a list of values",
+        "List the department ids"
+      ],
+      "explanation": "IN(...) is shorthand for multiple OR conditions.",
+      "tags": [
+        "where",
+        "in-clause"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, department_id FROM teachers WHERE department_id IN (1, 2, 3)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-018",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Last name starts with J",
+      "description": "Return first_name and last_name of students whose last name begins with the letter J.",
+      "datasetId": "school",
+      "hints": [
+        "Use LIKE with wildcard %",
+        "Last name starting with J means J%"
+      ],
+      "explanation": "The % wildcard matches zero or more characters.",
+      "tags": [
+        "where",
+        "like"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE last_name LIKE 'J%'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-019",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Students with phone numbers",
+      "description": "Return first_name and phone for students who have a non-null phone number.",
+      "datasetId": "school",
+      "hints": [
+        "Filter where phone IS NOT NULL",
+        "These students provided contact info"
+      ],
+      "explanation": "IS NOT NULL finds records with actual values in a column.",
+      "tags": [
+        "where",
+        "null-check"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, phone FROM students WHERE phone IS NOT NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-020",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Books published 1940 to 1965",
+      "description": "Return title and published_year for books published between 1940 and 1965 inclusive.",
+      "datasetId": "school",
+      "hints": [
+        "Use BETWEEN for the year range",
+        "Include both endpoints"
+      ],
+      "explanation": "Years stored as integers support direct BETWEEN comparison.",
+      "tags": [
+        "where",
+        "range"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT title, published_year FROM books WHERE published_year BETWEEN 1940 AND 1965",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-021",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "hard",
+      "title": "Active loans due after Jan 2024",
+      "description": "Return student_id, book_id, due_date for active loans with due dates after 2024-01-31.",
+      "datasetId": "school",
+      "hints": [
+        "Filter by status = Active",
+        "Also filter by due_date > 2024-01-31",
+        "Combine with AND"
+      ],
+      "explanation": "Combining text status with date filters requires AND.",
+      "tags": [
+        "where",
+        "compound"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date > '2024-01-31'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-022",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Courses with specific subjects",
+      "description": "Return course_number and subject_id for courses in subjects 1, 2, 3, or 5.",
+      "datasetId": "school",
+      "hints": [
+        "Filter with IN clause",
+        "Match specific subject IDs"
+      ],
+      "explanation": "IN works with integer lists too, not just strings.",
+      "tags": [
+        "where",
+        "in-clause"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT course_number, subject_id FROM courses WHERE subject_id IN (1, 2, 3, 5)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-023",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "hard",
+      "title": "Enrollments with grades",
+      "description": "Return student_id and grade for enrollments where grade indicates completion (not NULL).",
+      "datasetId": "school",
+      "hints": [
+        "Filter where grade IS NOT NULL",
+        "These represent completed enrollments"
+      ],
+      "explanation": "Grades may be NULL for currently in-progress courses.",
+      "tags": [
+        "where",
+        "grade-check"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT student_id, grade FROM enrollments WHERE grade IS NOT NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-024",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Authors born before 1900",
+      "description": "Return first_name, last_name, birth_year for authors born before 1900.",
+      "datasetId": "school",
+      "hints": [
+        "Use < to find earlier birth years"
+      ],
+      "explanation": "Less-than comparisons on integers are straightforward.",
+      "tags": [
+        "where",
+        "comparison"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, last_name, birth_year FROM authors WHERE birth_year < 1900",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-025",
+      "type": "query",
+      "topicId": "where-filters",
+      "difficulty": "medium",
+      "title": "Departments budget over 200k",
+      "description": "Return name and budget for departments with budget exceeding 200,000.",
+      "datasetId": "school",
+      "hints": [
+        "Filter by budget > 200000",
+        "Only some departments exceed this threshold"
+      ],
+      "explanation": "Budget filtering helps identify well-funded departments.",
+      "tags": [
+        "where",
+        "budget"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT name, budget FROM departments WHERE budget > 200000",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-026",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "easy",
+      "title": "Students ordered by GPA descending",
+      "description": "Return first_name, last_name, gpa ordered by GPA from highest to lowest.",
+      "datasetId": "school",
+      "hints": [
+        "Use ORDER BY gpa DESC",
+        "DESC means descending (highest first)"
+      ],
+      "explanation": "ORDER BY arranges results; DESC puts largest values first.",
+      "tags": [
+        "orderby",
+        "sort"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-027",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "easy",
+      "title": "Teachers ordered by salary ascending",
+      "description": "Return first_name, last_name, salary ordered by salary from lowest to highest.",
+      "datasetId": "school",
+      "hints": [
+        "Use ORDER BY salary ASC",
+        "ASC is default but explicit is clearer"
+      ],
+      "explanation": "ASCENDING order shows smallest values first.",
+      "tags": [
+        "orderby",
+        "salary"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name, salary FROM teachers ORDER BY salary ASC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-028",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "medium",
+      "title": "Top 5 students by GPA",
+      "description": "Return the top 5 students by GPA (first_name, last_name, gpa).",
+      "datasetId": "school",
+      "hints": [
+        "Order by gpa DESC first",
+        "Then add LIMIT 5 to take the top 5"
+      ],
+      "explanation": "LIMIT restricts the number of returned rows.",
+      "tags": [
+        "orderby",
+        "limit"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC LIMIT 5",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-029",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "medium",
+      "title": "Students enrolled in 2021 ordered by name",
+      "description": "Return first_name, enrollment_date for students enrolled in 2021, ordered by first_name.",
+      "datasetId": "school",
+      "hints": [
+        "Filter for enrollment_date in 2021",
+        "Order by first_name ASC",
+        "Year range uses >= start and < next year"
+      ],
+      "explanation": "Range filters combined with ORDER BY give organized results.",
+      "tags": [
+        "orderby",
+        "filter-sort"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE enrollment_date >= '2021-01-01' AND enrollment_date < '2022-01-01' ORDER BY first_name",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-030",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "medium",
+      "title": "Expensive books",
+      "description": "Return title and price of books ordered by price from most expensive to least.",
+      "datasetId": "school",
+      "hints": [
+        "ORDER BY price DESC",
+        "No additional filtering needed"
+      ],
+      "explanation": "ORDER BY without WHERE returns all rows sorted.",
+      "tags": [
+        "orderby",
+        "price"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT title, price FROM books ORDER BY price DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-031",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "hard",
+      "title": "Last 3 students by enrollment date",
+      "description": "Return first_name, enrollment_date of the 3 most recently enrolled students.",
+      "datasetId": "school",
+      "hints": [
+        "ORDER BY enrollment_date DESC to get latest first",
+        "Then LIMIT 3",
+        "Most recent enrollments come last alphabetically in date format"
+      ],
+      "explanation": "Descending date order brings newest entries to the top.",
+      "tags": [
+        "orderby",
+        "enrollment"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, enrollment_date FROM students ORDER BY enrollment_date DESC LIMIT 3",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-032",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "medium",
+      "title": "Departments by budget",
+      "description": "Return name and budget of departments ordered by budget descending.",
+      "datasetId": "school",
+      "hints": [
+        "ORDER BY budget DESC",
+        "Return name and budget columns"
+      ],
+      "explanation": "Budget is a REAL type; DESC shows highest budgets first.",
+      "tags": [
+        "orderby",
+        "budget"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT name, budget FROM departments ORDER BY budget DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-033",
+      "type": "query",
+      "topicId": "order-by",
+      "difficulty": "hard",
+      "title": "Students by GPA then last name",
+      "description": "Return first_name, last_name, gpa ordered by GPA descending, then last_name ascending as tiebreaker.",
+      "datasetId": "school",
+      "hints": [
+        "Primary sort by gpa DESC",
+        "Secondary sort by last_name ASC for ties",
+        "Multiple ORDER BY columns create tiebreakers"
+      ],
+      "explanation": "When GPA values match, the secondary sort orders those rows.",
+      "tags": [
+        "orderby",
+        "multi-sort"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students ORDER BY gpa DESC, last_name ASC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-034",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "easy",
+      "title": "Total number of students",
+      "description": "How many students are registered?",
+      "datasetId": "school",
+      "hints": [
+        "COUNT(*) counts all rows",
+        "Alias the result as total_students"
+      ],
+      "explanation": "Aggregate functions operate on entire columns.",
+      "tags": [
+        "aggregate",
+        "count"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT COUNT(*) AS total_students FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-035",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "easy",
+      "title": "Average GPA of all students",
+      "description": "Calculate the average GPA across all students.",
+      "datasetId": "school",
+      "hints": [
+        "Use AVG(gpa) to compute mean",
+        "AVG ignores NULL values"
+      ],
+      "explanation": "AVG() returns the arithmetic mean of non-null values.",
+      "tags": [
+        "aggregate",
+        "average"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT AVG(gpa) AS avg_gpa FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-036",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Maximum and minimum salaries",
+      "description": "Find the highest and lowest teacher salaries.",
+      "datasetId": "school",
+      "hints": [
+        "MAX(salary) for highest",
+        "MIN(salary) for lowest",
+        "Use both aggregates in one query"
+      ],
+      "explanation": "Multiple aggregates can run simultaneously in one SELECT.",
+      "tags": [
+        "aggregate",
+        "max-min"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT MAX(salary) AS max_salary, MIN(salary) AS min_salary FROM teachers",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-037",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Total book inventory value",
+      "description": "Calculate the total value of all books (sum of price * stock).",
+      "datasetId": "school",
+      "hints": [
+        "Multiply price by stock per row",
+        "Then SUM the results",
+        "SQLite supports expressions inside aggregates"
+      ],
+      "explanation": "Arithmetic inside aggregates lets you compute derived totals.",
+      "tags": [
+        "aggregate",
+        "calculation"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT SUM(price * stock) AS total_value FROM books",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-038",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Count of active teachers",
+      "description": "How many teachers are currently active?",
+      "datasetId": "school",
+      "hints": [
+        "Filter is_active = 1",
+        "Then COUNT(*)",
+        "Only active teachers count"
+      ],
+      "explanation": "Combining COUNT with WHERE restricts the aggregation scope.",
+      "tags": [
+        "aggregate",
+        "filtered-count"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT COUNT(*) AS active_teachers FROM teachers WHERE is_active = 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-039",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Total scholarship money awarded",
+      "description": "What is the total amount of scholarships awarded to students?",
+      "datasetId": "school",
+      "hints": [
+        "SUM(amount_awarded) from student_scholarships",
+        "One simple aggregate over the junction table"
+      ],
+      "explanation": "The junction table tracks individual awards with amounts.",
+      "tags": [
+        "aggregate",
+        "sum"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT SUM(amount_awarded) AS total_scholarship FROM student_scholarships",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-040",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "hard",
+      "title": "Department budget summary",
+      "description": "Return department name, count of teachers, and total salary budget per department.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN departments with teachers",
+        "COUNT and SUM the teacher data",
+        "GROUP BY department",
+        "Order by total salary descending",
+        "Departments with no teachers still appear thanks to LEFT JOIN"
+      ],
+      "explanation": "LEFT JOIN ensures departments with zero teachers still show up.",
+      "tags": [
+        "aggregate",
+        "group-join"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT d.name, COUNT(t.id) AS teacher_count, SUM(t.salary) AS total_salary FROM departments d LEFT JOIN teachers t ON d.id = t.department_id GROUP BY d.id, d.name ORDER BY total_salary DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-041",
+      "type": "query",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Average exam score per course",
+      "description": "For each course, show the average marks obtained across all exam results.",
+      "datasetId": "school",
+      "hints": [
+        "Join exams with exam_results",
+        "AVG(marks_obtained) grouped by course_id",
+        "ROUND to 1 decimal place",
+        "GROUP BY groups results by course"
+      ],
+      "explanation": "JOINs enable aggregations across related tables.",
+      "tags": [
+        "aggregate",
+        "join-group"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT e.course_id, ROUND(AVG(er.marks_obtained), 1) AS avg_marks FROM exams e JOIN exam_results er ON e.id = er.exam_id GROUP BY e.course_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-042",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "easy",
+      "title": "Student count per department",
+      "description": "Count how many students are in each department.",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY department_id",
+        "COUNT(*) for each group",
+        "Order doesn't matter unless requested"
+      ],
+      "explanation": "GROUP BY collapses rows sharing the same value into one aggregate row.",
+      "tags": [
+        "groupby",
+        "count"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT department_id, COUNT(*) AS student_count FROM students GROUP BY department_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-043",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "medium",
+      "title": "Average GPA per department",
+      "description": "Calculate the average GPA for each department.",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY department_id",
+        "AVG(gpa) for each group",
+        "ROUND to 2 decimal places"
+      ],
+      "explanation": "ROUND(x, 2) trims floating point precision for readability.",
+      "tags": [
+        "groupby",
+        "average"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT department_id, ROUND(AVG(gpa), 2) AS avg_gpa FROM students GROUP BY department_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-044",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "medium",
+      "title": "Courses per subject",
+      "description": "How many course sections exist for each subject?",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY subject_id",
+        "COUNT(*) measures sections per subject"
+      ],
+      "explanation": "A subject can have multiple course sections (different semesters/teachers).",
+      "tags": [
+        "groupby",
+        "count"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT subject_id, COUNT(*) AS course_count FROM courses GROUP BY subject_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-045",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "hard",
+      "title": "Departments with more than 3 students",
+      "description": "Return department_id and student count, but only for departments with more than 3 students.",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY department_id",
+        "HAVING filters groups (not individual rows)",
+        "HAVING COUNT(*) > 3 keeps only crowded departments"
+      ],
+      "explanation": "HAVING applies after grouping; WHERE applies before grouping.",
+      "tags": [
+        "groupby",
+        "having"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT department_id, COUNT(*) AS student_count FROM students GROUP BY department_id HAVING COUNT(*) > 3",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-046",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "medium",
+      "title": "Enrollment status distribution",
+      "description": "Count enrollments by their status (Enrolled, Completed, In Progress, etc.).",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY status",
+        "COUNT(*) per status",
+        "ORDER BY count DESC for readability"
+      ],
+      "explanation": "Status values partition enrollments into categories.",
+      "tags": [
+        "groupby",
+        "status"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT status, COUNT(*) AS enrollment_count FROM enrollments GROUP BY status ORDER BY enrollment_count DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-047",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "hard",
+      "title": "Book categories with total stock",
+      "description": "Return category and total stock count per book category.",
+      "datasetId": "school",
+      "hints": [
+        "GROUP BY category",
+        "SUM(stock) totals inventory per category",
+        "ORDER BY total_stock DESC"
+      ],
+      "explanation": "Categories group books by genre/type; stock sums inventory.",
+      "tags": [
+        "groupby",
+        "stock-sum"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT category, SUM(stock) AS total_stock FROM books GROUP BY category ORDER BY total_stock DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-048",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "hard",
+      "title": "Students with multiple enrollments",
+      "description": "Find student IDs who are enrolled in more than one course (completed or in progress).",
+      "datasetId": "school",
+      "hints": [
+        "Filter to relevant statuses first",
+        "GROUP BY student_id",
+        "HAVING COUNT(*) > 1",
+        "Only students taking multiple courses"
+      ],
+      "explanation": "Multi-table or filtered GROUP BY narrows to active participants.",
+      "tags": [
+        "groupby",
+        "having-count"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT student_id, COUNT(*) AS course_count FROM enrollments WHERE status IN ('Completed', 'In Progress') GROUP BY student_id HAVING COUNT(*) > 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-049",
+      "type": "query",
+      "topicId": "group-by",
+      "difficulty": "hard",
+      "title": "Average attendance by course",
+      "description": "For completed enrollments, find the average attendance percentage per course.",
+      "datasetId": "school",
+      "hints": [
+        "WHERE status = Completed first",
+        "AVG(attendance_percentage) per course",
+        "HAVING avg >= 80 filters low-attendance courses",
+        "ROUND to 1 decimal place",
+        "ORDER BY avg_attendance DESC"
+      ],
+      "explanation": "Complex GROUP BY chains require careful filter ordering.",
+      "tags": [
+        "groupby",
+        "attendance"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT course_id, ROUND(AVG(attendance_percentage), 1) AS avg_attendance FROM enrollments WHERE status = 'Completed' GROUP BY course_id HAVING AVG(attendance_percentage) >= 80 ORDER BY avg_attendance DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-050",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "easy",
+      "title": "Student and department names",
+      "description": "Return student first_name, last_name, and their department name.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN students with departments",
+        "ON department_id matches id",
+        "Alias departments.name as department_name"
+      ],
+      "explanation": "INNER JOIN returns only rows with matches in both tables.",
+      "tags": [
+        "join",
+        "inner"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT s.first_name, s.last_name, d.name AS department_name FROM students s JOIN departments d ON s.department_id = d.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-051",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "easy",
+      "title": "Teacher and department",
+      "description": "Return teacher first_name, last_name, and department name.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN teachers to departments",
+        "ON department_id = departments.id"
+      ],
+      "explanation": "Self-explanatory: link teacher records to department names.",
+      "tags": [
+        "join",
+        "inner"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT t.first_name, t.last_name, d.name AS department FROM teachers t JOIN departments d ON t.department_id = d.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-052",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "Course with subject and teacher",
+      "description": "Return course_number, subject name, and teacher full name for all courses.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN courses to subjects on subject_id",
+        "JOIN courses to teachers on teacher_id",
+        "Concatenate teacher names with ||"
+      ],
+      "explanation": "Multiple JOINs chain relationships across three tables.",
+      "tags": [
+        "join",
+        "multi-join"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT c.course_number, sub.name AS subject_name, t.first_name || ' ' || t.last_name AS teacher_name FROM courses c JOIN subjects sub ON c.subject_id = sub.id JOIN teachers t ON c.teacher_id = t.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-053",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "Enrollment details with student and course",
+      "description": "Return student first_name, last_name, course_number, and grade for all enrollments.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN enrollments to students on student_id",
+        "JOIN enrollments to courses on course_id",
+        "Select name + course_number + grade"
+      ],
+      "explanation": "Enrollments is the bridge table connecting students and courses.",
+      "tags": [
+        "join",
+        "bridge"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.grade FROM enrollments e JOIN students s ON e.student_id = s.id JOIN courses c ON e.course_id = c.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-054",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "Books with their authors",
+      "description": "Return book title and author full name for all books.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN books to book_authors on book_id",
+        "JOIN book_authors to authors on author_id",
+        "Concatenate author first and last name",
+        "Many-to-many relationship via book_authors"
+      ],
+      "explanation": "book_authors is the junction table resolving the many-to-many between books and authors.",
+      "tags": [
+        "join",
+        "many-to-many"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT b.title, a.first_name || ' ' || a.last_name AS author_name FROM books b JOIN book_authors ba ON b.id = ba.book_id JOIN authors a ON ba.author_id = a.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-055",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Students with their exams and scores",
+      "description": "Return student first_name, last_name, exam title, and marks obtained for all exam results.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN exam_results to students on student_id",
+        "JOIN exam_results to exams on exam_id",
+        "Three-way join",
+        "Select names, exam title, and marks"
+      ],
+      "explanation": "Exam results sit between students and exams as the associative table.",
+      "tags": [
+        "join",
+        "three-way"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT s.first_name, s.last_name, e.title, er.marks_obtained FROM exam_results er JOIN students s ON er.student_id = s.id JOIN exams e ON er.exam_id = e.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-056",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Loans with student and book details",
+      "description": "Return student first_name, last_name, book title, loan_date, and status for all loans.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN loans to students on student_id",
+        "JOIN loans to books on book_id",
+        "Two JOINs from loans (junction table)"
+      ],
+      "explanation": "Loans links students and books together via foreign keys.",
+      "tags": [
+        "join",
+        "loans"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT s.first_name, s.last_name, b.title, l.loan_date, l.status FROM loans l JOIN students s ON l.student_id = s.id JOIN books b ON l.book_id = b.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-057",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Courses with enrolled student count",
+      "description": "Return course_number, section, and the count of currently enrolled/in-progress students.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN courses with enrollments",
+        "Filter enrollment status in JOIN condition",
+        "COUNT(e.id) counts only matched enrollments",
+        "GROUP BY course fields"
+      ],
+      "explanation": "LEFT JOIN ensures courses with zero current students still appear.",
+      "tags": [
+        "join",
+        "left-count"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT c.course_number, c.section, COUNT(e.id) AS enrolled_students FROM courses c LEFT JOIN enrollments e ON c.id = e.course_id AND e.status IN ('Enrolled', 'In Progress') GROUP BY c.id, c.course_number, c.section",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-058",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "Department head teachers",
+      "description": "Return department name and the head teacher's full name.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN departments to teachers on head_teacher_id",
+        "Some departments may have no head (NULL head_teacher_id)",
+        "Use LEFT JOIN to preserve all departments"
+      ],
+      "explanation": "LEFT JOIN is essential when the foreign key might be NULL.",
+      "tags": [
+        "join",
+        "left-join"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT d.name AS department_name, t.first_name || ' ' || t.last_name AS head_teacher FROM departments d LEFT JOIN teachers t ON d.head_teacher_id = t.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-059",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Students with failing grades",
+      "description": "Return first_name, last_name, course_number, grade for enrollments where grade indicates failure.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN enrollments to students to courses",
+        "Filter for failing grade values",
+        "Use IN for the grade list"
+      ],
+      "explanation": "Grade letters follow a standard academic scale.",
+      "tags": [
+        "join",
+        "grade-filter"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.grade FROM enrollments e JOIN students s ON e.student_id = s.id JOIN courses c ON e.course_id = c.id WHERE e.grade IN ('F', 'D+', 'D', 'D-', 'F+')",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-060",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Scholarship recipients with student details",
+      "description": "Return student first_name, last_name, scholarship name, and amount awarded.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN student_scholarships to students",
+        "JOIN student_scholarships to scholarships",
+        "Select names, scholarship name, and amount",
+        "ORDER BY amount DESC"
+      ],
+      "explanation": "student_scholarships bridges students and scholarships in a many-to-many.",
+      "tags": [
+        "join",
+        "scholarships"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT s.first_name, s.last_name, sh.name AS scholarship_name, ss.amount_awarded FROM student_scholarships ss JOIN students s ON ss.student_id = s.id JOIN scholarships sh ON ss.scholarship_id = sh.id ORDER BY ss.amount_awarded DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-061",
+      "type": "query",
+      "topicId": "joins",
+      "difficulty": "hard",
+      "title": "Exam performance per student per course",
+      "description": "Return student first_name, last_name, course_number, exam title, marks_obtained, total_marks.",
+      "datasetId": "school",
+      "hints": [
+        "Four-table JOIN: exam_results to students to exams to courses",
+        "Select name, course, exam title, marks, total",
+        "ORDER BY last name then exam date",
+        "Shows full performance picture"
+      ],
+      "explanation": "Chain four tables to get the complete exam performance record.",
+      "tags": [
+        "join",
+        "four-way"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, e.title, er.marks_obtained, e.total_marks FROM exam_results er JOIN students s ON er.student_id = s.id JOIN exams e ON er.exam_id = e.id JOIN courses c ON e.course_id = c.id ORDER BY s.last_name, e.exam_date",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-062",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Students above average GPA",
+      "description": "Return first_name, last_name, gpa for students whose GPA is above the average GPA of all students.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery in WHERE: find AVG(gpa) first",
+        "Outer query filters students above that average",
+        "Parentheses around subquery are required"
+      ],
+      "explanation": "A scalar subquery returns one value used in the outer WHERE clause.",
+      "tags": [
+        "subquery",
+        "scalar"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE gpa > (SELECT AVG(gpa) FROM students)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-063",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Courses taught by CS teachers",
+      "description": "Return course_number for courses taught by a teacher in the Computer Science department (dept id = 1).",
+      "datasetId": "school",
+      "hints": [
+        "Subquery finds CS teacher IDs",
+        "Outer query filters courses by those teacher IDs",
+        "Use IN for the subquery result"
+      ],
+      "explanation": "The subquery runs first, returning IDs used by the outer query.",
+      "tags": [
+        "subquery",
+        "in-subquery"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT course_number FROM courses WHERE teacher_id IN (SELECT id FROM teachers WHERE department_id = 1)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-064",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "hard",
+      "title": "Students in same department as Alice Johnson",
+      "description": "Return first_name, last_name for students in the same department as Alice Johnson (excluding Alice).",
+      "datasetId": "school",
+      "hints": [
+        "Subquery finds Alice's department_id",
+        "Outer query finds others in that department",
+        "Exclude Alice with != Alice"
+      ],
+      "explanation": "Finding a value via subquery then using it in the outer filter is a common pattern.",
+      "tags": [
+        "subquery",
+        "same-dept"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE department_id = (SELECT department_id FROM students WHERE first_name = 'Alice' AND last_name = 'Johnson') AND first_name != 'Alice'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-065",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Books in subjects with more than 2 books",
+      "description": "Return book titles for subjects that have more than 2 books.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery finds subject_ids with > 2 books",
+        "Outer query filters books by those subject_ids",
+        "GROUP BY + HAVING in subquery"
+      ],
+      "explanation": "A grouped subquery can identify qualifying groups first.",
+      "tags": [
+        "subquery",
+        "grouped-subquery"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT title FROM books WHERE subject_id IN (SELECT subject_id FROM books GROUP BY subject_id HAVING COUNT(*) > 2)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-066",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "hard",
+      "title": "Students with no enrollments",
+      "description": "Return first_name, last_name of students who have never been enrolled in any course.",
+      "datasetId": "school",
+      "hints": [
+        "NOT IN subquery finds students absent from enrollments",
+        "DISTINCT ensures no duplicates",
+        "Students with no enrollments won't appear in the subquery"
+      ],
+      "explanation": "NOT IN with a subquery identifies missing relationships.",
+      "tags": [
+        "subquery",
+        "not-in"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE id NOT IN (SELECT DISTINCT student_id FROM enrollments)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-067",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Courses with enrollment above average",
+      "description": "Return course_number for courses whose enrollment count exceeds the average enrollment across all courses.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery computes average enrollment",
+        "Outer query compares each course's enrolled_count",
+        "Use > not >= for strict above-average"
+      ],
+      "explanation": "Average enrollment is computed once and reused in every row comparison.",
+      "tags": [
+        "subquery",
+        "above-average"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT course_number FROM courses WHERE enrolled_count > (SELECT AVG(enrolled_count) FROM courses)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-068",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "hard",
+      "title": "Teachers who have never taught a course",
+      "description": "Return first_name, last_name of teachers not found in the courses table.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery collects all teacher_ids from courses",
+        "NOT IN finds teachers absent from that set",
+        "Includes inactive teachers too"
+      ],
+      "explanation": "Not-in patterns reveal orphaned or unused entities.",
+      "tags": [
+        "subquery",
+        "orphan-check"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT first_name, last_name FROM teachers WHERE id NOT IN (SELECT DISTINCT teacher_id FROM courses)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-069",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "hard",
+      "title": "Highest scoring exam per course",
+      "description": "For each course, return the course_number and the highest marks_obtained among its exam results.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN courses to exams to exam_results",
+        "MAX(marks_obtained) per course",
+        "GROUP BY course"
+      ],
+      "explanation": "Aggregating max marks within each course requires joining three tables.",
+      "tags": [
+        "subquery",
+        "max-per-group"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT c.course_number, MAX(er.marks_obtained) AS highest_marks FROM courses c JOIN exams e ON c.id = e.course_id JOIN exam_results er ON e.id = er.exam_id GROUP BY c.id, c.course_number",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-070",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Students who scored above 90",
+      "description": "Return distinct first_name, last_name of students who got above 90 on at least one exam.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN students to exam_results",
+        "Filter marks_obtained > 90",
+        "DISTINCT prevents duplicate names"
+      ],
+      "explanation": "A student may have multiple high scores; DISTINCT deduplicates.",
+      "tags": [
+        "subquery",
+        "distinct-high"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT DISTINCT s.first_name, s.last_name FROM students s JOIN exam_results er ON s.id = er.student_id WHERE er.marks_obtained > 90",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-071",
+      "type": "query",
+      "topicId": "subqueries",
+      "difficulty": "hard",
+      "title": "Subjects with average exam scores above 80",
+      "description": "Return subject code and name for subjects whose exam average marks exceed 80.",
+      "datasetId": "school",
+      "hints": [
+        "Nested subquery: group exams by subject",
+        "HAVING AVG > 80 finds strong subjects",
+        "Outer query gets subject codes and names"
+      ],
+      "explanation": "Complex nested subqueries can chain aggregations across multiple levels.",
+      "tags": [
+        "subquery",
+        "nested-avg"
+      ],
+      "points": 13,
+      "solutionSql": "SELECT sub.code, sub.name FROM subjects sub WHERE sub.id IN (SELECT e.subject_id FROM exams e JOIN exam_results er ON e.id = er.exam_id GROUP BY e.subject_id HAVING AVG(er.marks_obtained) > 80)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-072",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "medium",
+      "title": "Students and teachers in same city",
+      "description": "Return first_name and city from students and teachers who share the same city (use UNION).",
+      "datasetId": "school",
+      "hints": [
+        "UNION combines distinct results from two queries",
+        "First query gets students",
+        "Second gets teachers",
+        "UNION removes duplicates automatically"
+      ],
+      "explanation": "UNION merges two result sets while eliminating duplicates.",
+      "tags": [
+        "set",
+        "union"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT first_name, city FROM students UNION SELECT first_name, city FROM teachers",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-073",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "medium",
+      "title": "Names from Springfield",
+      "description": "Return all first_names from students and teachers located in Springfield (no duplicates).",
+      "datasetId": "school",
+      "hints": [
+        "Filter both tables to Springfield",
+        "UNION combines distinct names",
+        "Both source tables share the same city"
+      ],
+      "explanation": "Springfield appears as the city for all sample records.",
+      "tags": [
+        "set",
+        "union-filter"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT first_name FROM students WHERE city = 'Springfield' UNION SELECT first_name FROM teachers WHERE city = 'Springfield'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-074",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "hard",
+      "title": "Students NOT in CS department",
+      "description": "Use EXCEPT to find students not in the Computer Science department (dept_id != 1).",
+      "datasetId": "school",
+      "hints": [
+        "EXCEPT removes matching rows from the first query",
+        "First query gets all students",
+        "Second gets CS students",
+        "Result: non-CS students"
+      ],
+      "explanation": "EXCEPT(a, b) returns rows in a but not in b.",
+      "tags": [
+        "set",
+        "except"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name FROM students EXCEPT SELECT first_name FROM students WHERE department_id = 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-075",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "medium",
+      "title": "Courses offered both semesters",
+      "description": "Use INTERSECT to find course_numbers offered in both Fall 2023 and Spring 2024.",
+      "datasetId": "school",
+      "hints": [
+        "INTERSECT finds common values",
+        "First query: Fall 2023 courses",
+        "Second: Spring 2024 courses",
+        "Intersection = courses offered both semesters"
+      ],
+      "explanation": "INTERSECT returns only rows present in BOTH queries.",
+      "tags": [
+        "set",
+        "intersect"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT course_number FROM courses WHERE semester = 'Fall' AND year = 2023 INTERSECT SELECT course_number FROM courses WHERE semester = 'Spring' AND year = 2024",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-076",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "hard",
+      "title": "Active students not graduated",
+      "description": "Use EXCEPT to find students who are Active but not Graduated.",
+      "datasetId": "school",
+      "hints": [
+        "EXCEPT removes graduated names from active list",
+        "More robust than WHERE status = Active alone"
+      ],
+      "explanation": "EXCEPT handles edge cases better than simple filtering when sets overlap.",
+      "tags": [
+        "set",
+        "except-active"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT first_name FROM students WHERE status = 'Active' EXCEPT SELECT first_name FROM students WHERE status = 'Graduated'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-077",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "medium",
+      "title": "CS department people names",
+      "description": "Return first_name of people (teachers and students) in Computer Science (dept_id=1), removing duplicates.",
+      "datasetId": "school",
+      "hints": [
+        "Filter teachers to dept_id = 1",
+        "Filter students to dept_id = 1",
+        "UNION combines without duplicates"
+      ],
+      "explanation": "UNION automatically handles duplicate first_name values.",
+      "tags": [
+        "set",
+        "union-multi"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name FROM teachers WHERE department_id = 1 UNION SELECT first_name FROM students WHERE department_id = 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-078",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "hard",
+      "title": "Students who took CS101 and Calculus",
+      "description": "Return first_name, last_name of students enrolled in both CS101 and MATH101.",
+      "datasetId": "school",
+      "hints": [
+        "Self-join via enrollments twice",
+        "Match course_number = CS101 and MATH101",
+        "Requires same student in both enrollments"
+      ],
+      "explanation": "Cross-referencing the same student across two enrollment records finds shared courses.",
+      "tags": [
+        "set",
+        "overlap"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT s.first_name, s.last_name FROM students s JOIN enrollments e1 ON s.id = e1.student_id JOIN courses c1 ON e1.course_id = c1.id JOIN enrollments e2 ON s.id = e2.student_id JOIN courses c2 ON e2.course_id = c2.id WHERE c1.course_number = 'CS101' AND c2.course_number = 'MATH101'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-079",
+      "type": "query",
+      "topicId": "set-operations",
+      "difficulty": "hard",
+      "title": "Students with A and F grades",
+      "description": "Return distinct first_name, last_name of students who have both an A grade and an F grade in any enrollments.",
+      "datasetId": "school",
+      "hints": [
+        "Join enrollments twice on the same student",
+        "One copy requires grade = A",
+        "Other copy requires grade = F",
+        "DISTINCT avoids duplicates"
+      ],
+      "explanation": "A student appearing in two enrollment copies with different grades satisfies the condition.",
+      "tags": [
+        "set",
+        "dual-enrollment"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT DISTINCT s.first_name, s.last_name FROM students s JOIN enrollments e1 ON s.id = e1.student_id JOIN enrollments e2 ON s.id = e2.student_id WHERE e1.grade = 'A' AND e2.grade = 'F'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-080",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "easy",
+      "title": "Student full name concatenation",
+      "description": "Return first_name and last_name concatenated as full_name (space separated).",
+      "datasetId": "school",
+      "hints": [
+        "Use || to concatenate strings",
+        "Add a space literal between first and last",
+        "Alias as full_name"
+      ],
+      "explanation": "SQLite uses || for string concatenation, unlike some databases.",
+      "tags": [
+        "string",
+        "concat"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name || ' ' || last_name AS full_name FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-081",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "medium",
+      "title": "UPPERCASE student emails",
+      "description": "Return first_name and their email converted to uppercase.",
+      "datasetId": "school",
+      "hints": [
+        "UPPER() converts a string to uppercase",
+        "Apply to the email column",
+        "Keep first_name as-is"
+      ],
+      "explanation": "UPPER() is a built-in string function in SQLite.",
+      "tags": [
+        "string",
+        "upper"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, UPPER(email) AS email_upper FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-082",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "medium",
+      "title": "First name length",
+      "description": "Return first_name and the length of the first name in characters.",
+      "datasetId": "school",
+      "hints": [
+        "LENGTH() counts characters in a string",
+        "Select first_name alongside the length"
+      ],
+      "explanation": "LENGTH() returns the character count of any text expression.",
+      "tags": [
+        "string",
+        "length"
+      ],
+      "points": 6,
+      "solutionSql": "SELECT first_name, LENGTH(first_name) AS name_length FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-083",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "hard",
+      "title": "Email containing alice case-insensitive",
+      "description": "Return first_name, last_name of students whose email contains the substring alice (case-insensitive).",
+      "datasetId": "school",
+      "hints": [
+        "Convert email to lowercase with LOWER()",
+        "Use LIKE %alice% for substring match",
+        "Case-insensitive because both sides are lowercased"
+      ],
+      "explanation": "Converting both sides to the same case enables case-insensitive search.",
+      "tags": [
+        "string",
+        "substring"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE LOWER(email) LIKE '%alice%'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-084",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "medium",
+      "title": "Extract domain from email",
+      "description": "Return first_name and the domain part (after @) of the email.",
+      "datasetId": "school",
+      "hints": [
+        "INSTR(email, @) finds position of @",
+        "SUBSTR from position+1 extracts the domain",
+        "SUBSTR(text, start) gets everything from start onward"
+      ],
+      "explanation": "INSTR finds a substring's position; SUBSTR extracts from that point.",
+      "tags": [
+        "string",
+        "extract"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, SUBSTR(email, INSTR(email, '@') + 1) AS domain FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-085",
+      "type": "query",
+      "topicId": "string-functions",
+      "difficulty": "hard",
+      "title": "Book titles sorted by first word",
+      "description": "Return title of books, stripping leading articles (A, An, The) and sorting by the remaining title.",
+      "datasetId": "school",
+      "hints": [
+        "Use CASE to strip leading articles",
+        "SUBSTR extracts from the appropriate position",
+        "ORDER BY the cleaned title"
+      ],
+      "explanation": "String manipulation with CASE enables custom sorting logic.",
+      "tags": [
+        "string",
+        "case-sort"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT title, CASE WHEN LOWER(title) LIKE 'a %' THEN SUBSTR(title, 3) WHEN LOWER(title) LIKE 'an %' THEN SUBSTR(title, 4) WHEN LOWER(title) LIKE 'the %' THEN SUBSTR(title, 5) ELSE title END AS sort_title FROM books ORDER BY sort_title",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-086",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "easy",
+      "title": "Current date",
+      "description": "Return the current date.",
+      "datasetId": "school",
+      "hints": [
+        "SQLite has a built-in date(now) function"
+      ],
+      "explanation": "date('now') returns today's date in YYYY-MM-DD format.",
+      "tags": [
+        "date",
+        "now"
+      ],
+      "points": 3,
+      "solutionSql": "SELECT date('now')",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-087",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "medium",
+      "title": "Students age in years",
+      "description": "Return first_name, date_of_birth, and calculated age in years (as of 2024-01-01).",
+      "datasetId": "school",
+      "hints": [
+        "julianday() converts a date to a Julian day number",
+        "Subtract DOB from 2024-01-01",
+        "Divide by 365.25 for years",
+        "CAST to INTEGER truncates decimals"
+      ],
+      "explanation": "julianday enables date arithmetic in SQLite.",
+      "tags": [
+        "date",
+        "age-calc"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, date_of_birth, CAST((julianday('2024-01-01') - julianday(date_of_birth)) / 365.25 AS INTEGER) AS age FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-088",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "medium",
+      "title": "Loans overdue as of Feb 2024",
+      "description": "Return student_id, book_id, due_date for active loans past due as of Feb 1, 2024.",
+      "datasetId": "school",
+      "hints": [
+        "Filter status = Active AND due_date < target date",
+        "Any active loan before that date is overdue"
+      ],
+      "explanation": "Simple date comparison identifies overdue items.",
+      "tags": [
+        "date",
+        "overdue"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date < '2024-02-01'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-089",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "medium",
+      "title": "Extract year from enrollment date",
+      "description": "Return first_name and the year they enrolled.",
+      "datasetId": "school",
+      "hints": [
+        "strftime('%Y', date) extracts the year as a string",
+        "CAST to INTEGER for numeric comparison"
+      ],
+      "explanation": "strftime formats dates; %Y returns the 4-digit year.",
+      "tags": [
+        "date",
+        "year-extract"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, CAST(strftime('%Y', enrollment_date) AS INTEGER) AS enrollment_year FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-090",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "hard",
+      "title": "Students enrolled in even-numbered years",
+      "description": "Return first_name, enrollment_date for students enrolled in even-numbered years.",
+      "datasetId": "school",
+      "hints": [
+        "Extract year with strftime('%Y', ...)",
+        "Cast to INTEGER",
+        "Modulo 2 checks evenness"
+      ],
+      "explanation": "strftime + modulo enables filtering by numeric properties of dates.",
+      "tags": [
+        "date",
+        "even-year"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT first_name, enrollment_date FROM students WHERE CAST(strftime('%Y', enrollment_date) AS INTEGER) % 2 = 0",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-091",
+      "type": "query",
+      "topicId": "date-functions",
+      "difficulty": "medium",
+      "title": "Months since enrollment",
+      "description": "Return first_name and the number of months since each student enrolled (as of 2024-06-01).",
+      "datasetId": "school",
+      "hints": [
+        "julianday difference divided by ~30.44 gives approximate months",
+        "CAST to INTEGER truncates decimals",
+        "This is an approximation"
+      ],
+      "explanation": "Approximate month calculation uses average days per month.",
+      "tags": [
+        "date",
+        "months"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, CAST((julianday('2024-06-01') - julianday(enrollment_date)) / 30.44 AS INTEGER) AS months_enrolled FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-092",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "easy",
+      "title": "Students with no advisor",
+      "description": "Return first_name, last_name for students whose advisor_teacher_id is NULL.",
+      "datasetId": "school",
+      "hints": [
+        "Use IS NULL for null column check",
+        "advisor_teacher_id can be NULL for some students"
+      ],
+      "explanation": "IS NULL is the only correct way to test for null values.",
+      "tags": [
+        "null",
+        "is-null"
+      ],
+      "points": 5,
+      "solutionSql": "SELECT first_name, last_name FROM students WHERE advisor_teacher_id IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-093",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "medium",
+      "title": "Replace NULL advisors with Unassigned",
+      "description": "Return first_name and advisor_teacher_id, replacing NULL with Unassigned.",
+      "datasetId": "school",
+      "hints": [
+        "COALESCE returns first non-null value",
+        "CAST integer to TEXT so COALESCE works",
+        "Replace NULL with literal string"
+      ],
+      "explanation": "COALESCE(val, fallback) is like IFNULL but accepts multiple args.",
+      "tags": [
+        "null",
+        "coalesce"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, COALESCE(CAST(advisor_teacher_id AS TEXT), 'Unassigned') AS advisor FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-094",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "medium",
+      "title": "Count enrollments with vs without grades",
+      "description": "Return count of enrollments that have a grade and count that don't.",
+      "datasetId": "school",
+      "hints": [
+        "CASE WHEN...END acts as conditional counting",
+        "IS NOT NULL vs IS NULL branches",
+        "Sum each branch separately"
+      ],
+      "explanation": "Conditional aggregation uses CASE inside aggregate functions.",
+      "tags": [
+        "null",
+        "conditional-count"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT SUM(CASE WHEN grade IS NOT NULL THEN 1 ELSE 0 END) AS graded, SUM(CASE WHEN grade IS NULL THEN 1 ELSE 0 END) AS ungraded FROM enrollments",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-095",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "hard",
+      "title": "Students with incomplete addresses",
+      "description": "Return first_name, address, city, state for students where ANY address field is NULL.",
+      "datasetId": "school",
+      "hints": [
+        "Check each address component with OR",
+        "If any is NULL, include the row",
+        "Multiple OR conditions"
+      ],
+      "explanation": "OR chains catch any null across multiple columns.",
+      "tags": [
+        "null",
+        "or-null"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT first_name, address, city, state FROM students WHERE address IS NULL OR city IS NULL OR state IS NULL OR zip_code IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-096",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "medium",
+      "title": "Active loans with no return date",
+      "description": "Return student_id, book_id, loan_date for active loans without a return_date.",
+      "datasetId": "school",
+      "hints": [
+        "status = Active implies not yet returned",
+        "return_date IS NULL confirms no return recorded"
+      ],
+      "explanation": "Active loans without a return_date represent ongoing borrows.",
+      "tags": [
+        "null",
+        "active-loan"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT student_id, book_id, loan_date FROM loans WHERE status = 'Active' AND return_date IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-097",
+      "type": "query",
+      "topicId": "null-handling",
+      "difficulty": "hard",
+      "title": "Exam results with NULL marks",
+      "description": "Return exam title and course_number for exams where at least one result has NULL marks_obtained.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery finds exam_ids with NULL marks",
+        "Outer query gets exam details",
+        "JOIN through exams to courses"
+      ],
+      "explanation": "NULL marks_obtained may indicate a student skipped the exam.",
+      "tags": [
+        "null",
+        "missing-score"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT e.title, c.course_number FROM exams e JOIN courses c ON e.course_id = c.id WHERE e.id IN (SELECT exam_id FROM exam_results WHERE marks_obtained IS NULL)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-098",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "medium",
+      "title": "Rank students by GPA within each department",
+      "description": "Return first_name, last_name, department_id, gpa, and rank within each department by GPA descending.",
+      "datasetId": "school",
+      "hints": [
+        "RANK() assigns rank within partition",
+        "PARTITION BY department_id",
+        "ORDER BY gpa DESC inside the window"
+      ],
+      "explanation": "Window functions compute ranks/rolling stats without collapsing rows.",
+      "tags": [
+        "window",
+        "rank"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT first_name, last_name, department_id, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS gpa_rank FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-099",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "medium",
+      "title": "Running total of scholarship amounts",
+      "description": "Return student_id, scholarship_id, amount_awarded, and running total per student ordered by amount.",
+      "datasetId": "school",
+      "hints": [
+        "PARTITION BY student_id creates per-student windows",
+        "ORDER BY amount_awarded for running sum",
+        "SUM as a window function computes cumulative total"
+      ],
+      "explanation": "OVER() clause turns an aggregate into a window function.",
+      "tags": [
+        "window",
+        "running-total"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT student_id, scholarship_id, amount_awarded, SUM(amount_awarded) OVER (PARTITION BY student_id ORDER BY amount_awarded) AS running_total FROM student_scholarships",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-100",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "hard",
+      "title": "Row number of enrollments per course",
+      "description": "Assign a row number to each enrollment within a course, ordered by grade_points descending.",
+      "datasetId": "school",
+      "hints": [
+        "PARTITION BY course_id groups rankings per course",
+        "ORDER BY grade_points DESC puts best grades first",
+        "NULLS LAST pushes missing grades to bottom"
+      ],
+      "explanation": "ROW_NUMBER() gives unique sequential numbering within each partition.",
+      "tags": [
+        "window",
+        "row-number"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT course_id, student_id, grade, grade_points, ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY grade_points DESC NULLS LAST) AS enrollment_rank FROM enrollments WHERE status = 'Completed'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-101",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "hard",
+      "title": "Average GPA deviation per student",
+      "description": "Return first_name, gpa, and how much their GPA deviates from their department's average GPA.",
+      "datasetId": "school",
+      "hints": [
+        "AVG() OVER (PARTITION BY department_id) computes dept average",
+        "Subtract dept average from individual GPA",
+        "ROUND to 2 decimals for clean output"
+      ],
+      "explanation": "Deviations measure how far each value is from its group mean.",
+      "tags": [
+        "window",
+        "deviation"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT first_name, last_name, gpa, ROUND(gpa - AVG(gpa) OVER (PARTITION BY department_id), 2) AS gpa_deviation FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-102",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "medium",
+      "title": "Lagged enrollment dates per student",
+      "description": "Return student_id, course_id, enrollment_date, and the previous enrollment_date for that student.",
+      "datasetId": "school",
+      "hints": [
+        "LAG(col, 1) looks at the previous row",
+        "PARTITION BY student_id resets per student",
+        "ORDER BY enrollment_date for chronological lag"
+      ],
+      "explanation": "LAG accesses prior-row values without self-joining.",
+      "tags": [
+        "window",
+        "lag"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT student_id, course_id, enrollment_date, LAG(enrollment_date, 1) OVER (PARTITION BY student_id ORDER BY enrollment_date) AS prev_enrollment FROM enrollments",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-103",
+      "type": "query",
+      "topicId": "window-functions",
+      "difficulty": "hard",
+      "title": "Percentile rank of exam scores",
+      "description": "Return course_number, student first_name, last_name, marks_obtained, and percentile rank within the course.",
+      "datasetId": "school",
+      "hints": [
+        "RANK() within course partition for position",
+        "COUNT(*) OVER gives total for that course",
+        "Formula converts rank to 0-100 percentile"
+      ],
+      "explanation": "Percentile rank normalizes scores across different exams.",
+      "tags": [
+        "window",
+        "percentile"
+      ],
+      "points": 14,
+      "solutionSql": "SELECT c.course_number, s.first_name, s.last_name, er.marks_obtained, ROUND(100.0 * (RANK() OVER (PARTITION BY e.course_id ORDER BY er.marks_obtained) - 1) / (COUNT(*) OVER (PARTITION BY e.course_id) - 1), 1) AS percentile_rank FROM exam_results er JOIN exams e ON er.exam_id = e.id JOIN courses c ON e.course_id = c.id JOIN students s ON er.student_id = s.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-104",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "medium",
+      "title": "High-GPA students via CTE",
+      "description": "Using a CTE, return first_name, last_name, gpa for students with GPA >= 3.5.",
+      "datasetId": "school",
+      "hints": [
+        "Define CTE named high_gpa",
+        "Filter gpa >= 3.5 inside CTE",
+        "SELECT from the CTE afterwards"
+      ],
+      "explanation": "CTEs improve readability by naming intermediate result sets.",
+      "tags": [
+        "cte",
+        "basic"
+      ],
+      "points": 8,
+      "solutionSql": "WITH high_gpa AS (SELECT first_name, last_name, gpa FROM students WHERE gpa >= 3.5) SELECT * FROM high_gpa",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-105",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "medium",
+      "title": "Department GPA summary via CTE",
+      "description": "Using a CTE, return department name and average GPA.",
+      "datasetId": "school",
+      "hints": [
+        "Define CTE dept_avg with grouped GPAs",
+        "JOIN CTE result to departments for names",
+        "Clean readable structure"
+      ],
+      "explanation": "CTEs make complex multi-step queries easier to read and maintain.",
+      "tags": [
+        "cte",
+        "dept-summary"
+      ],
+      "points": 9,
+      "solutionSql": "WITH dept_avg AS (SELECT department_id, ROUND(AVG(gpa), 2) AS avg_gpa FROM students GROUP BY department_id) SELECT d.name, da.avg_gpa FROM dept_avg da JOIN departments d ON da.department_id = d.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-106",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "hard",
+      "title": "Top student per department via CTE",
+      "description": "Using a CTE with RANK(), return the top-GPA student in each department.",
+      "datasetId": "school",
+      "hints": [
+        "CTE ranks students within each department",
+        "Filter rnk = 1 to keep only top student per dept",
+        "WINDOW function inside CTE"
+      ],
+      "explanation": "Combining CTEs with window functions is a powerful pattern.",
+      "tags": [
+        "cte",
+        "top-per-dept"
+      ],
+      "points": 12,
+      "solutionSql": "WITH ranked AS (SELECT first_name, last_name, department_id, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS rnk FROM students) SELECT first_name, last_name, department_id, gpa FROM ranked WHERE rnk = 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-107",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "medium",
+      "title": "Cumulative enrollment counts via CTE",
+      "description": "Using a CTE, show semester and total enrollments per semester for Fall 2023 and Spring 2024.",
+      "datasetId": "school",
+      "hints": [
+        "Group enrollments by semester and year",
+        "Count statuses that indicate activity",
+        "Format period as semester + year"
+      ],
+      "explanation": "CTEs can pre-aggregate data before final formatting.",
+      "tags": [
+        "cte",
+        "semester-counts"
+      ],
+      "points": 10,
+      "solutionSql": "WITH sem_counts AS (SELECT semester, year, COUNT(*) AS cnt FROM enrollments WHERE status IN ('Completed', 'In Progress') GROUP BY semester, year) SELECT semester || ' ' || CAST(year AS TEXT) AS period, cnt FROM sem_counts ORDER BY year, semester",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-108",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "hard",
+      "title": "Overdue loan report via CTE",
+      "description": "Using a CTE, list active loans where due_date is before 2024-02-01, with student name and book title.",
+      "datasetId": "school",
+      "hints": [
+        "CTE identifies overdue active loans",
+        "JOIN to students and books for names",
+        "Combine CTE with standard joins"
+      ],
+      "explanation": "CTEs help separate identification logic from display logic.",
+      "tags": [
+        "cte",
+        "overdue-report"
+      ],
+      "points": 11,
+      "solutionSql": "WITH overdue AS (SELECT student_id, book_id, due_date FROM loans WHERE status = 'Active' AND due_date < '2024-02-01') SELECT s.first_name, s.last_name, b.title, o.due_date FROM overdue o JOIN students s ON o.student_id = s.id JOIN books b ON o.book_id = b.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-109",
+      "type": "query",
+      "topicId": "cte",
+      "difficulty": "hard",
+      "title": "Department workload report via CTE",
+      "description": "Using a CTE, show each department's teacher count and the total subjects they teach.",
+      "datasetId": "school",
+      "hints": [
+        "Two CTEs: one for teacher counts, one for subject counts",
+        "LEFT JOIN both to departments to keep all depts",
+        "COALESCE handles departments with zero teachers or subjects"
+      ],
+      "explanation": "Multiple CTEs can pre-compute independent aggregates.",
+      "tags": [
+        "cte",
+        "workload-report"
+      ],
+      "points": 13,
+      "solutionSql": "WITH teacher_counts AS (SELECT department_id, COUNT(*) AS tc FROM teachers GROUP BY department_id), subject_counts AS (SELECT department_id, COUNT(*) AS sc FROM subjects GROUP BY department_id) SELECT d.name, COALESCE(tc.tc, 0) AS teachers, COALESCE(sc.sc, 0) AS subjects FROM departments d LEFT JOIN teacher_counts tc ON d.id = tc.department_id LEFT JOIN subject_counts sc ON d.id = sc.department_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-110",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "easy",
+      "title": "Insert a new student",
+      "description": "Fix the INSERT statement to add a student with id=31, first_name='Nina', last_name='Patel', email='nina.patel@logixzen.edu', date_of_birth='2003-04-10', gender='Female', status='Active', gpa=3.60, department_id=2, advisor_teacher_id=5.",
+      "datasetId": "school",
+      "hints": [
+        "Make sure all required columns are listed",
+        "Values must match column order exactly",
+        "Use single quotes for strings, no quotes for numbers"
+      ],
+      "explanation": "INSERT adds a new row to the table.",
+      "tags": [
+        "dml",
+        "insert"
+      ],
+      "points": 6,
+      "brokenQuery": "INSERT INTO students VALUES (31, 'Nina', 'Patel');",
+      "solutionSql": "INSERT INTO students (id, first_name, last_name, email, date_of_birth, gender, status, gpa, department_id, advisor_teacher_id) VALUES (31, 'Nina', 'Patel', 'nina.patel@logixzen.edu', '2003-04-10', 'Female', 'Active', 3.60, 2, 5)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-111",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "medium",
+      "title": "Update a student GPA",
+      "description": "Fix the UPDATE statement to change student id=5's GPA to 3.90.",
+      "datasetId": "school",
+      "hints": [
+        "SET specifies the column and new value",
+        "WHERE targets the specific student",
+        "Always verify the WHERE clause before executing updates"
+      ],
+      "explanation": "UPDATE modifies existing rows based on conditions.",
+      "tags": [
+        "dml",
+        "update"
+      ],
+      "points": 7,
+      "brokenQuery": "UPDATE students SET gpa = 3.90",
+      "solutionSql": "UPDATE students SET gpa = 3.90 WHERE id = 5",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-112",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "medium",
+      "title": "Delete dropped enrollments",
+      "description": "Fix the DELETE statement to remove all enrollments with status 'Dropped'.",
+      "datasetId": "school",
+      "hints": [
+        "DELETE syntax: DELETE FROM table WHERE condition",
+        "Only dropped enrollments should be removed",
+        "Double-check WHERE before running DELETE — it is irreversible in SQL"
+      ],
+      "explanation": "DELETE removes rows matching the condition permanently.",
+      "tags": [
+        "dml",
+        "delete"
+      ],
+      "points": 7,
+      "brokenQuery": "DELETE students WHERE status = 'Dropped'",
+      "solutionSql": "DELETE FROM enrollments WHERE status = 'Dropped'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-113",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "hard",
+      "title": "Insert a new book with author",
+      "description": "Insert a new book (id=21, isbn='978-0-00-000000-0', title='1984 Special Edition', price=14.99, stock=10, category='Fiction', subject_id=9) and add its author (author_id=2, book_id=21).",
+      "datasetId": "school",
+      "hints": [
+        "Two INSERT statements needed",
+        "First insert the book, then add the author link",
+        "Maintain referential integrity — book must exist before adding to book_authors"
+      ],
+      "explanation": "Related inserts require ordering to respect foreign keys.",
+      "tags": [
+        "dml",
+        "multi-insert"
+      ],
+      "points": 10,
+      "brokenQuery": "INSERT INTO books VALUES (21, '978-0-00-000000-0', '1984 Special Edition', 14.99, 10, 'Fiction', 9);",
+      "solutionSql": "INSERT INTO books (id, isbn, title, price, stock, category, subject_id) VALUES (21, '978-0-00-000000-0', '1984 Special Edition', 14.99, 10, 'Fiction', 9)\nINSERT INTO book_authors (book_id, author_id) VALUES (21, 2)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-114",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "medium",
+      "title": "Update book prices with discount",
+      "description": "Fix the UPDATE statement to reduce all Fiction book prices by 10 percent.",
+      "datasetId": "school",
+      "hints": [
+        "Use ROUND to keep prices to 2 decimal places",
+        "Multiply by 0.9 for a 10 percent reduction",
+        "WHERE limits the update to Fiction category books only"
+      ],
+      "explanation": "Updates can use expressions to compute new values.",
+      "tags": [
+        "dml",
+        "calc-update"
+      ],
+      "points": 9,
+      "brokenQuery": "UPDATE books SET price = price * 0.9",
+      "solutionSql": "UPDATE books SET price = ROUND(price * 0.9, 2) WHERE category = 'Fiction'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-115",
+      "type": "debug-query",
+      "topicId": "dml",
+      "difficulty": "hard",
+      "title": "Archive completed exams",
+      "description": "Fix the UPDATE to mark all enrollments for Fall 2023 courses as Completed if they are In Progress.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery finds Fall 2023 course IDs",
+        "Outer UPDATE changes In Progress to Completed for those courses",
+        "Nested subqueries in UPDATE are supported by SQLite"
+      ],
+      "explanation": "Updates with subqueries allow conditional updates based on other tables.",
+      "tags": [
+        "dml",
+        "subquery-update"
+      ],
+      "points": 11,
+      "brokenQuery": "UPDATE enrollments SET status = 'Completed'",
+      "solutionSql": "UPDATE enrollments SET status = 'Completed' WHERE status = 'In Progress' AND course_id IN (SELECT id FROM courses WHERE semester = 'Fall' AND year = 2023)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-116",
+      "type": "debug-query",
+      "topicId": "ddl",
+      "difficulty": "medium",
+      "title": "Create a grading logs table",
+      "description": "Write CREATE TABLE to store exam grading logs with columns: id (INTEGER PRIMARY KEY), exam_id (INTEGER NOT NULL), grader_notes (TEXT), created_at (TEXT DEFAULT CURRENT_TIMESTAMP).",
+      "datasetId": "school",
+      "hints": [
+        "Each column needs a name, type, and optional constraints",
+        "DEFAULT CURRENT_TIMESTAMP auto-fills created_at",
+        "PRIMARY KEY makes id the unique identifier"
+      ],
+      "explanation": "CREATE TABLE defines a new schema object.",
+      "tags": [
+        "ddl",
+        "create-table"
+      ],
+      "points": 8,
+      "brokenQuery": "CREATE TABLE grading_logs (id, exam_id, grader_notes)",
+      "solutionSql": "CREATE TABLE grading_logs (id INTEGER PRIMARY KEY, exam_id INTEGER NOT NULL, grader_notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-117",
+      "type": "debug-query",
+      "topicId": "ddl",
+      "difficulty": "medium",
+      "title": "Add a column to students",
+      "description": "Write ALTER TABLE to add a phone_alternate column (TEXT) to the students table.",
+      "datasetId": "school",
+      "hints": [
+        "ALTER TABLE adds a column",
+        "ADD COLUMN is the syntax",
+        "New column defaults to NULL for existing rows"
+      ],
+      "explanation": "ALTER TABLE modifies an existing table's structure.",
+      "tags": [
+        "ddl",
+        "alter-table"
+      ],
+      "points": 7,
+      "brokenQuery": "ALTER TABLE students ADD phone_alternate TEXT",
+      "solutionSql": "ALTER TABLE students ADD COLUMN phone_alternate TEXT",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-118",
+      "type": "debug-query",
+      "topicId": "ddl",
+      "difficulty": "hard",
+      "title": "Create a view for student transcripts",
+      "description": "Write CREATE VIEW to show student transcript data: student id, full name, course_number, grade, and enrollment_date.",
+      "datasetId": "school",
+      "hints": [
+        "Views are virtual tables based on a query",
+        "JOIN three tables for the transcript view",
+        "Column aliases make the output clearer"
+      ],
+      "explanation": "CREATE VIEW stores a query definition for repeated use.",
+      "tags": [
+        "ddl",
+        "create-view"
+      ],
+      "points": 10,
+      "brokenQuery": "CREATE VIEW v_student_transcript AS SELECT * FROM students JOIN enrollments",
+      "solutionSql": "CREATE VIEW v_student_transcript AS SELECT s.id AS student_id, s.first_name || ' ' || s.last_name AS full_name, c.course_number, e.grade, e.enrollment_date FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-119",
+      "type": "debug-query",
+      "topicId": "ddl",
+      "difficulty": "medium",
+      "title": "Create index for faster lookups",
+      "description": "Write CREATE INDEX on students(department_id) to speed up department-based queries.",
+      "datasetId": "school",
+      "hints": [
+        "INDEX names typically start with idx_",
+        "Specify the table and column(s) to index",
+        "Indexes speed up WHERE and JOIN operations on the indexed column"
+      ],
+      "explanation": "CREATE INDEX improves query performance on frequently filtered columns.",
+      "tags": [
+        "ddl",
+        "create-index"
+      ],
+      "points": 8,
+      "brokenQuery": "CREATE INDEX ON students(department_id)",
+      "solutionSql": "CREATE INDEX idx_students_department ON students(department_id)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-120",
+      "type": "query",
+      "topicId": "index-constraints",
+      "difficulty": "medium",
+      "title": "Find departments with head teachers",
+      "description": "Return department name and head teacher name where head_teacher_id is not NULL.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN departments to teachers on head_teacher_id",
+        "Filter where head_teacher_id IS NOT NULL",
+        "Concatenate teacher name for display"
+      ],
+      "explanation": "Foreign key constraints ensure head_teacher_id references a valid teacher.",
+      "tags": [
+        "constraints",
+        "head-teacher"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT d.name, t.first_name || ' ' || t.last_name AS head_name FROM departments d JOIN teachers t ON d.head_teacher_id = t.id WHERE d.head_teacher_id IS NOT NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-121",
+      "type": "query",
+      "topicId": "index-constraints",
+      "difficulty": "medium",
+      "title": "Verify unique constraint on email",
+      "description": "Show all students whose email domain is duplicated (more than one student shares the same @domain).",
+      "datasetId": "school",
+      "hints": [
+        "Extract domain from email using SUBSTR and INSTR",
+        "GROUP BY domain",
+        "HAVING COUNT > 1 finds duplicates"
+      ],
+      "explanation": "Email has a UNIQUE constraint so duplicates should not occur in valid data.",
+      "tags": [
+        "constraints",
+        "unique-violation"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT SUBSTR(email, INSTR(email, '@') + 1) AS domain, COUNT(*) AS cnt FROM students GROUP BY SUBSTR(email, INSTR(email, '@') + 1) HAVING COUNT(*) > 1",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-122",
+      "type": "query",
+      "topicId": "index-constraints",
+      "difficulty": "hard",
+      "title": "Check referential integrity enrollments courses",
+      "description": "Find any enrollment referencing a non-existent course_id (orphaned records).",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN enrollments to courses",
+        "WHERE c.id IS NULL finds orphans",
+        "Should return zero rows if data is consistent"
+      ],
+      "explanation": "Referential integrity checks detect data quality issues.",
+      "tags": [
+        "constraints",
+        "orphan-check"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT e.id FROM enrollments e LEFT JOIN courses c ON e.course_id = c.id WHERE c.id IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-123",
+      "type": "query",
+      "topicId": "index-constraints",
+      "difficulty": "hard",
+      "title": "Validate loan foreign keys",
+      "description": "Find any loan referencing a student or book that no longer exists.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN loans to both students and books",
+        "Check either side for NULL",
+        "Both FKs must reference existing records"
+      ],
+      "explanation": "Validating all foreign keys ensures the database remains consistent.",
+      "tags": [
+        "constraints",
+        "fk-validation"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT l.id, l.student_id, l.book_id FROM loans l LEFT JOIN students s ON l.student_id = s.id LEFT JOIN books b ON l.book_id = b.id WHERE s.id IS NULL OR b.id IS NULL",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-124",
+      "type": "query",
+      "topicId": "transactions",
+      "difficulty": "medium",
+      "title": "Simulate transaction-safe enrollment",
+      "description": "Show the course_id and available spots for course_id = 1.",
+      "datasetId": "school",
+      "hints": [
+        "Subtract enrolled_count from max_students to get available spots",
+        "WHERE enrolled_count < max_students filters full courses",
+        "This simulates a capacity check before enrollment"
+      ],
+      "explanation": "Transaction safety checks happen before mutation operations.",
+      "tags": [
+        "transaction",
+        "capacity-check"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT id AS course_id, max_students - enrolled_count AS available_spots FROM courses WHERE id = 1 AND enrolled_count < max_students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-125",
+      "type": "query",
+      "topicId": "transactions",
+      "difficulty": "medium",
+      "title": "Check department budget before hiring",
+      "description": "Show departments with enough budget (> 80000) to hire a new teacher at average salary.",
+      "datasetId": "school",
+      "hints": [
+        "Filter departments with budget exceeding 80000",
+        "Subtract estimated salary to show surplus",
+        "Only budget-surplus departments can afford a new hire"
+      ],
+      "explanation": "Budget checks are part of transactional decision-making.",
+      "tags": [
+        "transaction",
+        "budget-check"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT name, budget, budget - 80000 AS surplus FROM departments WHERE budget > 80000",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-126",
+      "type": "query",
+      "topicId": "transactions",
+      "difficulty": "hard",
+      "title": "Validate school year transition",
+      "description": "Find courses from Fall 2023 that have corresponding Spring 2024 offerings (course_number match).",
+      "datasetId": "school",
+      "hints": [
+        "Self-join courses on course_number",
+        "Match Fall 2023 with Spring 2024",
+        "Returns courses continuing to the next semester"
+      ],
+      "explanation": "Self-joins validate continuity across time periods.",
+      "tags": [
+        "transaction",
+        "semester-transition"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT fall.course_number, fall.year AS fall_year, spring.year AS spring_year FROM courses fall JOIN courses spring ON fall.course_number = spring.course_number WHERE fall.semester = 'Fall' AND fall.year = 2023 AND spring.semester = 'Spring' AND spring.year = 2024",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-127",
+      "type": "query",
+      "topicId": "transactions",
+      "difficulty": "medium",
+      "title": "Calculate net scholarship disbursement",
+      "description": "Show total scholarships awarded per department (via student department mapping).",
+      "datasetId": "school",
+      "hints": [
+        "JOIN student_scholarships to students to departments",
+        "SUM(amount_awarded) per department",
+        "ORDER BY total descending"
+      ],
+      "explanation": "Aggregated financial reports require multi-table joins.",
+      "tags": [
+        "transaction",
+        "financial-report"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT st.department_id, d.name, SUM(ss.amount_awarded) AS total_awarded FROM student_scholarships ss JOIN students st ON ss.student_id = st.id JOIN departments d ON st.department_id = d.id GROUP BY st.department_id, d.name ORDER BY total_awarded DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-128",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "hard",
+      "title": "Pivot enrollment status counts",
+      "description": "Show each department's count of Active, Graduated, Suspended, and Withdrawn students.",
+      "datasetId": "school",
+      "hints": [
+        "Use CASE inside SUM for conditional counting",
+        "Each CASE produces one status column",
+        "GROUP BY department_id produces one row per department"
+      ],
+      "explanation": "Conditional aggregation pivots categorical data into columns.",
+      "tags": [
+        "advanced",
+        "pivot"
+      ],
+      "points": 13,
+      "solutionSql": "SELECT department_id, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status = 'Graduated' THEN 1 ELSE 0 END) AS graduated, SUM(CASE WHEN status = 'Suspended' THEN 1 ELSE 0 END) AS suspended, SUM(CASE WHEN status = 'Withdrawn' THEN 1 ELSE 0 END) AS withdrawn FROM students GROUP BY department_id",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-129",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "hard",
+      "title": "Calculate class rank within department",
+      "description": "Return first_name, last_name, gpa, and class_rank (1 = highest GPA) within each department.",
+      "datasetId": "school",
+      "hints": [
+        "RANK() with PARTITION BY department_id",
+        "ORDER BY gpa DESC gives highest GPA rank 1",
+        "Same GPA gets same rank",
+        "Rows without rank are omitted when filtered"
+      ],
+      "explanation": "Window ranking inside SELECT preserves all student rows.",
+      "tags": [
+        "advanced",
+        "class-rank"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT first_name, last_name, gpa, RANK() OVER (PARTITION BY department_id ORDER BY gpa DESC) AS class_rank FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-130",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "hard",
+      "title": "Find students with above-average exam grades",
+      "description": "Return first_name, last_name of students whose average exam marks exceed the overall average exam mark.",
+      "datasetId": "school",
+      "hints": [
+        "Subquery in HAVING computes overall average",
+        "GROUP BY student, then HAVING compares to average",
+        "Only above-average students are shown"
+      ],
+      "explanation": "HAVING with subqueries enables comparative filtering after aggregation.",
+      "tags": [
+        "advanced",
+        "above-avg-exam"
+      ],
+      "points": 13,
+      "solutionSql": "SELECT s.first_name, s.last_name FROM students s JOIN exam_results er ON s.id = er.student_id GROUP BY s.id, s.first_name, s.last_name HAVING AVG(er.marks_obtained) > (SELECT AVG(marks_obtained) FROM exam_results)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-131",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "medium",
+      "title": "List all subjects with enrollment statistics",
+      "description": "Return subject name, total courses, and total enrollments.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN preserves subjects with zero courses",
+        "COUNT(DISTINCT c.id) avoids double-counting courses",
+        "COUNT(e.id) counts all enrollments including cross-course ones"
+      ],
+      "explanation": "LEFT JOIN ensures no subject is lost even with zero enrollments.",
+      "tags": [
+        "advanced",
+        "subject-stats"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT sub.name, COUNT(DISTINCT c.id) AS total_courses, COUNT(e.id) AS total_enrollments FROM subjects sub LEFT JOIN courses c ON sub.id = c.subject_id LEFT JOIN enrollments e ON c.id = e.course_id GROUP BY sub.id, sub.name ORDER BY total_enrollments DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-132",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "hard",
+      "title": "Detect grade inflation midterm vs final",
+      "description": "Return course_number, midterm_avg, final_avg for courses where final average exceeds midterm average.",
+      "datasetId": "school",
+      "hints": [
+        "Conditional aggregation separates Midterm and Final averages",
+        "HAVING compares final avg > midterm avg",
+        "ROUND for readable output"
+      ],
+      "explanation": "CASE inside AVG enables side-by-side metric comparison.",
+      "tags": [
+        "advanced",
+        "grade-trend"
+      ],
+      "points": 14,
+      "solutionSql": "SELECT c.course_number, ROUND(AVG(CASE WHEN e.exam_type = 'Midterm' THEN er.marks_obtained END), 1) AS midterm_avg, ROUND(AVG(CASE WHEN e.exam_type = 'Final' THEN er.marks_obtained END), 1) AS final_avg FROM exams e JOIN exam_results er ON e.id = er.exam_id JOIN courses c ON e.course_id = c.id GROUP BY c.id, c.course_number HAVING AVG(CASE WHEN e.exam_type = 'Final' THEN er.marks_obtained END) > AVG(CASE WHEN e.exam_type = 'Midterm' THEN er.marks_obtained END)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-133",
+      "type": "query",
+      "topicId": "advanced-select",
+      "difficulty": "hard",
+      "title": "Revenue projection from book sales",
+      "description": "Estimate total revenue if all in-stock books were sold at current prices.",
+      "datasetId": "school",
+      "hints": [
+        "Multiply price by stock per book",
+        "SUM aggregates across all books with stock > 0",
+        "Filters out depleted books"
+      ],
+      "explanation": "Revenue projections use aggregate calculations on inventory data.",
+      "tags": [
+        "advanced",
+        "revenue-projection"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT SUM(price * stock) AS projected_revenue FROM books WHERE stock > 0",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-134",
+      "type": "query",
+      "topicId": "performance",
+      "difficulty": "medium",
+      "title": "Efficient student lookup by ID",
+      "description": "Return first_name, last_name, gpa for student with id = 10. Explain why this is fast.",
+      "datasetId": "school",
+      "hints": [
+        "WHERE id = 10 uses the PRIMARY KEY index",
+        "Primary key lookups are O(1) with hash or B-tree",
+        "No additional scanning needed"
+      ],
+      "explanation": "Primary key indexes provide the fastest possible single-row lookups.",
+      "tags": [
+        "performance",
+        "pk-lookup"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, last_name, gpa FROM students WHERE id = 10",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-135",
+      "type": "query",
+      "topicId": "performance",
+      "difficulty": "medium",
+      "title": "Why avoid SELECT star in production",
+      "description": "Return first_name, last_name, email from students (avoid SELECT *).",
+      "datasetId": "school",
+      "hints": [
+        "Name each column explicitly",
+        "Avoids transferring unused columns",
+        "Improves query plan efficiency and memory usage"
+      ],
+      "explanation": "Explicit column lists reduce network transfer and improve caching.",
+      "tags": [
+        "performance",
+        "select-star"
+      ],
+      "points": 7,
+      "solutionSql": "SELECT first_name, last_name, email FROM students",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-136",
+      "type": "query",
+      "topicId": "performance",
+      "difficulty": "hard",
+      "title": "Efficient existence check with EXISTS",
+      "description": "Return 1 if student with email bob.smith@logixzen.edu exists, else 0, using EXISTS.",
+      "datasetId": "school",
+      "hints": [
+        "EXISTS stops scanning after the first match",
+        "Returns boolean-like result via CASE",
+        "Much faster than COUNT(*) for existence checks"
+      ],
+      "explanation": "EXISTS short-circuits — it never scans the full table.",
+      "tags": [
+        "performance",
+        "exists-check"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT CASE WHEN EXISTS (SELECT 1 FROM students WHERE email = 'bob.smith@logixzen.edu') THEN 1 ELSE 0 END",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-137",
+      "type": "query",
+      "topicId": "performance",
+      "difficulty": "hard",
+      "title": "Index-friendly query pattern",
+      "description": "Return department_id and student count, filtering only Active students, ordered efficiently.",
+      "datasetId": "school",
+      "hints": [
+        "WHERE filters before grouping (reduces rows early)",
+        "GROUP BY on indexed department_id is efficient",
+        "ORDER BY aggregates rather than raw rows"
+      ],
+      "explanation": "Good query patterns minimize rows before expensive operations.",
+      "tags": [
+        "performance",
+        "efficient-pattern"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT department_id, COUNT(*) AS active_count FROM students WHERE status = 'Active' GROUP BY department_id ORDER BY active_count DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-138",
+      "type": "query",
+      "topicId": "database-design",
+      "difficulty": "medium",
+      "title": "Identify primary keys",
+      "description": "Which column is the primary key of the enrollments table?",
+      "datasetId": "school",
+      "hints": [
+        "The id column is the INTEGER PRIMARY KEY",
+        "It uniquely identifies each enrollment"
+      ],
+      "explanation": "Every table should have a primary key for unique row identification.",
+      "tags": [
+        "design",
+        "pk"
+      ],
+      "points": 3,
+      "solutionSql": "SELECT 'id' AS primary_key_column",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-139",
+      "type": "mcq-single",
+      "topicId": "database-design",
+      "difficulty": "easy",
+      "title": "Normalize the book_authors table",
+      "description": "The book_authors table resolves a many-to-many relationship. What type of table is it?",
+      "datasetId": "school",
+      "hints": [
+        "book_authors connects books and authors",
+        "It exists solely to resolve the many-to-many relationship",
+        "Such tables are called junction or bridge tables"
+      ],
+      "explanation": "Many-to-many relationships require junction tables.",
+      "tags": [
+        "database-design",
+        "normalization"
+      ],
+      "points": 5,
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "Lookup table"
+        },
+        {
+          "id": "opt_1",
+          "text": "Junction / bridge table"
+        },
+        {
+          "id": "opt_2",
+          "text": "Fact table"
+        },
+        {
+          "id": "opt_3",
+          "text": "Dimension table"
+        }
+      ],
+      "correctOptionId": "opt_1",
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "q-140",
+      "type": "mcq-single",
+      "topicId": "database-design",
+      "difficulty": "medium",
+      "title": "Choose the right JOIN",
+      "description": "You want ALL departments even if they have no teachers. Which JOIN should you use?",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN preserves all rows from the left (departments) table",
+        "INNER JOIN would exclude departments with no teachers",
+        "LEFT JOIN is correct for preserving the driving table"
+      ],
+      "explanation": "LEFT JOIN returns all rows from the left table with matches from the right.",
+      "tags": [
+        "database-design",
+        "join-types"
+      ],
+      "points": 6,
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "INNER JOIN"
+        },
+        {
+          "id": "opt_1",
+          "text": "LEFT JOIN"
+        },
+        {
+          "id": "opt_2",
+          "text": "RIGHT JOIN"
+        },
+        {
+          "id": "opt_3",
+          "text": "CROSS JOIN"
+        }
+      ],
+      "correctOptionId": "opt_1",
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "q-141",
+      "type": "query",
+      "topicId": "database-design",
+      "difficulty": "medium",
+      "title": "Identify foreign key relationships",
+      "description": "Write a query showing each table's foreign key columns by listing them with UNION ALL.",
+      "datasetId": "school",
+      "hints": [
+        "Enumerate all known foreign key relationships",
+        "UNION ALL stacks the results",
+        "Each row is one FK relationship"
+      ],
+      "explanation": "Mapping all FKs documents the relational design.",
+      "tags": [
+        "design",
+        "fk-map"
+      ],
+      "points": 8,
+      "solutionSql": "SELECT 'students' AS tbl, 'department_id' AS fk_col UNION ALL SELECT 'students', 'advisor_teacher_id' UNION ALL SELECT 'courses', 'subject_id' UNION ALL SELECT 'courses', 'teacher_id' UNION ALL SELECT 'enrollments', 'student_id' UNION ALL SELECT 'enrollments', 'course_id' UNION ALL SELECT 'books', 'subject_id' UNION ALL SELECT 'loans', 'student_id' UNION ALL SELECT 'loans', 'book_id' UNION ALL SELECT 'exams', 'course_id' UNION ALL SELECT 'exam_results', 'exam_id' UNION ALL SELECT 'exam_results', 'student_id' UNION ALL SELECT 'scholarships', 'department_id'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-142",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "medium",
+      "title": "Build a student transcript query",
+      "description": "Return full transcript: student name, course_number, section, semester, year, grade for all completed enrollments.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN students → enrollments → courses",
+        "Filter to Completed enrollments only",
+        "Order by student name, then year, then semester"
+      ],
+      "explanation": "Transcripts are classic real-world reporting queries.",
+      "tags": [
+        "real-world",
+        "transcript"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT s.first_name, s.last_name, c.course_number, c.section, c.semester, c.year, e.grade FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON e.course_id = c.id WHERE e.status = 'Completed' ORDER BY s.last_name, c.year, c.semester",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-143",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "medium",
+      "title": "Library checkout report",
+      "description": "Show which students currently have books checked out (active loans), including book title and due date.",
+      "datasetId": "school",
+      "hints": [
+        "Status = Active means not yet returned",
+        "Join three tables for full context",
+        "Show due_date so librarian can track overdue items"
+      ],
+      "explanation": "Active loan reports help librarians manage circulation.",
+      "tags": [
+        "real-world",
+        "library-report"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT s.first_name, s.last_name, b.title, l.due_date FROM loans l JOIN students s ON l.student_id = s.id JOIN books b ON l.book_id = b.id WHERE l.status = 'Active'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-144",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "hard",
+      "title": "Dean's list candidates",
+      "description": "Identify students eligible for Dean's List: GPA >= 3.5, status = Active, and at least one Completed enrollment.",
+      "datasetId": "school",
+      "hints": [
+        "GPA >= 3.5 is the threshold",
+        "Must be Active status",
+        "Must have at least one Completed enrollment",
+        "DISTINCT removes duplicates if student has multiple completions"
+      ],
+      "explanation": "Dean's list criteria combine multiple conditions across tables.",
+      "tags": [
+        "real-world",
+        "deans-list"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT DISTINCT s.first_name, s.last_name, s.gpa FROM students s JOIN enrollments e ON s.id = e.student_id WHERE s.gpa >= 3.5 AND s.status = 'Active' AND e.status = 'Completed'",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-145",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "medium",
+      "title": "Department spending report",
+      "description": "Return department name, total teacher salary, and total department budget with surplus/deficit.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN ensures departments with no teachers still appear",
+        "COALESCE handles NULL salary sums",
+        "Surplus/deficit = budget minus total salaries"
+      ],
+      "explanation": "Financial reports require careful NULL handling.",
+      "tags": [
+        "real-world",
+        "budget-report"
+      ],
+      "points": 12,
+      "solutionSql": "SELECT d.name, d.budget AS total_budget, COALESCE(SUM(t.salary), 0) AS total_salaries, d.budget - COALESCE(SUM(t.salary), 0) AS surplus_deficit FROM departments d LEFT JOIN teachers t ON d.id = t.department_id GROUP BY d.id, d.name, d.budget ORDER BY surplus_deficit DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-146",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "medium",
+      "title": "Course enrollment heat map",
+      "description": "For each course, show course_number, section, semester, year, and how full it is (enrolled vs max).",
+      "datasetId": "school",
+      "hints": [
+        "Compute open seats as max_students minus enrolled_count",
+        "Order by academic calendar",
+        "All courses included regardless of fill level"
+      ],
+      "explanation": "Seat availability reports help with registration planning.",
+      "tags": [
+        "real-world",
+        "seat-availability"
+      ],
+      "points": 9,
+      "solutionSql": "SELECT course_number, section, semester, year, enrolled_count, max_students, max_students - enrolled_count AS open_seats FROM courses ORDER BY semester, year, course_number",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-147",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "hard",
+      "title": "Student financial aid summary",
+      "description": "For each student receiving scholarships, show first_name, last_name, total scholarship amount received.",
+      "datasetId": "school",
+      "hints": [
+        "JOIN students with student_scholarships",
+        "SUM(amount_awarded) per student",
+        "ORDER BY total descending"
+      ],
+      "explanation": "Financial aid summaries aggregate monetary awards.",
+      "tags": [
+        "real-world",
+        "aid-summary"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT s.first_name, s.last_name, SUM(ss.amount_awarded) AS total_received FROM students s JOIN student_scholarships ss ON s.id = ss.student_id GROUP BY s.id, s.first_name, s.last_name ORDER BY total_received DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-148",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "medium",
+      "title": "Examination schedule report",
+      "description": "Show upcoming exams (all exams with their course and instructor name).",
+      "datasetId": "school",
+      "hints": [
+        "Join exams → courses → teachers",
+        "Order by exam_date for scheduling",
+        "Include exam type and total marks"
+      ],
+      "explanation": "Exam schedules connect exams to courses and instructors.",
+      "tags": [
+        "real-world",
+        "exam-schedule"
+      ],
+      "points": 10,
+      "solutionSql": "SELECT e.title, e.exam_date, e.exam_type, e.total_marks, c.course_number, t.first_name || ' ' || t.last_name AS instructor FROM exams e JOIN courses c ON e.course_id = c.id JOIN teachers t ON c.teacher_id = t.id ORDER BY e.exam_date",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-149",
+      "type": "query",
+      "topicId": "real-world",
+      "difficulty": "hard",
+      "title": "Book borrowing trends by student",
+      "description": "Show each student's first_name, last_name, total books borrowed, and total fines paid.",
+      "datasetId": "school",
+      "hints": [
+        "LEFT JOIN so students with no loans still appear",
+        "COUNT(loans) and SUM(fine) per student",
+        "ORDER BY total loans descending"
+      ],
+      "explanation": "Borrowing trends reveal heavy users and fine collectors.",
+      "tags": [
+        "real-world",
+        "borrowing-trends"
+      ],
+      "points": 11,
+      "solutionSql": "SELECT s.first_name, s.last_name, COUNT(l.id) AS total_loans, SUM(l.fine) AS total_fines FROM students s LEFT JOIN loans l ON s.id = l.student_id GROUP BY s.id, s.first_name, s.last_name ORDER BY total_loans DESC",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-150",
+      "type": "query",
+      "topicId": "challenge",
+      "difficulty": "hard",
+      "title": "Students above their department average GPA",
+      "description": "Return first_name, last_name, gpa, department_id for students whose GPA exceeds their department's average GPA.",
+      "datasetId": "school",
+      "hints": [
+        "Correlated subquery compares each student to their own department",
+        "AVG(gpa) scoped to the same department_id",
+        "Students above their dept average are returned"
+      ],
+      "explanation": "Correlated subqueries reference the outer query's row for each comparison.",
+      "tags": [
+        "challenge",
+        "correlated-subquery"
+      ],
+      "points": 14,
+      "solutionSql": "SELECT s.first_name, s.last_name, s.gpa, s.department_id FROM students s WHERE s.gpa > (SELECT AVG(s2.gpa) FROM students s2 WHERE s2.department_id = s.department_id)",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "q-151",
+      "type": "query",
+      "topicId": "challenge",
+      "difficulty": "hard",
+      "title": "Hierarchical subject paths",
+      "description": "Return subject code, name, and prerequisite subject code (or NULL if none) to show the learning path.",
+      "datasetId": "school",
+      "hints": [
+        "Self-join on subjects via prerequisite_subject_id",
+        "LEFT JOIN keeps subjects with no prerequisites",
+        "Ordered by code shows learning progression"
+      ],
+      "explanation": "Self-joins model hierarchical relationships like prerequisites.",
+      "tags": [
+        "challenge",
+        "self-join-hierarchy"
+      ],
+      "points": 13,
+      "solutionSql": "SELECT s.code, s.name, p.code AS prereq_code FROM subjects s LEFT JOIN subjects p ON s.prerequisite_subject_id = p.id ORDER BY s.code",
+      "validation": {
+        "mode": "result-match"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "fromSolution"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mcq-1000",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "SELECT clause basics – select all",
+      "description": "Which of the following SQL statements return every column and every row from the students table? Choose ALL correct options.",
+      "hints": [
+        "SELECT * is the shorthand for all columns",
+        "FROM tells SQL which table to read"
+      ],
+      "explanation": "SELECT * FROM students returns all rows and all columns. SELECT first_name FROM students would only return one column.",
+      "tags": [
+        "select",
+        "basics",
+        "multiple-correct"
+      ],
+      "points": 5,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "SELECT * FROM students"
+        },
+        {
+          "id": "opt_1",
+          "text": "SELECT students FROM *"
+        },
+        {
+          "id": "opt_2",
+          "text": "SELECT first_name, last_name, gpa FROM students"
+        },
+        {
+          "id": "opt_3",
+          "text": "SELECT * FROM students LIMIT 5"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_0",
+        "opt_2"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "mcq-1001",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "JOIN types – know the differences",
+      "description": "Which statements about JOINs are TRUE? Choose ALL correct options.",
+      "hints": [
+        "INNER JOIN requires matches in BOTH tables",
+        "LEFT JOIN keeps all rows from the left table even if there is no match"
+      ],
+      "explanation": "An INNER JOIN drops non-matching rows. A LEFT JOIN preserves all left-side rows. A RIGHT JOIN does the same for the right side. A CROSS JOIN produces a cartesian product (every row paired with every other row).",
+      "tags": [
+        "join",
+        "theory",
+        "multiple-correct"
+      ],
+      "points": 7,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "INNER JOIN returns only rows with matches in both tables"
+        },
+        {
+          "id": "opt_1",
+          "text": "LEFT JOIN includes unmatched rows from the left table"
+        },
+        {
+          "id": "opt_2",
+          "text": "CROSS JOIN is the safest join because it never loses data"
+        },
+        {
+          "id": "opt_3",
+          "text": "A SELF-JOIN uses the same table twice with aliases"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_0",
+        "opt_1",
+        "opt_3"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "mcq-1002",
+      "topicId": "null-handling",
+      "difficulty": "medium",
+      "title": "NULL behaviour – spot the true statements",
+      "description": "Which of the following statements about NULL in SQL are TRUE? Choose ALL correct options.",
+      "hints": [
+        "NULL represents missing/unknown data, not zero",
+        "= operator cannot compare to NULL"
+      ],
+      "explanation": "NULL is neither equal nor not-equal to anything, including another NULL. IS NULL / IS NOT NULL must be used. COALESCE returns the first non-null value. SUM ignores NULL values in its calculation.",
+      "tags": [
+        "null",
+        "theory",
+        "multiple-correct"
+      ],
+      "points": 8,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "NULL = NULL evaluates to TRUE"
+        },
+        {
+          "id": "opt_1",
+          "text": "IS NULL is the correct way to check for null values"
+        },
+        {
+          "id": "opt_2",
+          "text": "SUM() ignores NULL values and only adds non-null entries"
+        },
+        {
+          "id": "opt_3",
+          "text": "COALESCE(val, 0) replaces a null with zero"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_1",
+        "opt_2",
+        "opt_3"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "mcq-1003",
+      "topicId": "group-by",
+      "difficulty": "medium",
+      "title": "GROUP BY rules – what goes where?",
+      "description": "Which of the following GROUP BY statements are syntactically correct? Choose ALL correct options.",
+      "hints": [
+        "Every non-aggregated column in SELECT must appear in GROUP BY",
+        "HAVING filters after grouping"
+      ],
+      "explanation": "In standard SQL, any column referenced in the SELECT list that is not wrapped in an aggregate function must also appear in the GROUP BY clause. HAVING works on groups; WHERE works on individual rows.",
+      "tags": [
+        "groupby",
+        "rules",
+        "multiple-correct"
+      ],
+      "points": 8,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "SELECT department_id, COUNT(*) FROM students GROUP BY department_id"
+        },
+        {
+          "id": "opt_1",
+          "text": "SELECT department_id, first_name, COUNT(*) FROM students GROUP BY department_id"
+        },
+        {
+          "id": "opt_2",
+          "text": "SELECT department_id, ROUND(AVG(gpa), 2) AS avg_gpa FROM students GROUP BY department_id"
+        },
+        {
+          "id": "opt_3",
+          "text": "SELECT COUNT(*) FROM students GROUP BY status HAVING COUNT(*) > 2"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_0",
+        "opt_2",
+        "opt_3"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "mcq-1004",
+      "topicId": "window-functions",
+      "difficulty": "hard",
+      "title": "Window functions – what does PARTITION BY do?",
+      "description": "Which statements about SQL window functions are TRUE? Choose ALL correct options.",
+      "hints": [
+        "PARTITION BY divides rows into groups within the result set",
+        "ROW_NUMBER assigns a unique number starting from 1"
+      ],
+      "explanation": "Window functions compute over a set of rows related to the current row. PARTITION BY splits results into groups. ORDER BY inside OVER() determines row ordering within each partition. Window functions do NOT collapse rows like GROUP BY.",
+      "tags": [
+        "window",
+        "advanced",
+        "multiple-correct"
+      ],
+      "points": 9,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "PARTITION BY creates separate windows for each group"
+        },
+        {
+          "id": "opt_1",
+          "text": "ROW_NUMBER() always restarts at 1 for each partition"
+        },
+        {
+          "id": "opt_2",
+          "text": "Window functions collapse rows like GROUP BY does"
+        },
+        {
+          "id": "opt_3",
+          "text": "RANK() can produce gaps in ranking when ties occur"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_0",
+        "opt_1",
+        "opt_3"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "mcq-1005",
+      "topicId": "aggregate-functions",
+      "difficulty": "easy",
+      "title": "Aggregate functions – pick the right ones",
+      "description": "Which of these statements about aggregate functions are CORRECT? Choose ALL correct options.",
+      "hints": [
+        "COUNT(*) counts every row including those with NULL values",
+        "AVG computes arithmetic mean"
+      ],
+      "explanation": "COUNT(*) counts all rows including NULLs. COUNT(column) skips NULL values. AVG(), SUM(), MAX(), MIN() all ignore NULLs. An aggregate without GROUP BY operates on the entire table.",
+      "tags": [
+        "aggregate",
+        "functions",
+        "multiple-correct"
+      ],
+      "points": 6,
+      "type": "mcq-multi",
+      "options": [
+        {
+          "id": "opt_0",
+          "text": "COUNT(*) includes rows where every column is NULL"
+        },
+        {
+          "id": "opt_1",
+          "text": "SUM() returns NULL if any single row has a NULL value"
+        },
+        {
+          "id": "opt_2",
+          "text": "AVG() ignores NULL values in its calculation"
+        },
+        {
+          "id": "opt_3",
+          "text": "MAX() works on both numeric and string columns"
+        }
+      ],
+      "correctOptionIds": [
+        "opt_0",
+        "opt_2",
+        "opt_3"
+      ],
+      "validation": {
+        "mode": "mcq"
+      },
+      "testCases": []
+    },
+    {
+      "id": "fb-1006",
+      "topicId": "select-basics",
+      "difficulty": "easy",
+      "title": "Fill in the SELECT keyword",
+      "description": "Complete the statement to retrieve all columns from the students table.\n\n___ * FROM students;",
+      "hints": [
+        "This keyword starts the SQL query and specifies what to return",
+        "It is usually written in uppercase"
+      ],
+      "explanation": "SELECT is the keyword that tells SQL which columns (or *) you want returned from a table.",
+      "tags": [
+        "select",
+        "basics",
+        "blank"
+      ],
+      "points": 4,
+      "type": "fill-blank",
+      "blankTemplate": "___ * FROM students;",
+      "acceptedAnswers": {
+        "0": [
+          "SELECT"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1007",
+      "topicId": "where-filters",
+      "difficulty": "easy",
+      "title": "Fill in the comparison operator",
+      "description": "Complete the statement to find students whose GPA is greater than 3.5.\n\nSELECT * FROM students WHERE gpa ___ 3.5;",
+      "hints": [
+        "We want GPAs strictly above 3.5",
+        "This is the greater-than symbol"
+      ],
+      "explanation": "The > operator selects values strictly greater than the threshold.",
+      "tags": [
+        "where",
+        "comparison",
+        "blank"
+      ],
+      "points": 5,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT * FROM students WHERE gpa ___ 3.5;",
+      "acceptedAnswers": {
+        "0": [
+          ">",
+          ">"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1008",
+      "topicId": "order-by",
+      "difficulty": "easy",
+      "title": "Fill in the sort direction keyword",
+      "description": "Complete the statement to order students by GPA from highest to lowest.\n\nSELECT first_name, gpa FROM students ORDER BY gpa ___ ;",
+      "hints": [
+        "Highest-to-lowest means descending order",
+        "This two-letter keyword means descending"
+      ],
+      "explanation": "DESC sorts from largest to smallest. ASC is the default ascending order.",
+      "tags": [
+        "orderby",
+        "sort",
+        "blank"
+      ],
+      "points": 4,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT first_name, gpa FROM students ORDER BY gpa ___ ;",
+      "acceptedAnswers": {
+        "0": [
+          "DESC"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1009",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Fill in the aggregate function",
+      "description": "Complete the statement to count how many teachers work in each department.\n\nSELECT department_id, ___(*) AS teacher_count FROM teachers GROUP BY department_id;",
+      "hints": [
+        "We need to COUNT rows per department",
+        "This function counts non-null entries"
+      ],
+      "explanation": "COUNT(*) tallies every row in each grouped department. You can also use COUNT(id) since id is the primary key.",
+      "tags": [
+        "aggregate",
+        "count",
+        "blank"
+      ],
+      "points": 6,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT department_id, ___(*) AS teacher_count FROM teachers GROUP BY department_id;",
+      "acceptedAnswers": {
+        "0": [
+          "COUNT",
+          "count"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1010",
+      "topicId": "joins",
+      "difficulty": "medium",
+      "title": "Fill in the JOIN type",
+      "description": "Complete the statement to get all departments including those with no teachers assigned.\n\nSELECT d.name, t.first_name\nFROM departments d ___ JOIN teachers t ON d.id = t.department_id;",
+      "hints": [
+        "This join type keeps ALL rows from the LEFT table",
+        "It is LEFT followed by the word JOIN"
+      ],
+      "explanation": "LEFT JOIN preserves every department row, attaching matching teacher data where available and NULL otherwise.",
+      "tags": [
+        "join",
+        "left-join",
+        "blank"
+      ],
+      "points": 7,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT d.name, t.first_name\nFROM departments d ___ JOIN teachers t ON d.id = t.department_id;",
+      "acceptedAnswers": {
+        "0": [
+          "LEFT"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1011",
+      "topicId": "subqueries",
+      "difficulty": "medium",
+      "title": "Fill in the subquery operator",
+      "description": "Complete the statement to find students not enrolled in any course.\n\nSELECT first_name FROM students\nWHERE id ___ (SELECT student_id FROM enrollments);",
+      "hints": [
+        "We want IDs that are absent from the subquery result",
+        "NOT combined with IN checks absence"
+      ],
+      "explanation": "NOT IN identifies values in the outer set that do not appear anywhere in the inner subquery result.",
+      "tags": [
+        "subquery",
+        "not-in",
+        "blank"
+      ],
+      "points": 7,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT first_name FROM students\nWHERE id ___ (SELECT student_id FROM enrollments);",
+      "acceptedAnswers": {
+        "0": [
+          "NOT IN",
+          "not in"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1012",
+      "topicId": "set-operations",
+      "difficulty": "medium",
+      "title": "Fill in the set operation keyword",
+      "description": "Complete the statement to find common courses between Fall 2023 and Spring 2024.\n\nSELECT course_number FROM courses WHERE semester = 'Fall' AND year = 2023\n___\nSELECT course_number FROM courses WHERE semester = 'Spring' AND year = 2024;",
+      "hints": [
+        "This keyword finds rows present in BOTH queries",
+        "It removes duplicates automatically"
+      ],
+      "explanation": "INTERSECT returns only rows appearing in both result sets. It is the relational counterpart to set intersection.",
+      "tags": [
+        "set-operation",
+        "intersect",
+        "blank"
+      ],
+      "points": 7,
+      "type": "fill-blank",
+      "blankTemplate": "SELECT course_number FROM courses WHERE semester = 'Fall' AND year = 2023\n___\nSELECT course_number FROM courses WHERE semester = 'Spring' AND year = 2024;",
+      "acceptedAnswers": {
+        "0": [
+          "INTERSECT"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1013",
+      "topicId": "ddl",
+      "difficulty": "medium",
+      "title": "Fill in the DDL command",
+      "description": "Complete the statement to remove the grading_logs table entirely.\n\n___ TABLE grading_logs;",
+      "hints": [
+        "This command deletes a table structure permanently",
+        "DRO followed by P is the verb"
+      ],
+      "explanation": "DROP TABLE removes the table definition and all its data irreversibly. Use with caution!",
+      "tags": [
+        "ddl",
+        "drop-table",
+        "blank"
+      ],
+      "points": 5,
+      "type": "fill-blank",
+      "blankTemplate": "___ TABLE grading_logs;",
+      "acceptedAnswers": {
+        "0": [
+          "DROP"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1014",
+      "topicId": "cte",
+      "difficulty": "medium",
+      "title": "Fill in the CTE keyword",
+      "description": "Complete the statement to define a common table expression named dept_stats.\n\n___ dept_stats AS (SELECT department_id, COUNT(*) AS cnt FROM students GROUP BY department_id)\nSELECT * FROM dept_stats;",
+      "hints": [
+        "WITH introduces a CTE in standard SQL",
+        "Common Table Expression syntax begins with WITH"
+      ],
+      "explanation": "WITH names an intermediate result set that subsequent queries can reference as a virtual table.",
+      "tags": [
+        "cte",
+        "with",
+        "blank"
+      ],
+      "points": 6,
+      "type": "fill-blank",
+      "blankTemplate": "___ dept_stats AS (SELECT department_id, COUNT(*) AS cnt FROM students GROUP BY department_id)\nSELECT * FROM dept_stats;",
+      "acceptedAnswers": {
+        "0": [
+          "WITH"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "fb-1015",
+      "topicId": "string-functions",
+      "difficulty": "medium",
+      "title": "Fill in the substring position function",
+      "description": "Complete the function call to extract the domain from email.\n\nSUBSTR(email, INSTR(email, '@' + ___)",
+      "hints": [
+        "We need to shift past the @ character itself",
+        "Adding 1 to the found position skips over @"
+      ],
+      "explanation": "INSTR locates the @ sign; SUBSTR extracts from position + 1 onward, skipping the delimiter.",
+      "tags": [
+        "string-function",
+        "substr",
+        "blank"
+      ],
+      "points": 7,
+      "type": "fill-blank",
+      "blankTemplate": "SUBSTR(email, INSTR(email, '@') + ___ )",
+      "acceptedAnswers": {
+        "0": [
+          "1"
+        ]
+      },
+      "validation": {
+        "mode": "fill-blank"
+      }
+    },
+    {
+      "id": "po-1016",
+      "topicId": "date-functions",
+      "difficulty": "medium",
+      "title": "Predict julianday difference",
+      "description": "Given: enrollment_date = '2022-09-01'. What does this expression return?\n\nCAST((julianday('2023-09-01') - julianday(enrollment_date)) / 365.25 AS INTEGER)",
+      "hints": [
+        "julianday converts a date to a Julian day number",
+        "Subtracting the two dates gives days between them",
+        "Divide by 365.25 to convert days to years"
+      ],
+      "explanation": "From 2022-09-01 to 2023-09-01 is exactly one year (~365 days). Dividing 365 by 365.25 gives approximately 0.999, which CAST to INTEGER truncates to 0.",
+      "tags": [
+        "date-function",
+        "julianday",
+        "prediction"
+      ],
+      "points": 9,
+      "type": "predict-output",
+      "expectedOutput": [
+        {
+          "answer": "0"
+        }
+      ],
+      "validation": {
+        "mode": "predict-output"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "literal",
+            "columns": [
+              "answer"
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "po-1017",
+      "topicId": "aggregate-functions",
+      "difficulty": "medium",
+      "title": "Predict SUM with mixed NULLs",
+      "description": "What is the result of:\n\nSELECT SUM(price) FROM books WHERE category = 'Fiction'",
+      "hints": [
+        "Sum only adds the price values from Fiction books",
+        "You can compute manually: 9.99 + 14.99 + 12.99 = ?"
+      ],
+      "explanation": "SQLite SUM ignores NULL values but adds all non-null prices. For Fiction books (price 9.99, 14.99, 12.99), the sum is 37.97.",
+      "tags": [
+        "aggregate",
+        "sum",
+        "prediction"
+      ],
+      "points": 9,
+      "type": "predict-output",
+      "expectedOutput": [
+        {
+          "answer": "37.97"
+        }
+      ],
+      "validation": {
+        "mode": "predict-output"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "literal",
+            "columns": [
+              "answer"
+            ],
+            "rows": [
+              [
+                "37.97"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "po-1018",
+      "topicId": "null-handling",
+      "difficulty": "medium",
+      "title": "Predict COALESCE result",
+      "description": "What does this evaluate to for a student whose advisor_teacher_id IS NULL?\n\nCOALESCE(CAST(advisor_teacher_id AS TEXT), 'Unassigned')",
+      "hints": [
+        "COALESCE returns the first non-null argument",
+        "When advisor_teacher_id is NULL, the cast still yields NULL"
+      ],
+      "explanation": "COALESCE scans arguments left-to-right and returns the first non-null value. When advisor_teacher_id is NULL, CAST(NULL AS TEXT) is still NULL, so it falls through to the fallback string \"Unassigned\".",
+      "tags": [
+        "null",
+        "coalesce",
+        "prediction"
+      ],
+      "points": 8,
+      "type": "predict-output",
+      "expectedOutput": [
+        {
+          "answer": "'Unassigned'"
+        },
+        {
+          "answer": "Unassigned"
+        }
+      ],
+      "validation": {
+        "mode": "predict-output"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "literal",
+            "columns": [
+              "answer"
+            ],
+            "rows": [
+              [
+                "Unassigned"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "po-1019",
+      "topicId": "string-functions",
+      "difficulty": "medium",
+      "title": "Predict UPPER case result",
+      "description": "What is the output of:\n\nUPPER(SUBSTR(first_name, 1, 1)) || LOWER(SUBSTR(last_name, 1))\nFor first_name = 'Alice' and last_name = 'Johnson'",
+      "hints": [
+        "SUBSTR(text, 1, 1) gets the first character",
+        "UPPER makes it capital, LOWER makes it lowercase",
+        "|| concatenates the two parts"
+      ],
+      "explanation": "SUBSTR('Alice', 1, 1) = 'A'; UPPER('A') = 'A'. SUBSTR('Johnson', 1) = 'J'; LOWER('J') = 'j'. Concatenated: 'Aj'.",
+      "tags": [
+        "string-function",
+        "upper",
+        "lower",
+        "prediction"
+      ],
+      "points": 8,
+      "type": "predict-output",
+      "expectedOutput": [
+        {
+          "answer": "'Aj'"
+        },
+        {
+          "answer": "Aj"
+        }
+      ],
+      "validation": {
+        "mode": "predict-output"
+      },
+      "testCases": [
+        {
+          "id": "tc-1",
+          "expected": {
+            "type": "literal",
+            "columns": [
+              "answer"
+            ],
+            "rows": [
+              [
+                "Aj"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

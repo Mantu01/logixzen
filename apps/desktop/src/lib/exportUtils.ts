@@ -1,4 +1,4 @@
-import type { SqlResult } from "@logixzen/shared/sql-engine";
+import type { SqlResult } from "@/shared/desktop-api";
 
 export function exportToCsv(result: SqlResult): string {
   if (result.columns.length === 0) {
@@ -16,16 +16,4 @@ export function exportToCsv(result: SqlResult): string {
 
 export function exportToJson(result: SqlResult): string {
   return JSON.stringify(result.rows, null, 2);
-}
-
-export function toMarkdownTable(result: SqlResult): string {
-  if (result.columns.length === 0) {
-    return "";
-  }
-  const header = `| ${result.columns.join(" | ")} |`;
-  const separator = `| ${result.columns.map(() => "---").join(" | ")} |`;
-  const rows = result.rows.map(
-    (row) => `| ${result.columns.map((column) => String(row[column] ?? "")).join(" | ")} |`,
-  );
-  return [header, separator, ...rows].join("\n");
 }

@@ -67,10 +67,8 @@ function validateArray<T>(
   return { data, issues };
 }
 
-export function parseDatabasePack(text: string): PackParseResult<DatabasePack> {
-  const file = readObject(text);
-  if (!file.ok) return { ok: false, data: null, issues: file.issues };
-  const items = arrayAt(file.value, "datasets");
+export function parseDatabasePack(value: Record<string, unknown>): PackParseResult<DatabasePack> {
+  const items = arrayAt(value, "datasets");
   if (items === null) {
     return { ok: false, data: null, issues: [{ path: "datasets", message: "Missing datasets array" }] };
   }
@@ -78,15 +76,13 @@ export function parseDatabasePack(text: string): PackParseResult<DatabasePack> {
   return { ok: issues.length === 0 && data.length > 0, data: issues.length === 0 ? { version: 2, datasets: data } : null, issues };
 }
 
-export function parseQuestionsPack(text: string): PackParseResult<QuestionsPack> {
-  const file = readObject(text);
-  if (!file.ok) return { ok: false, data: null, issues: file.issues };
-  const items = arrayAt(file.value, "questions");
+export function parseQuestionsPack(value: Record<string, unknown>): PackParseResult<QuestionsPack> {
+  const items = arrayAt(value, "questions");
   if (items === null) {
     return { ok: false, data: null, issues: [{ path: "questions", message: "Missing questions array" }] };
   }
   const questionResult = validateArray<Question>(items, QuestionSchema, "questions");
-  const topicItems = arrayAt(file.value, "topics");
+  const topicItems = arrayAt(value, "topics");
   let topics: Topic[] = [];
   if (topicItems !== null) {
     const topicResult = validateArray<Topic>(topicItems, TopicSchema, "topics");
@@ -100,10 +96,8 @@ export function parseQuestionsPack(text: string): PackParseResult<QuestionsPack>
   };
 }
 
-export function parseNotesPack(text: string): PackParseResult<NotesPack> {
-  const file = readObject(text);
-  if (!file.ok) return { ok: false, data: null, issues: file.issues };
-  const items = arrayAt(file.value, "notes");
+export function parseNotesPack(value: Record<string, unknown>): PackParseResult<NotesPack> {
+  const items = arrayAt(value, "notes");
   if (items === null) {
     return { ok: false, data: null, issues: [{ path: "notes", message: "Missing notes array" }] };
   }
@@ -151,7 +145,7 @@ export function detectPackKind(value: unknown): PackKind | null {
 
 export function parsePackFile(
   text: string,
-): { kind: PackKind; result: PackParseResult<DatabasePack | QuestionsPack | NotesPack> } | null {
+): { kind: PackKind; result: PackParseResult<PackFile> } | null {
   const probe = readObject(text);
   if (!probe.ok) return { kind: "questions", result: { ok: false, data: null, issues: probe.issues } };
   const kind = detectPackKind(probe.value);
@@ -170,13 +164,9 @@ export function parsePackFile(
       },
     };
   }
-  if (kind === "databases") return { kind, result: parseDatabasePack(text) };
-  if (kind === "questions") return { kind, result: parseQuestionsPack(text) };
-  return { kind, result: parseNotesPack(text) };
-}
-
-export function serializeDatabasePack(datasets: Dataset[]): string {
-  return JSON.stringify({ version: PACK_VERSION, datasets }, null, 2);
+  if (kind === "databases") return { kind, result: parseDatabasePack(probe.value) };
+  if (kind === "questions") return { kind, result: parseQuestionsPack(probe.value) };
+  return { kind, result: parseNotesPack(probe.value) };
 }
 
 export function serializeQuestionsPack(topics: Topic[], questions: Question[]): string {
@@ -204,5 +194,3 @@ export function mergeById<T extends { id: string }>(
   }
   return { list: Array.from(map.values()), added, updated };
 }
-
-export type PackFileUnion = PackFile;

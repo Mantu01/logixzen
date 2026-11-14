@@ -5,6 +5,7 @@ import {
   ChevronRight,
   ClipboardCopy,
   Download,
+  FileJson,
   Loader2,
   Search,
   TableProperties,
@@ -21,12 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { SqlResult } from "@logixzen/shared/sql-engine";
+import type { SqlResult } from "@/shared/desktop-api";
 
 interface ResultPanelProps {
   result: SqlResult | null;
   error?: string;
   isLoading?: boolean;
+  fontSize?: number;
   onExportCsv: (result: SqlResult) => void;
   onExportJson: (result: SqlResult) => void;
   onCopy: (result: SqlResult) => void;
@@ -38,6 +40,7 @@ export function PlaygroundResultPanel({
   result,
   error,
   isLoading,
+  fontSize = 12,
   onExportCsv,
   onExportJson,
   onCopy,
@@ -125,7 +128,7 @@ export function PlaygroundResultPanel({
         </span>
         <p className="text-[13px] font-medium text-muted">No results yet</p>
         <p className="max-w-xs text-[11px] leading-relaxed text-muted-dim">
-          Run a statement to inspect rows, types and execution time here.
+          Run a statement and its rows appear here.
         </p>
       </div>
     );
@@ -134,10 +137,14 @@ export function PlaygroundResultPanel({
   if (result.rows.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1.5 text-center">
-        <p className="text-[13px] font-medium text-success">Statement executed</p>
-        <p className="text-[11px] text-muted-dim">
-          {result.rowsAffected ?? 0} row{(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
+        <p className="text-[13px] font-medium text-success">
+          {result.message ?? "Statement executed"}
         </p>
+        {result.message === undefined ? (
+          <p className="text-[11px] text-muted-dim">
+            {result.rowsAffected ?? 0} row{(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -170,20 +177,20 @@ export function PlaygroundResultPanel({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button onClick={() => onCopy(result)} variant="ghost" size="icon-xs" title="Copy as markdown" className="text-muted">
+          <Button onClick={() => onCopy(result)} variant="ghost" size="icon-xs" title="Copy results (CSV)" className="text-muted">
             <ClipboardCopy />
           </Button>
           <Button onClick={() => onExportCsv(result)} variant="ghost" size="icon-xs" title="Export CSV" className="text-muted">
             <Download />
           </Button>
           <Button onClick={() => onExportJson(result)} variant="ghost" size="icon-xs" title="Export JSON" className="text-muted">
-            <Download className="rotate-180" />
+            <FileJson />
           </Button>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
-        <Table className="font-mono text-[12px]">
+        <Table className="font-mono" style={{ fontSize }}>
           <TableHeader className="sticky top-0 z-10 bg-surface">
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="w-12 text-[10px] font-medium text-muted-dim">#</TableHead>
@@ -192,7 +199,8 @@ export function PlaygroundResultPanel({
                   <button
                     type="button"
                     onClick={() => handleSort(column)}
-                    className="flex h-8 w-full items-center gap-1 px-2 text-left text-[11px] font-medium text-muted transition-colors hover:text-foreground"
+                    className="flex h-8 w-full items-center gap-1 px-2 text-left font-medium text-muted transition-colors hover:text-foreground"
+                    style={{ fontSize: Math.max(9, fontSize - 1) }}
                   >
                     {column}
                     {sortColumn === column ? (

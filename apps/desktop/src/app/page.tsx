@@ -112,15 +112,19 @@ export default function HomePage(): React.ReactElement {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {databases.slice(0, 3).map((dataset) => (
-                  <div key={dataset.id} className="border border-border bg-surface p-3">
+                  <Link
+                    key={dataset.id}
+                    href="/schema"
+                    className="group border border-border bg-surface p-3 transition-colors hover:border-primary/40 hover:bg-surface-hover"
+                  >
                     <div className="flex items-center gap-2">
                       <Database className="size-3.5 shrink-0 text-primary" />
-                      <span className="truncate text-[12.5px] font-medium">{dataset.name}</span>
+                      <span className="truncate font-mono text-[12px] font-medium">{dataset.name}</span>
                     </div>
                     <div className="numeric mt-1 text-[10.5px] text-muted-dim">
                       {dataset.tables.length} tables
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -168,7 +172,7 @@ function StatCard({
         {icon}
         <span className="section-label">{label}</span>
       </div>
-      <div className="numeric mt-1 text-xl font-semibold">
+      <div className="numeric mt-1 text-2xl font-semibold leading-none">
         {value}
         {suffix ? <span className="text-[13px] text-muted-dim">{suffix}</span> : null}
       </div>
@@ -191,25 +195,25 @@ function EmptyState({ hydrated }: { hydrated: boolean }): React.ReactElement {
       href: "/import",
       icon: <Import className="size-4" />,
       title: "Import data packs",
-      body: "Bring in the databases, questions and notes JSON packs, or copy the AI prompt to generate them.",
+      body: "Install the official packs, or copy an AI prompt to generate your own.",
     },
     {
       href: "/schema",
       icon: <Database className="size-4" />,
       title: "Explore the schema",
-      body: "Upload a .sql or .sqlite file directly, then read the ER diagram and table details.",
+      body: "Load a .sql file, read the ER diagram and browse every table.",
     },
     {
       href: "/playground",
       icon: <Terminal className="size-4" />,
       title: "Open the editor",
-      body: "Run queries with autocomplete against any of your databases.",
+      body: "Write queries with autocomplete against any database you own.",
     },
     {
       href: "/learn",
       icon: <BookOpen className="size-4" />,
       title: "Start practicing",
-      body: "Solve imported questions with real test cases, hints and streaks.",
+      body: "Solve questions against real test cases. Hints, points and streaks included.",
     },
   ];
   return (
@@ -217,8 +221,8 @@ function EmptyState({ hydrated }: { hydrated: boolean }): React.ReactElement {
       <div className="border border-border bg-surface p-5">
         <h2 className="text-[15px] font-semibold">Welcome to LogixZen</h2>
         <p className="mt-1 max-w-lg text-[12.5px] text-muted">
-          LogixZen is an offline-first practice workspace. All study content comes from data packs you
-          import — nothing is bundled with the app, so every subject can live here, starting with SQL.
+          LogixZen runs fully offline. Study content lives in data packs you import — databases,
+          questions and notes. SQL first, more subjects later.
         </p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">

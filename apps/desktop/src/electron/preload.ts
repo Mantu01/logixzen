@@ -11,7 +11,6 @@ const api: DesktopApi = {
     get: (key) => ipcRenderer.invoke("storage:get", key) as Promise<string | null>,
     set: (key, value) => ipcRenderer.invoke("storage:set", key, value) as Promise<void>,
     delete: (key) => ipcRenderer.invoke("storage:delete", key) as Promise<void>,
-    getAll: () => ipcRenderer.invoke("storage:get-all") as Promise<Record<string, string>>,
   },
   secrets: {
     store: (key, value) => ipcRenderer.invoke("secrets:store", key, value) as Promise<void>,
@@ -23,18 +22,15 @@ const api: DesktopApi = {
     saveFile: (options) => ipcRenderer.invoke("dialog:save-file", options) as Promise<string | null>,
   },
   database: {
-    initialize: (setupSql) => ipcRenderer.invoke("database:initialize", setupSql) as Promise<void>,
+    initialize: (setupSql, name) =>
+      ipcRenderer.invoke("database:initialize", setupSql, name) as Promise<void>,
     execute: (sql) => ipcRenderer.invoke("database:execute", sql),
+    use: (name) => ipcRenderer.invoke("database:use", name) as Promise<void>,
+    list: () => ipcRenderer.invoke("database:list") as Promise<string[]>,
+    active: () => ipcRenderer.invoke("database:active") as Promise<string | null>,
     getSchema: () => ipcRenderer.invoke("database:get-schema"),
-    reset: (setupSql) => ipcRenderer.invoke("database:reset", setupSql) as Promise<void>,
-    loadSqlFile: (filePath) => ipcRenderer.invoke("database:load-sql-file", filePath) as Promise<void>,
-    loadSqliteFile: (filePath) =>
-      ipcRenderer.invoke("database:load-sqlite-file", filePath) as Promise<void>,
-    importCsv: (filePath, tableName) =>
-      ipcRenderer.invoke("database:import-csv", filePath, tableName) as Promise<number>,
     isolatedRun: (setupSql, sql) =>
       ipcRenderer.invoke("database:isolated-run", setupSql, sql) as Promise<SqlResult[]>,
-    close: () => ipcRenderer.invoke("database:close") as Promise<void>,
   },
   files: {
     readText: (filePath) => ipcRenderer.invoke("files:read-text", filePath) as Promise<string>,
@@ -59,11 +55,5 @@ const api: DesktopApi = {
       };
     },
   },
-  system: {
-    getVersion: () => ipcRenderer.invoke("system:get-version") as Promise<string>,
-    getPlatform: () => ipcRenderer.invoke("system:get-platform") as Promise<string>,
-    getName: () => ipcRenderer.invoke("system:get-name") as Promise<string>,
-  },
 };
-
 contextBridge.exposeInMainWorld("logixzen", api);

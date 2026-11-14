@@ -21,6 +21,7 @@ export interface SqlResult {
   rows: SqlRow[];
   rowsAffected: number;
   error?: string;
+  message?: string;
   statementIndex: number;
   isSelect: boolean;
   executionTimeMs: number;
@@ -69,7 +70,6 @@ export interface DesktopApi {
     get: (key: string) => Promise<string | null>;
     set: (key: string, value: string) => Promise<void>;
     delete: (key: string) => Promise<void>;
-    getAll: () => Promise<Record<string, string>>;
   };
   secrets: {
     store: (key: string, value: string) => Promise<void>;
@@ -81,15 +81,13 @@ export interface DesktopApi {
     saveFile: (options?: SaveFileOptions) => Promise<string | null>;
   };
   database: {
-    initialize: (setupSql?: string) => Promise<void>;
+    initialize: (setupSql?: string, name?: string) => Promise<void>;
     execute: (sql: string) => Promise<SqlResult[]>;
+    use: (name: string) => Promise<void>;
+    list: () => Promise<string[]>;
+    active: () => Promise<string | null>;
     getSchema: () => Promise<TableInfo[]>;
-    reset: (setupSql?: string) => Promise<void>;
-    loadSqlFile: (filePath: string) => Promise<void>;
-    loadSqliteFile: (filePath: string) => Promise<void>;
-    importCsv: (filePath: string, tableName: string) => Promise<number>;
     isolatedRun: (setupSql: string, sql: string) => Promise<SqlResult[]>;
-    close: () => Promise<void>;
   };
   files: {
     readText: (filePath: string) => Promise<string>;
@@ -104,10 +102,5 @@ export interface DesktopApi {
   };
   menu: {
     onNavigate: (callback: (path: string) => void) => () => void;
-  };
-  system: {
-    getVersion: () => Promise<string>;
-    getPlatform: () => Promise<string>;
-    getName: () => Promise<string>;
   };
 }

@@ -80,7 +80,7 @@ async function loadDevServer(window: BrowserWindow): Promise<void> {
     }
   }
 
-  const message = "Could not reach http://localhost:3000. Start the dev server with `npm run all`.";
+  const message = "Could not reach http://localhost:3000. Start the dev server with `pnpm dev`.";
   await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(message)}`);
 }
 

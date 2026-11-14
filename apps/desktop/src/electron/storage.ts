@@ -48,7 +48,3 @@ export function deleteStoredValue(key: string): void {
   delete entries[key];
   writeAll(entries);
 }
-
-export function getAllStoredValues(): Record<string, string> {
-  return readAll();
-}

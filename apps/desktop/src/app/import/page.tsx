@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
+  ClipboardPaste,
   Copy,
   Database,
   Download,
@@ -12,45 +13,133 @@ import {
   FlaskConical,
   Loader2,
   NotebookPen,
-  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { summarizePacks, usePackStore } from "@/stores/usePackStore";
 import type { PackImportOutcome } from "@/stores/usePackStore";
 import { OFFICIAL_PACKS, fetchOfficialPack, isConfigured } from "@/lib/packs/official";
 import { PACK_PROMPTS } from "@/lib/packs/prompts";
-import { serializeDatabasePack, serializeNotesPack, serializeQuestionsPack } from "@/lib/packs/packs";
+import {
+  serializeNotesPack,
+  serializeQuestionsPack,
+} from "@/lib/packs/packs";
 import { saveTextFile } from "@/lib/save-file";
+import { buildDatasetFromSql, dbNameFromSql } from "@/lib/dataset-from-sql";
+import { useSqlStore } from "@/sql/useSqlStore";
+import { activeSubject } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 
 type PackTab = "databases" | "questions" | "notes";
+
+function exportDatabasesSql(): void {
+  const store = usePackStore.getState();
+  const header = (name: string, description: string): string =>
+    `-- ============================== ${name} ==============================\n-- ${description}\n`;
+  const body = store.databases
+    .map((dataset) => `${header(dataset.name, dataset.description)}${dataset.setupSql.trim()}`)
+    .join("\n\n");
+  void saveTextFile("logixzen-databases.sql", `${body}\n`, [
+    { name: "SQL", extensions: ["sql"] },
+  ]);
+}
+
+function exportInstalledJson(kind: "questions" | "notes"): void {
+  const store = usePackStore.getState();
+  const content =
+    kind === "questions"
+      ? serializeQuestionsPack(store.topics, store.questions)
+      : serializeNotesPack(store.notes);
+  void saveTextFile(`logixzen-${kind}.json`, content, [
+    { name: "JSON", extensions: ["json"] },
+  ]);
+}
+
+
+const TABS: Array<{ key: PackTab; label: string; icon: React.ReactNode; hint: string }> = [
+  {
+    key: "databases",
+    label: activeSubject.dataLabel,
+    icon: <Database className="size-3.5" />,
+    hint: `${activeSubject.label} dataset — ${activeSubject.scriptExtension} script`,
+  },
+  { key: "questions", label: "Questions", icon: <FlaskConical className="size-3.5" />, hint: "Question pack — .json" },
+  { key: "notes", label: "Notes", icon: <NotebookPen className="size-3.5" />, hint: "Notes pack — .json" },
+];
+
+const ACCEPT: Record<PackTab, string> = {
+  databases: ".sql,.txt",
+  questions: ".json,application/json",
+  notes: ".json,application/json",
+};
 
 export default function ImportPage(): React.ReactElement {
   const [tab, setTab] = useState<PackTab>("databases");
   const packState = usePackStore();
   const summary = summarizePacks(packState);
+  const counts: Record<PackTab, number> = {
+    databases: summary.databases,
+    questions: summary.questions,
+    notes: summary.notes,
+  };
 
   return (
     <PageShell
       title="Data Hub"
-      subtitle="Import packs, download the official set, or generate one with AI"
+      subtitle="Content hub for every subject — datasets, question packs and notes. SQL is supported today, more subjects tomorrow."
     >
       <div className="mx-auto max-w-4xl px-5 py-6">
-        <div className="mb-5 grid grid-cols-3 gap-2">
-          <SummaryCard icon={<Database className="size-3.5" />} label="Databases" value={summary.databases} active={tab === "databases"} onClick={() => setTab("databases")} />
-          <SummaryCard icon={<FlaskConical className="size-3.5" />} label="Questions" value={summary.questions} active={tab === "questions"} onClick={() => setTab("questions")} />
-          <SummaryCard icon={<NotebookPen className="size-3.5" />} label="Notes" value={summary.notes} active={tab === "notes"} onClick={() => setTab("notes")} />
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          {TABS.map((entry) => (
+            <SummaryCard
+              key={entry.key}
+              icon={entry.icon}
+              label={entry.label}
+              hint={entry.hint}
+              value={counts[entry.key]}
+              active={tab === entry.key}
+              onClick={() => setTab(entry.key)}
+            />
+          ))}
         </div>
 
         <section className="mb-6">
           <SectionHeader
+            title={
+              tab === "databases"
+                ? `Import a ${activeSubject.label} dataset (${activeSubject.scriptExtension})`
+                : `Import a ${tab} pack (.json)`
+            }
+            description="Drop a file, browse for one, or paste its contents. Everything is validated before it is stored."
+          />
+          <ImportDropzone tab={tab} />
+        </section>
+
+        <section className="mb-6">
+          <SectionHeader
             title="Official packs"
-            description="Download the maintained LogixZen packs and install them locally. The download URLs are set in src/lib/packs/official.ts."
+            description="Download the official packs from GitHub and install them locally."
           />
           <div className="grid grid-cols-3 gap-2">
             {OFFICIAL_PACKS.map((pack) => (
@@ -61,36 +150,62 @@ export default function ImportPage(): React.ReactElement {
 
         <section className="mb-6">
           <SectionHeader
-            title="Import your own"
-            description="Drop a .json pack file, or paste the JSON. Files are validated before anything is stored."
-          />
-          <ImportDropzone tab={tab} />
-        </section>
-
-        <section>
-          <SectionHeader
             title="Generate with AI"
-            description="Copy the prompt below into any AI assistant and ask it for the JSON file. Import the result back here."
+            description="Copy a prompt into any AI assistant and import the file it produces."
           />
           <PackBuilderCards />
         </section>
 
-        <section className="mt-8 border-t border-border pt-5">
+        <section className="border-t border-border pt-5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="section-label">Installed packs</div>
+              <div className="section-label">Installed</div>
               <div className="mt-0.5 text-[11.5px] text-muted-dim">
-                {summary.databases} databases · {summary.questions} questions · {summary.topics} topics · {summary.notes} notes
+                {summary.databases} databases · {summary.questions} questions · {summary.topics} topics ·{" "}
+                {summary.notes} notes
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => packState.resetAll()}
-            >
-              <Trash2 className="size-3.5" /> Clear all
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.databases.length === 0} onClick={exportDatabasesSql}>
+                <Download className="size-3.5" /> Export .sql
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.questions.length === 0} onClick={() => void exportInstalledJson("questions")}>
+                <Download className="size-3.5" /> Export questions
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.notes.length === 0} onClick={() => void exportInstalledJson("notes")}>
+                <Download className="size-3.5" /> Export notes
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-destructive hover:text-destructive"
+                    disabled={packState.databases.length === 0 && packState.questions.length === 0 && packState.notes.length === 0}
+                  >
+                    <Trash2 className="size-3.5" /> Clear all
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Remove every content pack?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This removes all imported databases, questions and notes from this machine.
+                      Your progress is not affected.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => packState.resetAll()}
+                    >
+                      Remove everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </section>
       </div>
@@ -101,12 +216,14 @@ export default function ImportPage(): React.ReactElement {
 function SummaryCard({
   icon,
   label,
+  hint,
   value,
   active,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  hint: string;
   value: number;
   active: boolean;
   onClick: () => void;
@@ -115,18 +232,25 @@ function SummaryCard({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
         "flex items-center gap-3 border px-4 py-3 text-left transition-colors",
         active ? "border-primary/50 bg-primary/5" : "border-border bg-surface hover:bg-surface-hover",
       )}
     >
-      <span className={cn("flex size-7 shrink-0 items-center justify-center", active ? "text-primary" : "text-muted-dim")}>
+      <span
+        className={cn(
+          "flex size-7 shrink-0 items-center justify-center",
+          active ? "text-primary" : "text-muted-dim",
+        )}
+      >
         {icon}
       </span>
-      <span className="min-w-0">
-        <span className="numeric block text-lg font-semibold leading-tight">{value}</span>
-        <span className="block text-[10.5px] uppercase tracking-wider text-muted-dim">{label}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[12.5px] font-semibold">{label}</span>
+        <span className="block truncate text-[10px] uppercase tracking-wider text-muted-dim">{hint}</span>
       </span>
+      <span className="numeric text-lg font-semibold">{value}</span>
     </button>
   );
 }
@@ -149,13 +273,23 @@ function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): Reac
     setState("loading");
     try {
       const text = await fetchOfficialPack(pack);
-      const outcome = store.importFile(text);
-      if (outcome.ok) {
+      if (pack.kind === "databases") {
+        const fallback = pack.fileName.replace(/\.sql$/i, "").replace(/^sample-/i, "");
+        const name = dbNameFromSql(text, fallback);
+        const dataset = await buildDatasetFromSql(name, text);
+        store.addDataset(dataset);
+        await useSqlStore.getState().activateDataset(dataset.id);
         setState("done");
-        setMessage(`${outcome.added} added · ${outcome.updated} updated`);
+        setMessage(`${dataset.tables.length} tables installed`);
       } else {
-        setState("error");
-        setMessage(outcome.issues[0]?.message ?? "Invalid pack");
+        const outcome = store.importFile(text);
+        if (outcome.ok) {
+          setState("done");
+          setMessage(`${outcome.added} added · ${outcome.updated} updated`);
+        } else {
+          setState("error");
+          setMessage(outcome.issues[0]?.message ?? "Invalid pack");
+        }
       }
     } catch (error) {
       setState("error");
@@ -166,13 +300,23 @@ function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): Reac
   return (
     <div className="flex flex-col border border-border bg-surface p-3">
       <div className="flex items-center gap-2">
-        <FileJson className="size-3.5 text-primary" />
+        {pack.kind === "databases" ? (
+          <Database className="size-3.5 text-primary" />
+        ) : (
+          <FileJson className="size-3.5 text-primary" />
+        )}
         <span className="text-[12.5px] font-semibold">{pack.label}</span>
         <span className="font-mono text-[9.5px] text-muted-dim">{pack.fileName}</span>
       </div>
       <p className="mt-1 flex-1 text-[11px] leading-relaxed text-muted">{pack.description}</p>
       <div className="mt-2">
-        <Button size="xs" variant="outline" className="w-full gap-1.5" disabled={!isConfigured(pack) || state === "loading"} onClick={() => void install()}>
+        <Button
+          size="xs"
+          variant="outline"
+          className="w-full gap-1.5"
+          disabled={!isConfigured(pack) || state === "loading"}
+          onClick={() => void install()}
+        >
           {state === "loading" ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />}
           {state === "done" ? "Installed" : "Download & install"}
         </Button>
@@ -190,12 +334,43 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
   const store = usePackStore();
   const [dragging, setDragging] = useState(false);
   const [outcome, setOutcome] = useState<PackImportOutcome | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const runText = useCallback(
+  const runJson = useCallback(
     (text: string) => {
-      const result = store.importFile(text);
-      setOutcome(result);
+      setOutcome(store.importFile(text));
+    },
+    [store],
+  );
+
+  const runSql = useCallback(
+    async (text: string, fallbackName: string) => {
+      setBusy(true);
+      setOutcome(null);
+      try {
+        const dataset = await buildDatasetFromSql(dbNameFromSql(text, fallbackName || "imported-db"), text);
+        store.addDataset(dataset);
+        await useSqlStore.getState().activateDataset(dataset.id);
+        setOutcome({
+          ok: true,
+          kind: "databases",
+          issues: [],
+          added: dataset.tables.length,
+          updated: 0,
+        });
+      } catch (error) {
+        setOutcome({
+          ok: false,
+          kind: "databases",
+          issues: [{ path: "sql", message: error instanceof Error ? error.message : String(error) }],
+          added: 0,
+          updated: 0,
+        });
+      } finally {
+        setBusy(false);
+      }
     },
     [store],
   );
@@ -203,14 +378,35 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
   const readFile = useCallback(
     (file: File) => {
       const reader = new FileReader();
-      reader.onload = () => runText(String(reader.result ?? ""));
+      reader.onload = () => {
+        const text = String(reader.result ?? "");
+        if (tab === "databases") {
+          void runSql(text, file.name.replace(/\.(sql|txt)$/i, "").replace(/^sample-/i, ""));
+        } else {
+          runJson(text);
+        }
+      };
       reader.readAsText(file);
     },
-    [runText],
+    [tab, runJson, runSql],
   );
 
   return (
     <div>
+      {tab === "databases" ? (
+        <div className="mb-2 flex items-center gap-2">
+          <input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Database name (used with USE)"
+            aria-label="Database name"
+            className="h-7 w-56 border border-border bg-surface px-2 text-[11.5px] outline-none placeholder:text-muted-dim focus:border-primary/50"
+          />
+          <span className="text-[10.5px] text-muted-dim">
+            optional — the name you type after <code className="font-mono">USE</code> in the editor; defaults to the file name
+          </span>
+        </div>
+      ) : null}
       <div
         role="button"
         tabIndex={0}
@@ -233,16 +429,27 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
         className={cn(
           "flex h-28 cursor-pointer flex-col items-center justify-center gap-1.5 border border-dashed transition-colors",
           dragging ? "border-primary bg-primary/5" : "border-border bg-surface-alt/60 hover:border-primary/40",
+          busy && "opacity-60",
         )}
       >
-        <Upload className="size-4 text-muted-dim" />
-        <span className="text-[12px] font-medium">Drop a {tab} .json pack here</span>
+        {busy ? (
+          <Loader2 className="size-4 animate-spin text-primary" />
+        ) : (
+          <Upload className="size-4 text-muted-dim" />
+        )}
+        <span className="text-[12px] font-medium">
+          {busy
+            ? "Validating on the SQL engine…"
+            : tab === "databases"
+              ? "Drop a .sql database file here"
+              : `Drop a ${tab} .json pack here`}
+        </span>
         <span className="text-[10.5px] text-muted-dim">or click to browse</span>
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept=".json,application/json"
+        accept={ACCEPT[tab]}
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -251,56 +458,71 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
         }}
       />
 
-      <PasteImport onImport={runText} />
+      <PasteImport tab={tab} onImportJson={runJson} onImportSql={(text) => void runSql(text, name)} />
       <OutcomeReport outcome={outcome} />
-      {tab === "databases" && outcome?.ok ? (
+      {outcome?.ok ? (
         <p className="mt-2 text-[11px] text-muted-dim">
-          Databases were added to your library. Open{" "}
-          <a href="/schema" className="text-primary underline-offset-2 hover:underline">
-            Databases
-          </a>{" "}
-          to activate one.
+          {outcome.kind === "databases"
+            ? "Database added. Open Databases to activate it."
+            : "Pack installed. Progress and streaks are tracked by the app, never by the file."}
         </p>
       ) : null}
     </div>
   );
 }
 
-function PasteImport({ onImport }: { onImport: (text: string) => void }): React.ReactElement {
+function PasteImport({
+  tab,
+  onImportJson,
+  onImportSql,
+}: {
+  tab: PackTab;
+  onImportJson: (text: string) => void;
+  onImportSql: (text: string) => void;
+}): React.ReactElement {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+
+  const submit = (): void => {
+    if (tab === "databases") onImportSql(text);
+    else onImportJson(text);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="mt-2 gap-1.5">
-          <Sparkles className="size-3.5" /> Paste JSON instead
+          <ClipboardPaste className="size-3.5" /> Paste {tab === "databases" ? "SQL" : "JSON"} instead
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Paste pack JSON</DialogTitle>
-          <DialogDescription>The content is validated before it is stored.</DialogDescription>
-        </DialogHeader>
-        <Textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder='{ "version": 2, "questions": [ ... ] }'
-          className="min-h-[320px] resize-none font-mono text-[12px]"
-        />
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+      <DialogContent className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0" showCloseButton={false}>
+        <div className="shrink-0 border-b border-border bg-surface-alt px-4 py-3">
+          <DialogTitle className="text-[13px]">
+            {tab === "databases" ? "Paste SQL script" : "Paste pack JSON"}
+          </DialogTitle>
+          <DialogDescription className="mt-0.5 text-[11px]">
+            The content is validated before it is stored.
+          </DialogDescription>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <Textarea
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={
+              tab === "databases"
+                ? "CREATE DATABASE shop;\nGO\nUSE shop;\nCREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
+                : '{ "version": 2, "questions": [ ... ] }'
+            }
+            className="min-h-[320px] resize-none font-mono text-[12px]"
+          />
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-2.5">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button
-            size="sm"
-            disabled={text.trim().length === 0}
-            onClick={() => {
-              onImport(text);
-              setOpen(false);
-            }}
-          >
-            Validate & import
+          <Button size="sm" disabled={text.trim().length === 0} onClick={submit}>
+            Validate &amp; import
           </Button>
         </div>
       </DialogContent>
@@ -338,7 +560,7 @@ function OutcomeReport({ outcome }: { outcome: PackImportOutcome | null }): Reac
       <Check className="size-3.5" />
       <span className="font-medium capitalize">{outcome.kind}</span>
       <span className="text-success/80">
-        pack imported — {outcome.added} added, {outcome.updated} updated
+        imported — {outcome.added} added, {outcome.updated} updated
       </span>
     </div>
   );
@@ -378,16 +600,4 @@ function PackBuilderCard({ kind }: { kind: keyof typeof PACK_PROMPTS }): React.R
       </Button>
     </div>
   );
-}
-
-export function exportPacksAction(kind: keyof typeof PACK_PROMPTS): string {
-  const store = usePackStore.getState();
-  if (kind === "databases") return serializeDatabasePack(store.databases);
-  if (kind === "questions") return serializeQuestionsPack(store.topics, store.questions);
-  return serializeNotesPack(store.notes);
-}
-
-export function savePackAsFile(kind: keyof typeof PACK_PROMPTS): void {
-  const content = exportPacksAction(kind);
-  void saveTextFile(`logixzen-${kind}.json`, content, [{ name: "JSON", extensions: ["json"] }]);
 }

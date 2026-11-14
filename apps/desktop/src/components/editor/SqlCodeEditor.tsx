@@ -38,44 +38,38 @@ export function SqlCodeEditor({
       sql({ dialect: PostgreSQL, schema: tables, upperCaseKeywords: true }),
       syntaxHighlighting(highlightStyle),
       EditorView.lineWrapping,
+      Prec.high(
+        keymap.of([
+          {
+            key: "Mod-Enter",
+            preventDefault: true,
+            run: () => {
+              if (onRun === undefined) return false;
+              onRun();
+              return true;
+            },
+          },
+          {
+            key: "Mod-s",
+            preventDefault: true,
+            run: () => {
+              if (onSubmit === undefined) return false;
+              onSubmit();
+              return true;
+            },
+          },
+        ]),
+      ),
     ];
-    if (onRun) {
-      list.push(
-        Prec.high(
-          keymap.of([
-            {
-              key: "Mod-Enter",
-              preventDefault: true,
-              run: () => {
-                onRun();
-                return true;
-              },
-            },
-          ]),
-        ),
-      );
-    }
-    if (onSubmit) {
-      list.push(
-        Prec.high(
-          keymap.of([
-            {
-              key: "Mod-s",
-              preventDefault: true,
-              run: () => {
-                onSubmit();
-                return true;
-              },
-            },
-          ]),
-        ),
-      );
-    }
     return list;
   }, [tables, onRun, onSubmit]);
 
   return (
-    <div className="h-full min-h-0 overflow-hidden" data-editor-root>
+    <div
+      data-editor-root
+      className="cm-logixzen h-full min-h-0 overflow-hidden"
+      style={{ minHeight, maxHeight }}
+    >
       <CodeMirror
         value={value}
         onChange={onChange}
@@ -95,53 +89,7 @@ export function SqlCodeEditor({
           tabSize: 2,
         }}
         style={{ fontSize, height: "100%" }}
-        className="cm-logixzen h-full"
       />
-      <style jsx global>{`
-        [data-editor-root] .cm-editor {
-          background: var(--editor);
-          height: 100%;
-          min-height: ${minHeight};
-          max-height: ${maxHeight};
-        }
-        [data-editor-root] .cm-editor.cm-focused {
-          outline: none;
-        }
-        [data-editor-root] .cm-gutters {
-          background: var(--editor);
-          border-right: 1px solid var(--border);
-          color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
-        }
-        [data-editor-root] .cm-activeLineGutter {
-          background: transparent;
-          color: var(--primary);
-        }
-        [data-editor-root] .cm-activeLine {
-          background: color-mix(in oklab, var(--primary) 5%, transparent);
-        }
-        [data-editor-root] .cm-cursor {
-          border-left-width: 2px;
-          border-left-color: var(--primary);
-        }
-        [data-editor-root] .cm-selectionBackground,
-        [data-editor-root] .cm-content ::selection {
-          background: color-mix(in oklab, var(--primary) 22%, transparent) !important;
-        }
-        [data-editor-root] .cm-tooltip {
-          background: var(--popover);
-          border: 1px solid var(--border);
-          font-family: var(--font-mono);
-          font-size: 12px;
-        }
-        [data-editor-root] .cm-tooltip-autocomplete ul li[aria-selected] {
-          background: var(--accent);
-          color: var(--accent-foreground);
-        }
-        [data-editor-root] .cm-panels {
-          background: var(--surface-alt);
-          color: var(--foreground);
-        }
-      `}</style>
     </div>
   );
 }

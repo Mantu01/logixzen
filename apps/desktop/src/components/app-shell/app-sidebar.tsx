@@ -15,6 +15,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { activeSubject } from "@/lib/subjects";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { usePackStore } from "@/stores/usePackStore";
 
@@ -31,15 +32,15 @@ type NavGroup = {
 
 const GROUPS: NavGroup[] = [
   {
-    label: "Workspace",
+    label: "Data",
     items: [
       { href: "/playground", label: "Editor", icon: Terminal },
-      { href: "/schema", label: "Databases", icon: Database },
+      { href: "/schema", label: activeSubject.dataLabel, icon: Database },
       { href: "/import", label: "Data Hub", icon: Import },
     ],
   },
   {
-    label: "Study",
+    label: "Learn",
     items: [
       { href: "/learn", label: "Practice", icon: GraduationCap },
       { href: "/notes", label: "Notes", icon: BookOpen },
@@ -78,30 +79,22 @@ export function AppSidebar() {
         collapsed ? "w-[52px]" : "w-[216px]",
       )}
     >
-      <div className="flex h-8 items-center justify-between border-b border-sidebar-border px-2">
-        {collapsed ? (
-          <span className="mx-auto h-px w-5 bg-sidebar-border" />
-        ) : (
-          <span className="section-label">Workspace</span>
-        )}
+      <div className="flex h-8 items-center justify-between border-b border-sidebar-border px-3">
+        {!collapsed && <span className="section-label">Workspace</span>}
         <button
           type="button"
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="flex size-6 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
         >
-          {collapsed ? <PanelLeft className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
+          {collapsed ? <PanelLeft className="size-5" /> : <ChevronLeft className="size-3.5" />}
         </button>
       </div>
 
       <nav aria-label="Main" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1.5 py-2">
         {GROUPS.map((group) => (
           <div key={group.label} className="flex flex-col gap-0.5">
-            {collapsed ? (
-              <div className="mx-auto mb-1 h-px w-5 bg-sidebar-border" />
-            ) : (
-              <span className="section-label px-2 pb-1">{group.label}</span>
-            )}
+            {collapsed ? null : <span className="section-label px-2 pb-1">{group.label}</span>}
             {group.items.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;

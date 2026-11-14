@@ -1,6 +1,11 @@
-import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import type { SqlRow, SqlResult, TableInfo } from "../../shared/desktop-api";
+import {
+  parseUseStatement,
+  splitBatches,
+  splitSqlStatements,
+  unquoteIdentifier,
+} from "../../shared/sql";
 
 const MAX_ROWS = 1000;
 
@@ -21,8 +26,7 @@ export function checkSafety(sql: string): string | null {
   return null;
 }
 
-export function translateError(message: string): string {
-  const lower = message.toLowerCase();
+export function translateError(message: string): string {  const lower = message.toLowerCase();
   if (lower.includes("no such table")) {
     return "Table not found. Check the spelling or explore the schema.";
   }
@@ -52,45 +56,179 @@ function isSelect(sql: string): boolean {
   );
 }
 
-export class DesktopSqlEngine {
-  private db: DatabaseSync | null = null;
+const CREATE_DATABASE = /^CREATE\s+DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
+const DROP_DATABASE = /^DROP\s+DATABASE\s+(IF\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
 
-  initialize(setupSql?: string): void {
-    this.close();
-    this.db = new DatabaseSync(":memory:");
-    this.db.exec("PRAGMA foreign_keys = ON;");
-    if (setupSql !== undefined && setupSql.trim().length > 0) {
-      this.db.exec(setupSql);
+interface DatabaseTarget {
+  name: string;
+  ifClause: boolean;
+}
+
+function parseDatabaseTarget(sql: string, regex: RegExp): DatabaseTarget | null {
+  const match = regex.exec(sql.trim());
+  if (match === null) return null;
+  const name = unquoteIdentifier(match[2] ?? "");
+  if (name.length === 0) return null;
+  return { name, ifClause: (match[1] ?? "").trim().length > 0 };
+}
+
+export class DesktopSqlEngine {
+  private databases = new Map<string, DatabaseSync>();
+  private currentName: string | null = null;
+
+  private get db(): DatabaseSync | null {
+    if (this.currentName === null) return null;
+    return this.databases.get(this.currentName) ?? null;
+  }
+
+  private load(name: string, setupSql?: string): void {
+    const key = name.toLowerCase();
+    const existing = this.databases.get(key);
+    if (existing !== undefined) {
+      existing.close();
+      this.databases.delete(key);
     }
+    const db = new DatabaseSync(":memory:");
+    db.exec("PRAGMA foreign_keys = ON;");
+    if (setupSql !== undefined && setupSql.trim().length > 0) {
+      db.exec(setupSql);
+    }
+    this.databases.set(key, db);
+  }
+
+  initialize(setupSql?: string, name?: string): void {
+    const key = (name ?? "main").toLowerCase();
+    this.load(key, setupSql);
+    this.currentName = key;
+  }
+
+  use(name: string): void {
+    const key = name.toLowerCase();
+    if (!this.databases.has(key)) {
+      throw new Error(`Database "${name}" is not loaded. Create or import it in Databases first.`);
+    }
+    this.currentName = key;
+  }
+
+  list(): string[] {
+    return Array.from(this.databases.keys());
+  }
+
+  private createDatabase(target: DatabaseTarget): string {
+    const key = target.name.toLowerCase();
+    if (this.databases.has(key)) {
+      if (!target.ifClause) {
+        throw new Error(`Database "${target.name}" already exists. Choose a different name.`);
+      }
+      this.currentName = key;
+      return `Database "${target.name}" already exists.`;
+    }
+    this.load(target.name, undefined);
+    this.currentName = key;
+    return `Database "${target.name}" created.`;
+  }
+
+  private dropDatabase(target: DatabaseTarget): void {
+    const key = target.name.toLowerCase();
+    const existing = this.databases.get(key);
+    if (existing === undefined) {
+      if (target.ifClause) {
+        if (this.currentName === key) this.currentName = null;
+        return;
+      }
+      throw new Error(`Database "${target.name}" does not exist.`);
+    }
+    existing.close();
+    this.databases.delete(key);
+    if (this.currentName === key) this.currentName = null;
+  }
+
+  activeName(): string | null {
+    return this.currentName;
   }
 
   execute(sql: string): SqlResult[] {
-    if (this.db === null) {
-      throw new Error("Database not initialized");
-    }
-
-    const statements = splitSqlStatements(sql);
+    const batches = splitBatches(sql);
     const results: SqlResult[] = [];
-
-    for (const statement of statements) {
+    let statementIndex = 0;
+    const runStatement = (statementSql: string): void => {
       const started = performance.now();
-      const safety = checkSafety(statement.sql);
+      const index = statementIndex;
+      statementIndex += 1;
+
+      const firstLineEnd = statementSql.indexOf("\n");
+      const firstLine = (firstLineEnd === -1 ? statementSql : statementSql.slice(0, firstLineEnd))
+        .trim()
+        .replace(/;+\s*$/, "");
+      const useTarget = parseUseStatement(firstLine);
+
+      if (useTarget !== null) {
+        const remainder = firstLineEnd === -1 ? "" : statementSql.slice(firstLineEnd + 1).trim();
+        try {
+          this.use(useTarget);
+        } catch (error: unknown) {
+          results.push({
+            ...this.emptyResult(index, started),
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        if (remainder.length > 0) runStatement(remainder);
+        return;
+      }
+
+      const createTarget = parseDatabaseTarget(statementSql, CREATE_DATABASE);
+      if (createTarget !== null) {
+        try {
+          results.push({
+            ...this.emptyResult(index, started),
+            message: this.createDatabase(createTarget),
+          });
+        } catch (error: unknown) {
+          results.push({
+            ...this.emptyResult(index, started),
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        return;
+      }
+
+      const dropTarget = parseDatabaseTarget(statementSql, DROP_DATABASE);
+      if (dropTarget !== null) {
+        try {
+          this.dropDatabase(dropTarget);
+          results.push({
+            ...this.emptyResult(index, started),
+            message: `Database "${dropTarget.name}" removed.`,
+          });
+        } catch (error: unknown) {
+          results.push({
+            ...this.emptyResult(index, started),
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        return;
+      }
+
+      if (this.db === null) {
+        results.push({
+          ...this.emptyResult(index, started),
+          error: "No database is active. Select one with USE <name> or from the Databases page.",
+        });
+        return;
+      }
+
+      const safety = checkSafety(statementSql);
       if (safety !== null) {
         results.push({
-          columns: [],
-          rows: [],
-          rowsAffected: 0,
+          ...this.emptyResult(index, started),
           error: safety,
-          statementIndex: statement.index,
-          isSelect: false,
-          executionTimeMs: 0,
         });
-        continue;
+        return;
       }
 
       try {
-        if (isSelect(statement.sql)) {
-          const prepared = this.db.prepare(statement.sql);
+        if (isSelect(statementSql)) {
+          const prepared = this.db.prepare(statementSql);
           const columns = prepared.columns().map((column) => column.name);
           const rows: SqlRow[] = [];
           for (const row of prepared.iterate()) {
@@ -103,18 +241,20 @@ export class DesktopSqlEngine {
             columns,
             rows,
             rowsAffected: 0,
-            statementIndex: statement.index,
+            error: undefined,
+            statementIndex: index,
             isSelect: true,
             executionTimeMs: performance.now() - started,
           });
         } else {
-          this.db.exec(statement.sql);
+          this.db.exec(statementSql);
           const changes = this.db.prepare("SELECT changes() AS changes").get() as { changes?: number };
           results.push({
             columns: [],
             rows: [],
             rowsAffected: typeof changes?.changes === "number" ? changes.changes : 0,
-            statementIndex: statement.index,
+            error: undefined,
+            statementIndex: index,
             isSelect: false,
             executionTimeMs: performance.now() - started,
           });
@@ -122,14 +262,15 @@ export class DesktopSqlEngine {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         results.push({
-          columns: [],
-          rows: [],
-          rowsAffected: 0,
+          ...this.emptyResult(index, started),
           error: translateError(message),
-          statementIndex: statement.index,
-          isSelect: false,
-          executionTimeMs: performance.now() - started,
         });
+      }
+    };
+
+    for (const batch of batches) {
+      for (const statement of splitSqlStatements(batch.join("\n"))) {
+        runStatement(statement.sql);
       }
     }
 
@@ -137,11 +278,11 @@ export class DesktopSqlEngine {
   }
 
   getSchema(): TableInfo[] {
-    if (this.db === null) {
-      throw new Error("Database not initialized");
+    const db = this.db;
+    if (db === null) {
+      return [];
     }
 
-    const db = this.db;
     const tableRows = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
       .all() as Array<{ name: string }>;
@@ -185,81 +326,6 @@ export class DesktopSqlEngine {
     });
   }
 
-  reset(setupSql?: string): void {
-    this.initialize(setupSql);
-  }
-
-  loadSqlFile(filePath: string): void {
-    this.initialize();
-    this.execute(readFileSync(filePath, "utf8"));
-  }
-
-  loadSqliteFile(filePath: string): void {
-    this.close();
-    this.db = new DatabaseSync(filePath, { readOnly: true });
-  }
-
-  importCsv(filePath: string, tableName: string): number {
-    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(tableName)) {
-      throw new Error("Invalid table name");
-    }
-    if (this.db === null) {
-      this.initialize();
-    }
-    const db = this.db;
-    if (db === null) {
-      throw new Error("Database not initialized");
-    }
-
-    const lines = readFileSync(filePath, "utf8")
-      .split(/\r?\n/)
-      .filter((line) => line.trim().length > 0);
-    const header = lines.shift();
-    if (header === undefined) {
-      throw new Error("CSV file is empty");
-    }
-
-    const columns = header.split(",").map((name, index) => {
-      const clean = name.trim().replace(/"/g, "");
-      return /^[A-Za-z_][A-Za-z0-9_]*$/.test(clean) ? clean : `column_${index + 1}`;
-    });
-
-    db.exec(
-      `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns
-        .map((column) => `"${column}" TEXT`)
-        .join(", ")})`,
-    );
-
-    const insert = db.prepare(
-      `INSERT INTO "${tableName}" (${columns.map((column) => `"${column}"`).join(", ")}) VALUES (${columns
-        .map(() => "?")
-        .join(", ")})`,
-    );
-
-    let inserted = 0;
-    db.exec("BEGIN");
-    try {
-      for (const line of lines) {
-        const values = line.split(",").map((value) => value.trim().replace(/^"|"$/g, ""));
-        insert.run(...values);
-        inserted += 1;
-      }
-      db.exec("COMMIT");
-    } catch (error) {
-      db.exec("ROLLBACK");
-      throw error;
-    }
-
-    return inserted;
-  }
-
-  close(): void {
-    if (this.db !== null) {
-      this.db.close();
-      this.db = null;
-    }
-  }
-
   isolatedRun(setupSql: string, sql: string): SqlResult[] {
     const db = new DatabaseSync(":memory:");
     try {
@@ -268,109 +334,28 @@ export class DesktopSqlEngine {
         db.exec(setupSql);
       }
       const engine = new DesktopSqlEngine();
-      engine.db = db;
+      engine.databases.set("isolated", db);
+      engine.currentName = "isolated";
       try {
         return engine.execute(sql);
       } finally {
-        engine.db = null;
+        engine.databases.delete("isolated");
+        engine.currentName = null;
       }
     } finally {
       db.close();
     }
   }
-}
 
-interface Statement {
-  sql: string;
-  index: number;
-}
-
-export function splitSqlStatements(sql: string): Statement[] {
-  const statements: Statement[] = [];
-  let current = "";
-  let single = false;
-  let double = false;
-  let lineComment = false;
-  let blockComment = false;
-
-  for (let i = 0; i < sql.length; i += 1) {
-    const char = sql[i] ?? "";
-    const next = sql[i + 1];
-
-    if (lineComment) {
-      current += char;
-      if (char === "\n") {
-        lineComment = false;
-      }
-      continue;
-    }
-    if (blockComment) {
-      current += char;
-      if (char === "*" && next === "/") {
-        current += "/";
-        i += 1;
-        blockComment = false;
-      }
-      continue;
-    }
-    if (single) {
-      current += char;
-      if (char === "'" && next === "'") {
-        current += "'";
-        i += 1;
-      } else if (char === "'") {
-        single = false;
-      }
-      continue;
-    }
-    if (double) {
-      current += char;
-      if (char === '"' && next === '"') {
-        current += '"';
-        i += 1;
-      } else if (char === '"') {
-        double = false;
-      }
-      continue;
-    }
-
-    if (char === "-" && next === "-") {
-      lineComment = true;
-      current += "--";
-      i += 1;
-      continue;
-    }
-    if (char === "/" && next === "*") {
-      blockComment = true;
-      current += "/*";
-      i += 1;
-      continue;
-    }
-    if (char === "'") {
-      single = true;
-      current += char;
-      continue;
-    }
-    if (char === '"') {
-      double = true;
-      current += char;
-      continue;
-    }
-    if (char === ";") {
-      const trimmed = current.trim();
-      if (trimmed.length > 0) {
-        statements.push({ sql: trimmed, index: statements.length });
-      }
-      current = "";
-      continue;
-    }
-    current += char;
+  private emptyResult(statementIndex: number, started: number): SqlResult {
+    return {
+      columns: [],
+      rows: [],
+      rowsAffected: 0,
+      error: undefined,
+      statementIndex,
+      isSelect: false,
+      executionTimeMs: performance.now() - started,
+    };
   }
-
-  const trimmed = current.trim();
-  if (trimmed.length > 0) {
-    statements.push({ sql: trimmed, index: statements.length });
-  }
-
-  return statements;
 }

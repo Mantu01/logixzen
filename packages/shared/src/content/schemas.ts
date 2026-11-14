@@ -51,7 +51,7 @@ const BaseQuestionSchema = z.object({
   description: z.string().min(1).max(2000),
   datasetId: z.string().min(1).max(100),
   hints: z.array(z.string()).min(1).max(10),
-  explanation: z.string().min(1).max(5000),
+  explanation: z.string().max(5000).optional().default(''),
   tags: z.array(z.string()).max(10),
   points: z.number().min(1).max(100),
 })
@@ -59,20 +59,6 @@ const BaseQuestionSchema = z.object({
 export const McqOptionSchema = z.object({
   id: z.string().min(1).max(200),
   text: z.string().min(1).max(2000),
-})
-
-const TestCaseSchema = z.object({
-  id: z.string().min(1).max(200),
-  description: z.string().max(500).optional(),
-  expected: z.union([
-    z.object({
-      type: z.literal('literal'),
-      columns: z.array(z.string()),
-      rows: z.array(z.array(z.unknown())),
-    }),
-    z.object({ type: z.literal('fromSolution') }),
-  ]),
-  hidden: z.boolean().optional().default(false),
 })
 
 const ValidationConfigSchema = z.object({
@@ -94,10 +80,40 @@ const ValidationConfigSchema = z.object({
   verificationQuery: z.string().optional(),
 })
 
+export type ValidationConfig = z.infer<typeof ValidationConfigSchema>
+
+export const TestCaseSchema = z.object({
+  id: z.string().min(1).max(200),
+  description: z.string().max(500).optional(),
+  expected: z.union([
+    z.object({
+      type: z.literal('literal'),
+      columns: z.array(z.string()),
+      rows: z.array(z.array(z.unknown())),
+    }),
+    z.object({ type: z.literal('fromSolution') }),
+  ]),
+  hidden: z.boolean().optional().default(false),
+})
+
+export type TestCase = z.infer<typeof TestCaseSchema>
+
+const validationWith = (mode: 'result-match' | 'mcq' | 'fill-blank' | 'predict-output' | 'dml-check') =>
+  ValidationConfigSchema.extend({ mode: z.literal(mode).optional() }).optional().default({
+    mode,
+    columnNamesMatter: false,
+    columnOrderMatters: false,
+    orderMatters: true,
+    floatTolerance: 0.001,
+    caseSensitiveStrings: false,
+  })
+
+const optionalTestCases = z.array(TestCaseSchema).max(20).optional().default([])
+
 export const QueryQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('query'),
   solutionSql: z.string(),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('result-match') }),
+  validation: validationWith('result-match'),
   testCases: z.array(TestCaseSchema).min(1).max(20),
 })
 
@@ -105,29 +121,29 @@ export const McqSingleQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('mcq-single'),
   options: z.array(McqOptionSchema).min(2).max(10),
   correctOptionId: z.string(),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('mcq') }),
-  testCases: z.array(TestCaseSchema).min(1).max(5),
+  validation: validationWith('mcq'),
+  testCases: optionalTestCases,
 })
 
 export const McqMultiQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('mcq-multi'),
   options: z.array(McqOptionSchema).min(2).max(10),
   correctOptionIds: z.array(z.string()).min(1),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('mcq') }),
-  testCases: z.array(TestCaseSchema).min(1).max(5),
+  validation: validationWith('mcq'),
+  testCases: optionalTestCases,
 })
 
 export const FillBlankQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('fill-blank'),
   blankTemplate: z.string(),
   acceptedAnswers: z.record(z.string(), z.array(z.string())).refine((v) => Object.keys(v).length >= 1, { message: 'At least one answer is required' }),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('fill-blank') }),
+  validation: validationWith('fill-blank'),
 })
 
 export const PredictOutputQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('predict-output'),
   expectedOutput: z.array(z.record(z.string(), z.unknown())),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('predict-output') }),
+  validation: validationWith('predict-output'),
   testCases: z.array(TestCaseSchema).min(1).max(5),
 })
 
@@ -135,7 +151,7 @@ export const DebugQueryQuestionSchema = BaseQuestionSchema.extend({
   type: z.literal('debug-query'),
   brokenQuery: z.string(),
   solutionSql: z.string(),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('result-match') }),
+  validation: validationWith('result-match'),
   testCases: z.array(TestCaseSchema).min(1).max(5),
 })
 
@@ -144,7 +160,7 @@ export const DmlCheckQuestionSchema = BaseQuestionSchema.extend({
   dmlStatement: z.string(),
   verificationQuery: z.string(),
   expectedChanges: z.number(),
-  validation: ValidationConfigSchema.extend({ mode: z.literal('dml-check') }),
+  validation: validationWith('dml-check'),
 })
 
 export const QuestionSchema = z.discriminatedUnion('type', [

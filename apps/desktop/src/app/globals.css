@@ -148,6 +148,8 @@
   --radius-lg: 0px;
   --radius-xl: 0px;
   --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.2);
   --shadow-float: 0 8px 32px -12px rgb(0 0 / 0.55);
@@ -286,4 +288,81 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.react-flow__minimap-svg {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.react-flow__minimap-node {
+  fill: color-mix(in oklab, var(--muted-foreground) 55%, transparent) !important;
+  stroke: transparent !important;
+}
+
+.react-flow__minimap-mask {
+  fill: color-mix(in oklab, var(--background) 78%, transparent);
+}
+
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node.dragging {
+  cursor: grabbing;
+}
+
+.react-flow__handle {
+  z-index: 1;
+}
+
+.cm-logixzen .cm-editor {
+  background: var(--editor);
+  height: 100%;
+}
+
+.cm-logixzen .cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-logixzen .cm-gutters {
+  background: var(--editor);
+  border-right: 1px solid var(--border);
+  color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+}
+
+.cm-logixzen .cm-activeLineGutter {
+  background: transparent;
+  color: var(--primary);
+}
+
+.cm-logixzen .cm-activeLine {
+  background: color-mix(in oklab, var(--primary) 5%, transparent);
+}
+
+.cm-logixzen .cm-cursor {
+  border-left-width: 2px;
+  border-left-color: var(--primary);
+}
+
+.cm-logixzen .cm-selectionBackground,
+.cm-logixzen .cm-content ::selection {
+  background: color-mix(in oklab, var(--primary) 22%, transparent) !important;
+}
+
+.cm-logixzen .cm-tooltip {
+  background: var(--popover);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.cm-logixzen .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.cm-logixzen .cm-panels {
+  background: var(--surface-alt);
+  color: var(--foreground);
 }

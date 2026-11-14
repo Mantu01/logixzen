@@ -4,13 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Dataset, Question, Topic } from "@logixzen/shared/content";
 import { nativeStorage } from "@/lib/native-storage";
-import {
-  mergeById,
-  parseDatabasePack,
-  parseNotesPack,
-  parsePackFile,
-  parseQuestionsPack,
-} from "@/lib/packs/packs";
+import { mergeById, parsePackFile } from "@/lib/packs/packs";
 import type { DatabasePack, Note, NotesPack, PackIssue, PackKind, PackSummary, QuestionsPack } from "@/lib/packs/types";
 
 export interface PackImportOutcome {
@@ -29,12 +23,8 @@ interface PackState {
   notes: Note[];
 
   importFile: (text: string) => PackImportOutcome;
-  importDatabases: (text: string) => PackImportOutcome;
-  importQuestions: (text: string) => PackImportOutcome;
-  importNotes: (text: string) => PackImportOutcome;
   addDataset: (dataset: Dataset) => void;
   removeDataset: (datasetId: string) => void;
-  clearPack: (kind: PackKind) => void;
   resetAll: () => void;
 }
 
@@ -81,43 +71,11 @@ export const usePackStore = create<PackState>()(
           return applyNotes(set, (result.data as NotesPack).notes);
         },
 
-        importDatabases: (text) => {
-          const result = parseDatabasePack(text);
-          if (!result.ok || result.data === null) {
-            return outcome(false, "databases", result.issues, 0, 0);
-          }
-          return applyDatabases(set, result.data.datasets);
-        },
-
-        importQuestions: (text) => {
-          const result = parseQuestionsPack(text);
-          if (!result.ok || result.data === null) {
-            return outcome(false, "questions", result.issues, 0, 0);
-          }
-          return applyQuestions(set, result.data.questions, result.data.topics ?? []);
-        },
-
-        importNotes: (text) => {
-          const result = parseNotesPack(text);
-          if (!result.ok || result.data === null) {
-            return outcome(false, "notes", result.issues, 0, 0);
-          }
-          return applyNotes(set, result.data.notes);
-        },
-
         addDataset: (dataset) =>
           set((state) => ({ databases: mergeById(state.databases, [dataset]).list })),
 
         removeDataset: (datasetId) =>
           set((state) => ({ databases: state.databases.filter((item) => item.id !== datasetId) })),
-
-        clearPack: (kind) => {
-          if (kind === "databases") set({ databases: [] });
-          if (kind === "questions") {
-            set({ questions: [], topics: [] });
-          }
-          if (kind === "notes") set({ notes: [] });
-        },
 
         resetAll: () => set({ ...EMPTY }),
       };
@@ -192,21 +150,4 @@ export function summarizePacks(state: {
 
 function countUniqueTopics(questions: Question[]): number {
   return new Set(questions.map((question) => question.topicId)).size;
-}
-
-export function useTopicList(): Topic[] {
-  const topics = usePackStore((state) => state.topics);
-  const questions = usePackStore((state) => state.questions);
-  if (topics.length > 0) return topics;
-  const seen = new Map<string, Topic>();
-  for (const question of questions) {
-    if (!seen.has(question.topicId)) {
-      seen.set(question.topicId, {
-        id: question.topicId,
-        title: question.topicId.replace(/[-_]/g, " "),
-        order: seen.size,
-      });
-    }
-  }
-  return Array.from(seen.values());
 }

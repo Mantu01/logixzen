@@ -5,24 +5,24 @@ import { useDesktopBridge } from "@/hooks/use-desktop-bridge";
 
 function MinimizeIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-      <path d="M2 5h6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M1.5 6h9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 }
 
 function MaximizeIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="5" height="5" fill="none" stroke="currentColor" strokeWidth="1" />
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+      <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1" />
     </svg>
   );
 }
 
 function CloseIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-      <path d="M2.5 2.5l5 5m0-5l-5 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M2.5 2.5l7 7m0-7l-7 7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
     </svg>
   );
 }
@@ -30,8 +30,15 @@ function CloseIcon() {
 export function TitleBar() {
   const connected = useDesktopBridge();
 
+  const toggleMaximize = (): void => {
+    if (connected) window.logixzen?.window.maximize();
+  };
+
   return (
-    <header className="app-drag flex h-9 shrink-0 select-none items-center justify-between border-b border-border bg-titlebar pr-0">
+    <header
+      className="app-drag flex h-9 shrink-0 select-none items-center justify-between border-b border-border bg-titlebar pr-0"
+      onDoubleClick={toggleMaximize}
+    >
       <div className="flex min-w-0 items-center gap-2 pl-3">
         <Link
           href="/"

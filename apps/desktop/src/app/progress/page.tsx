@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Award, Download, Flame, Target, TrendingUp, Trophy } from "lucide-react";
+import { useMemo } from "react";
+import { Award, Download, Flame, Lock, Target, TrendingUp, Trophy } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import { BADGE_DEFINITIONS } from "@/features/badges/badgeDefinitions";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { usePackStore } from "@/stores/usePackStore";
 import { saveTextFile } from "@/lib/save-file";
+import { dateKey } from "@/lib/date-key";
 import { cn } from "@/lib/utils";
 
 export default function ProgressPage(): React.ReactElement {
@@ -28,11 +29,8 @@ export default function ProgressPage(): React.ReactElement {
   const activity = useProgressStore((state) => state.activity);
   const badges = useProgressStore((state) => state.badges);
   const exportProgress = useProgressStore((state) => state.exportProgress);
-  const importProgress = useProgressStore((state) => state.importProgress);
   const resetProgress = useProgressStore((state) => state.resetProgress);
   const questionTotal = usePackStore((state) => state.questions.length);
-
-  const [importMessage, setImportMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const solved = solvedQuestions.size;
   const completion = questionTotal === 0 ? 0 : Math.round((solved / questionTotal) * 100);
@@ -42,7 +40,15 @@ export default function ProgressPage(): React.ReactElement {
     return Number.isFinite(best) ? best : null;
   }, [solvedQuestions]);
 
-  const heatmap = useMemo(() => buildHeatmap(activity), [activity]);
+  const calendar = useMemo(() => buildCalendar(activity), [activity]);
+  const activeDays = useMemo(() => {
+    let count = 0;
+    const todayKey = dateKey();
+    for (const [key, value] of activity) {
+      if (value > 0 && key <= todayKey) count += 1;
+    }
+    return count;
+  }, [activity]);
 
   const exportFile = async (): Promise<void> => {
     const saved = await saveTextFile("logixzen-progress.json", exportProgress(), [
@@ -59,31 +65,12 @@ export default function ProgressPage(): React.ReactElement {
     }
   };
 
-  const importFile = async (): Promise<void> => {
-    const path = await window.logixzen?.dialog.openFile({
-      title: "Open progress export",
-      filters: [{ name: "JSON", extensions: ["json"] }],
-    });
-    if (path === null || path === undefined) return;
-    try {
-      const content = await window.logixzen?.files.readText(path);
-      if (typeof content !== "string") return;
-      const result = importProgress(content);
-      setImportMessage({ ok: result.ok, text: result.message });
-    } catch (error) {
-      setImportMessage({ ok: false, text: error instanceof Error ? error.message : String(error) });
-    }
-  };
-
   return (
     <PageShell
       title="Progress"
       subtitle={`${solved}/${questionTotal || "—"} solved · ${totalPoints} points`}
       actions={
         <>
-          <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => void importFile()}>
-            Import
-          </Button>
           <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => void exportFile()}>
             <Download className="size-3.5" /> Export
           </Button>
@@ -115,38 +102,60 @@ export default function ProgressPage(): React.ReactElement {
       }
     >
       <div className="mx-auto max-w-4xl space-y-5 px-5 py-6">
-        {importMessage ? (
-          <p className={cn("border px-3 py-2 text-[12px]", importMessage.ok ? "border-success/40 bg-success/5 text-success" : "border-error/40 bg-error/5 text-error")}>
-            {importMessage.text}
-          </p>
-        ) : null}
-
-        <div className="grid grid-cols-4 gap-2">
-          <Stat label="Completion" value={`${completion}%`} icon={<Target className="size-3.5" />} />
-          <Stat label="Solved" value={String(solved)} icon={<TrendingUp className="size-3.5" />} />
-          <Stat label="Streak" value={`${streak.currentStreak}d`} icon={<Flame className="size-3.5" />} />
-          <Stat label="Best time" value={bestTime === null ? "—" : `${(bestTime / 1000).toFixed(1)}s`} icon={<Trophy className="size-3.5" />} />
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <Stat
+            label="Completion"
+            value={`${completion}%`}
+            hint={questionTotal > 0 ? `of ${questionTotal} questions` : "no pack installed"}
+            icon={<Target className="size-3.5" />}
+            accent
+          />
+          <Stat
+            label="Solved"
+            value={String(solved)}
+            hint={`${totalPoints} points earned`}
+            icon={<TrendingUp className="size-3.5" />}
+          />
+          <Stat
+            label="Current streak"
+            value={`${streak.currentStreak}d`}
+            hint={`longest ${streak.longestStreak}d`}
+            icon={<Flame className="size-3.5" />}
+          />
+          <Stat
+            label="Best time"
+            value={bestTime === null ? "—" : `${(bestTime / 1000).toFixed(1)}s`}
+            hint="fastest solve"
+            icon={<Trophy className="size-3.5" />}
+          />
         </div>
 
-        <section className="border border-border bg-surface p-4">
-          <div className="mb-3 flex items-center justify-between">
+        <div className="border border-border bg-surface px-3 py-2.5">
+          <div className="flex items-center justify-between text-[10px] text-muted-dim">
+            <span className="section-label">Completion</span>
+            <span className="numeric">{solved}/{questionTotal > 0 ? questionTotal : "—"}</span>
+          </div>
+          <div className="mt-1.5 h-1 w-full bg-surface-alt">
+            <div
+              className="h-full bg-primary transition-[width] duration-300"
+              style={{ width: `${completion}%` }}
+            />
+          </div>
+        </div>
+
+        <section className="border border-border bg-surface">
+          <div className="flex h-9 items-center justify-between border-b border-border px-3">
             <span className="section-label">Activity</span>
             <span className="numeric text-[10.5px] text-muted-dim">
-              longest streak {streak.longestStreak}d
+              {activeDays} active days · {streak.longestStreak}d longest · last 12 months
             </span>
           </div>
-          <div className="flex flex-wrap gap-[3px]">
-            {heatmap.map((cell) => (
-              <span
-                key={cell.date}
-                title={cell.date === "" ? "No data" : `${cell.date}: ${cell.count} solved`}
-                className={cn("size-[11px] border border-border/60", cell.level === 0 && "bg-surface-alt", cell.level === 1 && "bg-primary/25", cell.level === 2 && "bg-primary/50", cell.level === 3 && "bg-primary/75", cell.level === 4 && "bg-primary")}
-              />
-            ))}
+          <div className="overflow-x-auto p-3">
+            <Heatmap weeks={calendar.weeks} monthLabels={calendar.monthLabels} />
           </div>
-          <div className="mt-2 flex items-center gap-1.5 text-[9.5px] text-muted-dim">
+          <div className="flex items-center justify-end gap-1.5 border-t border-border px-3 py-2 text-[9.5px] text-muted-dim">
             <span>less</span>
-            <span className="size-[10px] bg-surface-alt border border-border/60" />
+            <span className="size-[10px] border border-border/60 bg-surface-alt" />
             <span className="size-[10px] bg-primary/25" />
             <span className="size-[10px] bg-primary/50" />
             <span className="size-[10px] bg-primary/75" />
@@ -156,14 +165,16 @@ export default function ProgressPage(): React.ReactElement {
         </section>
 
         <section>
-          <div className="mb-2 flex items-center gap-2">
-            <Award className="size-3.5 text-warning" />
-            <span className="section-label">Badges</span>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className="size-3.5 text-warning" />
+              <span className="section-label">Badges</span>
+            </div>
             <span className="numeric text-[10.5px] text-muted-dim">
-              {badges.earned.size}/{BADGE_DEFINITIONS.length}
+              {badges.earned.size}/{BADGE_DEFINITIONS.length} earned
             </span>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             {BADGE_DEFINITIONS.map((badge) => {
               const earned = badges.earned.has(badge.id);
               return (
@@ -171,17 +182,23 @@ export default function ProgressPage(): React.ReactElement {
                   key={badge.id}
                   className={cn(
                     "flex flex-col items-center gap-1.5 border p-3 text-center transition-colors",
-                    earned ? "border-warning/40 bg-warning/5" : "border-border bg-surface-alt/50 opacity-60",
+                    earned ? "border-warning/40 bg-warning/5" : "border-border bg-surface-alt/50",
                   )}
                 >
-                  <Award className={cn("size-5", earned ? "text-warning" : "text-muted-dim")} />
+                  {earned ? (
+                    <Award className="size-5 text-warning" />
+                  ) : (
+                    <Lock className="size-5 text-muted-dim" />
+                  )}
                   <span className="text-[11.5px] font-semibold">{badge.title}</span>
                   <span className="text-[10px] leading-tight text-muted-dim">{badge.description}</span>
                   {earned ? (
                     <span className="numeric text-[9px] text-muted-dim">
                       {new Date(badges.earned.get(badge.id)?.timestamp ?? 0).toLocaleDateString()}
                     </span>
-                  ) : null}
+                  ) : (
+                    <span className="text-[9px] uppercase tracking-wider text-muted-dim">locked</span>
+                  )}
                 </div>
               );
             })}
@@ -192,33 +209,139 @@ export default function ProgressPage(): React.ReactElement {
   );
 }
 
-function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }): React.ReactElement {
+function Stat({
+  label,
+  value,
+  hint,
+  icon,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: React.ReactNode;
+  accent?: boolean;
+}): React.ReactElement {
   return (
-    <div className="border border-border bg-surface px-4 py-3">
+    <div className={cn("relative border bg-surface px-4 py-3", accent ? "border-primary/40" : "border-border")}>
+      {accent ? <span className="absolute left-0 top-0 h-full w-[2px] bg-primary" aria-hidden="true" /> : null}
       <div className="flex items-center gap-1.5 text-muted-dim">
         {icon}
         <span className="section-label">{label}</span>
       </div>
-      <div className="numeric mt-1 text-lg font-semibold">{value}</div>
+      <div className="numeric mt-1.5 text-2xl font-semibold leading-none">{value}</div>
+      <div className="mt-1.5 text-[10px] text-muted-dim">{hint}</div>
     </div>
   );
 }
 
-function buildHeatmap(activity: Map<string, number>): Array<{ date: string; count: number; level: number }> {
-  const cells: Array<{ date: string; count: number; level: number }> = [];
-  const days = 26 * 7;
+interface HeatmapCell {
+  date: string;
+  count: number;
+  level: number;
+  future: boolean;
+}
+
+const CELL = 11;
+const GAP = 3;
+const STEP = CELL + GAP;
+
+function Heatmap({
+  weeks,
+  monthLabels,
+}: {
+  weeks: HeatmapCell[][];
+  monthLabels: Array<{ column: number; label: string }>;
+}): React.ReactElement {
+  return (
+    <div className="flex min-w-fit gap-[3px]">
+      <div className="relative flex flex-col gap-[3px] pt-[14px]">
+        {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+          <span key={`${day}-${index}`} className="flex h-[11px] items-center text-[8.5px] text-muted-dim">
+            {index % 2 === 1 ? day : ""}
+          </span>
+        ))}
+      </div>
+      <div>
+        <div className="relative h-[14px]">
+          {monthLabels.map((month) => (
+            <span
+              key={`${month.label}-${month.column}`}
+              className="absolute text-[9px] text-muted-dim"
+              style={{ left: `${month.column * STEP}px` }}
+            >
+              {month.label}
+            </span>
+          ))}
+        </div>
+        <div className="relative flex gap-[3px]">
+          {weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="flex flex-col gap-[3px]">
+              {week.map((cell) => (
+                <span
+                  key={cell.date}
+                  title={cell.date === "" ? undefined : `${cell.date}: ${cell.count} solved`}
+                  className={cn(
+                    "size-[11px] border",
+                    cell.future
+                      ? "border-transparent bg-transparent"
+                      : cell.level === 0
+                        ? "border-border/60 bg-surface-alt"
+                        : cn(
+                            "border-transparent",
+                            cell.level === 1 && "bg-primary/25",
+                            cell.level === 2 && "bg-primary/50",
+                            cell.level === 3 && "bg-primary/75",
+                            cell.level === 4 && "bg-primary",
+                          ),
+                  )}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function buildCalendar(activity: Map<string, number>): {
+  weeks: HeatmapCell[][];
+  monthLabels: Array<{ column: number; label: string }>;
+} {
   const today = new Date();
-  const startOffset = today.getDay();
-  for (let index = days - 1; index >= 0; index -= 1) {
-    const date = new Date(today.getTime() - (index - (6 - startOffset)) * 86_400_000);
-    const key = date.toISOString().slice(0, 10);
-    if (date > today) {
-      cells.push({ date: "", count: 0, level: 0 });
-      continue;
+  today.setHours(0, 0, 0, 0);
+
+  const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+  start.setDate(start.getDate() - start.getDay());
+
+  const totalDays = Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1;
+  const weekCount = Math.ceil(totalDays / 7);
+
+  const weeks: HeatmapCell[][] = [];
+  const monthLabels: Array<{ column: number; label: string }> = [];
+  let lastMonth = -1;
+
+  for (let week = 0; week < weekCount; week += 1) {
+    const column: HeatmapCell[] = [];
+    for (let day = 0; day < 7; day += 1) {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + week * 7 + day);
+      const future = date.getTime() > today.getTime();
+      const key = dateKey(date);
+      const count = future ? 0 : (activity.get(key) ?? 0);
+      const level = count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
+      column.push({ date: future ? "" : key, count, level, future });
     }
-    const count = activity.get(key) ?? 0;
-    const level = count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
-    cells.push({ date: key, count, level });
+    const month = column[0].date === "" ? -1 : Number(column[0].date.slice(5, 7)) - 1;
+    if (column[0].date !== "" && month !== lastMonth) {
+      monthLabels.push({
+        column: week,
+        label: new Date(`${column[0].date}T00:00:00`).toLocaleString(undefined, { month: "short" }),
+      });
+      lastMonth = month;
+    }
+    weeks.push(column);
   }
-  return cells;
+
+  return { weeks, monthLabels };
 }

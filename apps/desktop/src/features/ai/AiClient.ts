@@ -1,10 +1,7 @@
 import {
-  buildAlternativesPrompt,
   buildErrorExplanationPrompt,
   buildHintPrompt,
   buildQueryExplanationPrompt,
-  type AlternativeQuery,
-  type AlternativeQueryRequest,
   type ErrorExplanationRequest,
   type HintRequest,
   type QueryExplanationRequest,
@@ -56,21 +53,5 @@ export class AiClient {
 
   async explainQuery(request: QueryExplanationRequest): Promise<string> {
     return this.complete(buildQueryExplanationPrompt(request));
-  }
-
-  async suggestAlternatives(request: AlternativeQueryRequest): Promise<AlternativeQuery[]> {
-    const response = await this.complete(buildAlternativesPrompt(request));
-    return response
-      .split(/ALTERNATIVE:/i)
-      .slice(1)
-      .map((block) => {
-        const lines = block.trim().split("\n");
-        const sql = (lines[0] ?? "").trim();
-        const explanation =
-          lines.find((line) => line.toLowerCase().startsWith("explanation:"))?.replace(/^explanation:\s*/i, "") ??
-          "";
-        return { sql, explanation };
-      })
-      .filter((alternative) => alternative.sql.length > 0);
   }
 }

@@ -6,29 +6,30 @@ export interface OfficialPack {
   url: string;
 }
 
-export const OFFICIAL_PACK_BASE_URL = "";
+export const OFFICIAL_PACK_BASE_URL =
+  "https://raw.githubusercontent.com/Mantu01/logixzen/main/docs/desktop/data";
 
 export const OFFICIAL_PACKS: OfficialPack[] = [
   {
     kind: "databases",
     label: "Databases",
-    fileName: "databases.json",
-    description: "Schemas, setup SQL and seed data needed to run every exercise.",
-    url: OFFICIAL_PACK_BASE_URL,
+    fileName: "sample-databases.sql",
+    description: "Schema, tables and seed data needed to run every exercise, as one .sql file.",
+    url: `${OFFICIAL_PACK_BASE_URL}/sample-databases.sql`,
   },
   {
     kind: "questions",
     label: "Questions",
-    fileName: "questions.json",
+    fileName: "sample-questions.json",
     description: "Question bank with descriptions, test cases, hints and solutions.",
-    url: OFFICIAL_PACK_BASE_URL,
+    url: `${OFFICIAL_PACK_BASE_URL}/sample-questions.json`,
   },
   {
     kind: "notes",
     label: "Notes",
-    fileName: "notes.json",
-    description: "SQL study notes grouped by category.",
-    url: OFFICIAL_PACK_BASE_URL,
+    fileName: "sample-notes.json",
+    description: "Study notes grouped by category.",
+    url: `${OFFICIAL_PACK_BASE_URL}/sample-notes.json`,
   },
 ];
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Check, Info, Moon, Sun } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { AiConfigSection } from "@/components/settings/AiConfigSection";
@@ -23,9 +22,10 @@ export default function SettingsPage(): React.ReactElement {
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
   const editorFontSize = useProgressStore((state) => state.settings.editorFontSize);
-  const setFontSize = useProgressStore((state) => state.setFontSize);
+  const setEditorFontSize = useProgressStore((state) => state.setEditorFontSize);
+  const resultFontSize = useProgressStore((state) => state.settings.resultFontSize);
+  const setResultFontSize = useProgressStore((state) => state.setResultFontSize);
   const connected = useDesktopBridge();
-  const [saved, setSaved] = useState(false);
 
   const fontPreview = (
     <div className="border border-border bg-editor p-3">
@@ -63,25 +63,16 @@ export default function SettingsPage(): React.ReactElement {
               ))}
             </div>
 
-            <Label className="mb-2 mt-4 block text-[11.5px] text-muted">
-              Editor font size — <span className="numeric">{editorFontSize}px</span>
-            </Label>
-            <div className="flex items-center gap-3">
-              <Slider
-                value={[editorFontSize]}
-                min={11}
-                max={20}
-                step={1}
-                onValueChange={(values) => {
-                  const size = values[0] ?? editorFontSize;
-                  setFontSize(size);
-                  setSaved(true);
-                  window.setTimeout(() => setSaved(false), 1000);
-                }}
-                className="w-56"
-              />
-              {saved ? <span className="text-[10.5px] text-success">saved</span> : null}
-            </div>
+            <FontSlider
+              label="Editor font size"
+              value={editorFontSize}
+              onChange={setEditorFontSize}
+            />
+            <FontSlider
+              label="Result font size"
+              value={resultFontSize}
+              onChange={setResultFontSize}
+            />
             <div className="mt-3">{fontPreview}</div>
           </div>
         </section>
@@ -104,6 +95,35 @@ export default function SettingsPage(): React.ReactElement {
         </section>
       </div>
     </PageShell>
+  );
+}
+
+function FontSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (size: number) => void;
+}): React.ReactElement {
+  return (
+    <>
+      <Label className="mb-2 mt-4 block text-[11.5px] text-muted">
+        {label} — <span className="numeric">{value}px</span>
+      </Label>
+      <Slider
+        value={[value]}
+        min={10}
+        max={22}
+        step={1}
+        onValueChange={(values) => {
+          const size = values[0];
+          if (size !== undefined) onChange(size);
+        }}
+        className="w-56"
+      />
+    </>
   );
 }
 

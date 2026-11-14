@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { compareResults } from "@logixzen/shared/sql-engine";
-import type { SqlResult } from "@logixzen/shared/sql-engine";
+import type { SqlResult } from "@/shared/desktop-api";
 import type { Question } from "@logixzen/shared/content";
 import { usePackStore } from "@/stores/usePackStore";
 
@@ -35,7 +35,7 @@ function pickResult(results: SqlResult[]): SqlResult {
 }
 
 export function useGrading(question: Question | null): {
-  grade: (answer: string, hintsUsed: number) => Promise<GradeResult>;
+  grade: (answer: string) => Promise<GradeResult>;
   isGrading: boolean;
   runAnswer: (answer: string) => Promise<SqlResult[]>;
 } {
@@ -48,11 +48,11 @@ export function useGrading(question: Question | null): {
   }, [question]);
 
   const grade = useCallback(
-    async (answer: string, hintsUsed: number): Promise<GradeResult> => {
+    async (answer: string): Promise<GradeResult> => {
       setIsGrading(true);
       const started = performance.now();
       try {
-        return await gradeQuestion(question, answer, hintsUsed, started);
+        return await gradeQuestion(question, answer, started);
       } finally {
         setIsGrading(false);
       }
@@ -72,7 +72,6 @@ function findDataset(question: Question | null) {
 async function gradeQuestion(
   question: Question | null,
   answer: string,
-  _hintsUsed: number,
   started: number,
 ): Promise<GradeResult> {
   if (!question) {

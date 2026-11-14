@@ -16,7 +16,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { Question } from "@logixzen/shared/content";
-import type { SqlResult } from "@logixzen/shared/sql-engine";
+import type { SqlResult } from "@/shared/desktop-api";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
@@ -109,7 +109,7 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
 
   const submit = useCallback(async (): Promise<void> => {
     if (answer.trim().length === 0) return;
-    const result = await grade(answer, hintsRevealed);
+    const result = await grade(answer);
     setGradeResult(result);
     setShowResult(false);
     if (!result.passed) return;

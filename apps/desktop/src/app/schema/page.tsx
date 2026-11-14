@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Download,
-  Eraser,
-  FileText,
   Grid2x2,
   Network,
   Loader2,
@@ -15,9 +12,22 @@ import {
   Trash2,
 } from "lucide-react";
 import type { Dataset } from "@logixzen/shared/content";
-import type { TableInfo } from "@logixzen/shared/sql-engine";
+import type { TableInfo } from "@/shared/desktop-api";
+import { parseCreateDatabase, splitSqlStatements } from "@/shared/sql";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -25,13 +35,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
+import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { ErDiagram } from "@/features/schema/er-diagram";
 import { usePackStore } from "@/stores/usePackStore";
 import { useSqlStore } from "@/sql/useSqlStore";
+import { tablesFromDataset } from "@/lib/dataset-from-sql";
+import { activeSubject } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "diagram" | "tables";
@@ -64,7 +74,6 @@ export default function SchemaPage(): React.ReactElement {
     if (activeDataset) return tablesFromDataset(activeDataset);
     return [];
   }, [schema, isInitialized, activeDataset]);
-
   useEffect(() => {
     if (activeDatasetId !== null || databases.length === 0) return;
     void activateDataset(databases[0]?.id ?? null);
@@ -72,7 +81,7 @@ export default function SchemaPage(): React.ReactElement {
 
   return (
     <PageShell
-      title="Databases"
+      title={activeSubject.dataLabel}
       subtitle={activeDataset ? `${activeDataset.name} · ${displayTables.length} tables` : hydrated ? "No database selected" : undefined}
       actions={
         <>
@@ -85,7 +94,12 @@ export default function SchemaPage(): React.ReactElement {
               <RotateCcw className="size-3.5" /> Reset data
             </Button>
           ) : null}
-          <AddDatabaseDialog onCreate={(dataset) => addDataset(dataset)} />
+          <NewDatabaseDialog
+            onCreate={async (dataset) => {
+              addDataset(dataset);
+              await activateDataset(dataset.id);
+            }}
+          />
         </>
       }
       toolbar={
@@ -115,19 +129,40 @@ export default function SchemaPage(): React.ReactElement {
             ))}
           </div>
           {activeDataset && activeDatasetId ? (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              aria-label="Remove database"
-              className="text-muted-dim hover:text-destructive"
-              onClick={() => {
-                removeDataset(activeDataset.id);
-                const remaining = databases.filter((item) => item.id !== activeDataset.id);
-                void activateDataset(remaining[0]?.id ?? null);
-              }}
-            >
-              <Trash2 className="size-3" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Remove database"
+                  className="text-muted-dim hover:text-destructive"
+                >
+                  <Trash2 className="size-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove {activeDataset.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    The database and its schema leave your library. Questions that reference it
+                    stop working until it is imported again.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => {
+                      removeDataset(activeDataset.id);
+                      const remaining = databases.filter((item) => item.id !== activeDataset.id);
+                      void activateDataset(remaining[0]?.id ?? null);
+                    }}
+                  >
+                    Remove database
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           ) : null}
         </>
       }
@@ -153,7 +188,11 @@ export default function SchemaPage(): React.ReactElement {
           <EmptyDatabases />
         ) : view === "diagram" ? (
           <div className="min-w-0 flex-1">
-            <ErDiagram tables={displayTables} />
+            <ErDiagram
+              tables={displayTables}
+              highlightTable={selectedTable}
+              onTableClick={setSelectedTable}
+            />
           </div>
         ) : (
           <TableInspector tables={displayTables} selected={selectedTable} search={search} onSearch={setSearch} onSelect={setSelectedTable} />
@@ -197,7 +236,7 @@ function EmptyDatabases(): React.ReactElement {
       <div>
         <p className="text-[13px] font-medium">No databases yet</p>
         <p className="mx-auto mt-1 max-w-sm text-[11.5px] text-muted-dim">
-          Import the databases pack from the Data Hub, upload a .sql or .sqlite file, or create a schema by hand.
+          Import a dataset from the Data Hub, or create one from a query with CREATE DATABASE.
         </p>
       </div>
     </div>
@@ -336,55 +375,53 @@ function TableInspector({
   );
 }
 
-function AddDatabaseDialog({ onCreate }: { onCreate: (dataset: Dataset) => void }): React.ReactElement {
+function NewDatabaseDialog({ onCreate }: { onCreate: (dataset: Dataset) => Promise<void> }): React.ReactElement {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"sql" | "file">("sql");
-  const [name, setName] = useState("");
-  const [sqlText, setSqlText] = useState("");
-  const [filePath, setFilePath] = useState<string | null>(null);
+  const [sql, setSql] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const derivedName = useMemo(() => {
+    for (const statement of splitSqlStatements(sql)) {
+      const name = parseCreateDatabase(statement.sql);
+      if (name !== null) return name;
+    }
+    return null;
+  }, [sql]);
+
   const create = async (): Promise<void> => {
+    const bridge = window.logixzen?.database;
+    if (bridge === undefined) {
+      setError("Desktop bridge unavailable. Run the Electron app.");
+      return;
+    }
+    if (derivedName === null) {
+      setError("Start the script with CREATE DATABASE <name>.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      const id = slugify(name || "my-database");
-      let setupSql = sqlText;
-      if (mode === "file" && filePath !== null) {
-        const content = await window.logixzen?.files.readText(filePath);
-        if (typeof content !== "string") throw new Error("File could not be read");
-        setupSql = content;
-      }
-      const bridge = window.logixzen?.database;
-      if (bridge === undefined) throw new Error("Desktop bridge unavailable");
-      await bridge.initialize(setupSql);
-      const tables = await bridge.getSchema();
+      const results = await bridge.execute(sql);
+      const failed = results.find((result) => result.error !== undefined);
+      if (failed !== undefined) throw new Error(failed.error ?? "The script failed.");
+      const schemaPart = splitSqlStatements(sql)
+        .filter((statement) => {
+          const upper = statement.sql.toUpperCase();
+          return !upper.startsWith("CREATE DATABASE") && !upper.startsWith("USE ");
+        })
+        .map((statement) => statement.sql)
+        .join(";\n");
       const dataset: Dataset = {
-        id,
-        name: name.trim() || id,
-        description: "User-created database.",
-        setupSql,
-        tables: tables.map((table) => ({
-          name: table.name,
-          description: undefined,
-          columns: table.columns.map((column) => {
-            const fk = table.foreignKeys.find((relation) => relation.from === column.name);
-            return {
-              name: column.name,
-              type: column.type,
-              primaryKey: column.primaryKey,
-              foreignKey: fk ? { table: fk.table, column: fk.to } : undefined,
-              description: undefined,
-            };
-          }),
-        })),
+        id: derivedName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "db",
+        name: derivedName,
+        description: "Created from a query.",
+        setupSql: schemaPart,
+        tables: [],
       };
       await onCreate(dataset);
       setOpen(false);
-      setName("");
-      setSqlText("");
-      setFilePath(null);
+      setSql("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -399,102 +436,49 @@ function AddDatabaseDialog({ onCreate }: { onCreate: (dataset: Dataset) => void 
           <Plus className="size-3.5" /> New database
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
-        <DialogTitle>New database</DialogTitle>
-        <DialogDescription>
-          Define a schema with SQL, or load a .sql file. The database is validated by running it on the local engine.
-        </DialogDescription>
-        <div className="space-y-3">
-          <div className="flex gap-1">
-            {(
-              [
-                { key: "sql", label: "Write SQL", icon: <FileText className="size-3" /> },
-                { key: "file", label: "Load .sql file", icon: <Download className="size-3" /> },
-              ] as const
-            ).map((entry) => (
-              <button
-                key={entry.key}
-                type="button"
-                onClick={() => setMode(entry.key)}
-                className={cn(
-                  "flex h-7 items-center gap-1.5 border px-2.5 text-[11.5px] transition-colors",
-                  mode === entry.key ? "border-primary/50 bg-primary/10" : "border-border text-muted-dim hover:text-foreground",
-                )}
-              >
-                {entry.icon} {entry.label}
-              </button>
-            ))}
-          </div>
-          <div>
-            <Label htmlFor="db-name" className="text-[11.5px]">Name</Label>
-            <Input
-              id="db-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="crm"
-              className="mt-1 h-8"
-            />
-          </div>
-          {mode === "sql" ? (
-            <Textarea
-              value={sqlText}
-              onChange={(event) => setSqlText(event.target.value)}
-              placeholder={"CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO users VALUES (1, 'Ada');"}
-              className="min-h-48 resize-none font-mono text-[11.5px]"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  const path = await window.logixzen?.dialog.openFile({
-                    title: "Open SQL file",
-                    filters: [{ name: "SQL", extensions: ["sql", "txt"] }],
-                  });
-                  setFilePath(path ?? null);
-                }}
-              >
-                <FileText className="size-3.5" /> Choose file
-              </Button>
-              <span className="truncate text-[11px] text-muted-dim">{filePath ?? "No file selected"}</span>
-            </div>
-          )}
-          {error ? <p className="font-mono text-[11px] text-error">{error}</p> : null}
+      <DialogContent className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0" showCloseButton={false}>
+        <div className="shrink-0 border-b border-border bg-surface-alt px-4 py-3">
+          <DialogTitle className="text-[13px]">New database</DialogTitle>
+          <DialogDescription className="mt-0.5 text-[11px]">
+            Write the script exactly like SQL Server: CREATE DATABASE, then USE, then your schema.
+            The database starts empty — tables are created by the queries themselves.
+          </DialogDescription>
         </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
-            <Eraser className="size-3.5" /> Cancel
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="flex items-center justify-between gap-3 pb-2 text-[11px]">
+            <span className="text-muted-dim">
+              Selected with <code className="font-mono">USE {derivedName ?? "<name>"}</code> everywhere
+            </span>
+            <span className={cn("font-mono", derivedName === null ? "text-muted-dim" : "text-success")}>
+              {derivedName === null ? "no CREATE DATABASE yet" : `database: ${derivedName}`}
+            </span>
+          </div>
+          <div className="min-h-0">
+            <SqlCodeEditor
+              value={sql}
+              onChange={setSql}
+              fontSize={12}
+              tables={{}}
+              placeholder={"CREATE DATABASE crm;\nGO\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"}
+              minHeight="260px"
+            />
+          </div>
+          {error ? (
+            <p className="mt-3 border border-error/40 bg-error/5 px-2.5 py-1.5 font-mono text-[11px] text-error">
+              {error}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-2.5">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            Cancel
           </Button>
-          <Button size="sm" disabled={busy || name.trim().length === 0} onClick={() => void create()}>
+          <Button size="sm" disabled={busy || derivedName === null} onClick={() => void create()}>
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
-            Validate & create
+            Create database
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
-
-function tablesFromDataset(dataset: Dataset): TableInfo[] {
-  return dataset.tables.map((table) => ({
-    name: table.name,
-    columns: table.columns.map((column, index) => ({
-      cid: index,
-      name: column.name,
-      type: column.type,
-      notNull: Boolean(column.primaryKey),
-      defaultValue: null,
-      primaryKey: Boolean(column.primaryKey),
-    })),
-    sampleRows: [],
-    primaryKey: table.columns.filter((column) => column.primaryKey).map((column) => column.name),
-    foreignKeys: table.columns
-      .filter((column) => column.foreignKey !== undefined)
-      .map((column) => ({ from: column.name, table: column.foreignKey!.table, to: column.foreignKey!.column })),
-  }));
-}
-
-function slugify(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "db";
 }
