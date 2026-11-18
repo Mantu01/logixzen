@@ -1,9 +1,19 @@
 import { create } from "zustand";
 import type { SqlResult, TableInfo } from "@/shared/desktop-api";
 import type { Dataset } from "@logixzen/shared/content";
-import { parseCreateDatabase, parseDropDatabase, parseUseStatement, splitBatches, splitSqlStatements } from "@/shared/sql";
+import type { EngineDialect, EngineOptionId } from "@/shared/engines";
+import { ENGINE_CATALOG } from "@/shared/engine-catalog";
+import {
+  parseCreateDatabase,
+  parseDropDatabase,
+  parseUseStatement,
+  splitBatches,
+  splitSqlStatements,
+} from "@/shared/sql";
 import { usePackStore } from "@/stores/usePackStore";
 import { tablesToDatasetTables, slugify } from "@/lib/dataset-from-sql";
+export type ConnectionState =
+  "connecting" | "ready" | "failed" | "needs-repair";
 
 interface SqlStoreState {
   isInitialized: boolean;
@@ -12,9 +22,14 @@ interface SqlStoreState {
   schema: TableInfo[];
   error: string | null;
   activeDatasetId: string | null;
+  activeOptionId: EngineOptionId;
+  activeEngineName: string;
+  activeDialect: EngineDialect;
+  connectionStatus: ConnectionState;
 }
 
 interface SqlStoreActions {
+  autoConnect: () => Promise<void>;
   activateDataset: (datasetId: string | null) => Promise<void>;
   getActiveDataset: () => Dataset | null;
   execute: (sql: string) => Promise<void>;
@@ -25,71 +40,139 @@ interface SqlStoreActions {
 
 const BRIDGE_ERROR = "Desktop bridge unavailable. Run the Electron app.";
 
-export const useSqlStore = create<SqlStoreState & SqlStoreActions>()((set, get) => ({
-  isInitialized: false,
-  isLoading: false,
-  lastResult: null,
-  schema: [],
-  error: null,
-  activeDatasetId: null,
+export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
+  (set, get) => ({
+    isInitialized: false,
+    isLoading: false,
+    lastResult: null,
+    schema: [],
+    error: null,
+    activeDatasetId: null,
+    activeOptionId: "sqlite",
+    activeEngineName: "SQLite",
+    activeDialect: "sqlite",
+    connectionStatus: "connecting",
 
-  activateDataset: async (datasetId) => {
-    const bridge = window.logixzen?.database;
-    if (bridge === undefined) {
-      set({ error: BRIDGE_ERROR, isInitialized: false });
-      return;
-    }
-    const dataset = usePackStore.getState().databases.find((item) => item.id === datasetId) ?? null;
-    set({ isLoading: true, error: null, lastResult: null, activeDatasetId: datasetId });
-    try {
-      await bridge.initialize(dataset?.setupSql, dataset?.name);
-      set({ isInitialized: true, isLoading: false });
-      await get().refreshSchema();
-    } catch (error: unknown) {
-      set({
-        error: error instanceof Error ? error.message : String(error),
-        isLoading: false,
-        isInitialized: false,
-      });
-    }
-  },
-
-  getActiveDataset: () => {
-    const { activeDatasetId } = get();
-    const databases = usePackStore.getState().databases;
-    return databases.find((item) => item.id === activeDatasetId) ?? null;
-  },
-
-  execute: async (sql) => {
-    const prepared = await prepareDatabases(sql);
-    if (prepared === null) return;
-    const outcome = await runSql(sql);
-    if (outcome === null) return;
-    await reconcileDatabases();
-  },
-
-  refreshSchema: async () => {
-    const bridge = window.logixzen?.database;
-    if (bridge === undefined) return;
-    try {
-      const tables = await bridge.getSchema();
-      set({ schema: tables, isInitialized: true });
-      const { activeDatasetId } = get();
-      if (activeDatasetId !== null) {
-        syncDatasetTables(activeDatasetId, tables);
+    autoConnect: async () => {
+      const bridge = window.logixzen?.database;
+      const setupBridge = window.logixzen?.setup;
+      if (!bridge) {
+        set({
+          connectionStatus: "failed",
+          error: BRIDGE_ERROR,
+          isInitialized: false,
+        });
+        return;
       }
-    } catch (error: unknown) {
-      set({ error: error instanceof Error ? error.message : String(error) });
-    }
-  },
 
-  reseed: () => {
-    const dataset = get().getActiveDataset();
-    return get().activateDataset(dataset?.id ?? null);
-  },
+      set({ connectionStatus: "connecting", error: null });
 
-  clearError: () => set({ error: null }),
-}));
+      let optionId: EngineOptionId = "sqlite";
+      if (setupBridge?.getActiveEngine) {
+        try {
+          const activeRes = await setupBridge.getActiveEngine();
+          if (activeRes.ok && activeRes.data) {
+            optionId = activeRes.data;
+          }
+        } catch {
+          optionId = "sqlite";
+        }
+      }
+
+      const entry = ENGINE_CATALOG.find((c) => c.id === optionId);
+      const engineName = entry?.displayName ?? optionId;
+      const dialect = entry?.dialect ?? "sqlite";
+
+      set({
+        activeOptionId: optionId,
+        activeEngineName: engineName,
+        activeDialect: dialect,
+      });
+
+      try {
+        const tables = await bridge.getSchema();
+        set({
+          schema: tables,
+          isInitialized: true,
+          connectionStatus: "ready",
+          error: null,
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        set({
+          connectionStatus: "failed",
+          isInitialized: false,
+          error: `Could not connect to ${engineName}: ${msg}`,
+        });
+      }
+    },
+
+    activateDataset: async (datasetId) => {
+      const bridge = window.logixzen?.database;
+      if (bridge === undefined) {
+        set({ error: BRIDGE_ERROR, isInitialized: false });
+        return;
+      }
+      const dataset =
+        usePackStore
+          .getState()
+          .databases.find((item) => item.id === datasetId) ?? null;
+      set({
+        isLoading: true,
+        error: null,
+        lastResult: null,
+        activeDatasetId: datasetId,
+      });
+      try {
+        await bridge.initialize(dataset?.setupSql, dataset?.name);
+        set({ isInitialized: true, isLoading: false });
+        await get().refreshSchema();
+      } catch (error: unknown) {
+        set({
+          error: error instanceof Error ? error.message : String(error),
+          isLoading: false,
+          isInitialized: false,
+        });
+      }
+    },
+
+    getActiveDataset: () => {
+      const { activeDatasetId } = get();
+      const databases = usePackStore.getState().databases;
+      return databases.find((item) => item.id === activeDatasetId) ?? null;
+    },
+
+    execute: async (sql) => {
+      const prepared = await prepareDatabases(sql);
+      if (prepared === null) return;
+      const outcome = await runSql(sql);
+      if (outcome === null) return;
+      await reconcileDatabases();
+    },
+
+    refreshSchema: async () => {
+      const bridge = window.logixzen?.database;
+      if (bridge === undefined) return;
+      try {
+        const tables = await bridge.getSchema();
+        set({ schema: tables, isInitialized: true });
+        const { activeDatasetId } = get();
+        if (activeDatasetId !== null) {
+          syncDatasetTables(activeDatasetId, tables);
+        }
+      } catch (error: unknown) {
+        set({ error: error instanceof Error ? error.message : String(error) });
+      }
+    },
+
+    reseed: () => {
+      const dataset = get().getActiveDataset();
+      return get().activateDataset(dataset?.id ?? null);
+    },
+
+    clearError: () => set({ error: null }),
+  }),
+);
 
 async function runSql(sql: string): Promise<{ results: SqlResult[] } | null> {
   const bridge = window.logixzen?.database;
@@ -101,7 +184,11 @@ async function runSql(sql: string): Promise<{ results: SqlResult[] } | null> {
   try {
     const results = await bridge.execute(sql);
     const failed = results.find((result) => result.error !== undefined);
-    useSqlStore.setState({ lastResult: results, isLoading: false, error: failed?.error ?? null });
+    useSqlStore.setState({
+      lastResult: results,
+      isLoading: false,
+      error: failed?.error ?? null,
+    });
     const active = await bridge.active();
     syncActiveDataset(active);
     await useSqlStore.getState().refreshSchema();
@@ -127,11 +214,11 @@ function collectDatabaseTargets(sql: string): string[] {
       }
       const created = parseCreateDatabase(statement.sql);
       if (created !== null) {
-        names.push(created);
+        names.push(created.name);
         continue;
       }
       const dropped = parseDropDatabase(statement.sql);
-      if (dropped !== null) names.push(dropped);
+      if (dropped !== null) names.push(dropped.name);
     }
   }
   return names;
@@ -143,10 +230,15 @@ async function prepareDatabases(sql: string): Promise<boolean> {
     useSqlStore.setState({ error: BRIDGE_ERROR });
     return false;
   }
+  if (useSqlStore.getState().activeOptionId !== "sqlite") {
+    return true;
+  }
   const targets = collectDatabaseTargets(sql);
   if (targets.length === 0) return true;
 
-  const loaded = new Set((await bridge.list()).map((name) => name.toLowerCase()));
+  const loaded = new Set(
+    (await bridge.list()).map((name) => name.toLowerCase()),
+  );
   const active = await bridge.active();
   const store = usePackStore.getState();
   let loadedAny = false;
@@ -154,7 +246,9 @@ async function prepareDatabases(sql: string): Promise<boolean> {
   for (const name of targets) {
     const key = name.toLowerCase();
     if (loaded.has(key)) continue;
-    const dataset = store.databases.find((item) => item.name.toLowerCase() === key);
+    const dataset = store.databases.find(
+      (item) => item.name.toLowerCase() === key,
+    );
     if (dataset === undefined) continue;
     await bridge.initialize(dataset.setupSql, dataset.name);
     loaded.add(key);
@@ -167,7 +261,9 @@ async function prepareDatabases(sql: string): Promise<boolean> {
     } catch {
       const dataset = usePackStore
         .getState()
-        .databases.find((item) => item.name.toLowerCase() === active.toLowerCase());
+        .databases.find(
+          (item) => item.name.toLowerCase() === active.toLowerCase(),
+        );
       if (dataset !== undefined) {
         useSqlStore.setState({ activeDatasetId: dataset.id });
       }
@@ -179,11 +275,18 @@ async function prepareDatabases(sql: string): Promise<boolean> {
 async function reconcileDatabases(): Promise<void> {
   const bridge = window.logixzen?.database;
   if (bridge === undefined) return;
-  const loaded = new Set((await bridge.list()).map((name) => name.toLowerCase()));
+  if (useSqlStore.getState().activeOptionId !== "sqlite") {
+    await useSqlStore.getState().refreshSchema();
+    return;
+  }
+  const loaded = new Set(
+    (await bridge.list()).map((name) => name.toLowerCase()),
+  );
   const store = usePackStore.getState();
 
   for (const name of loaded) {
-    if (store.databases.some((item) => item.name.toLowerCase() === name)) continue;
+    if (store.databases.some((item) => item.name.toLowerCase() === name))
+      continue;
     const label = name.charAt(0).toUpperCase() + name.slice(1);
     store.addDataset({
       id: slugify(name),
@@ -208,8 +311,14 @@ function syncActiveDataset(activeName: string | null): void {
   if (activeName === null) return;
   const dataset = usePackStore
     .getState()
-    .databases.find((item) => item.name.toLowerCase() === activeName.toLowerCase());
-  if (dataset === undefined || dataset.id === useSqlStore.getState().activeDatasetId) return;
+    .databases.find(
+      (item) => item.name.toLowerCase() === activeName.toLowerCase(),
+    );
+  if (
+    dataset === undefined ||
+    dataset.id === useSqlStore.getState().activeDatasetId
+  )
+    return;
   useSqlStore.setState({ activeDatasetId: dataset.id });
 }
 

@@ -41,12 +41,41 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
     {
       label: "Go",
       submenu: [
-        { label: "Home", accelerator: "CmdOrCtrl+1", click: () => navigate("/") },
-        { label: "Playground", accelerator: "CmdOrCtrl+2", click: () => navigate("/playground") },
-        { label: "Practice", accelerator: "CmdOrCtrl+3", click: () => navigate("/learn") },
-        { label: "Schema", accelerator: "CmdOrCtrl+4", click: () => navigate("/schema") },
-        { label: "Progress", accelerator: "CmdOrCtrl+5", click: () => navigate("/progress") },
-        { label: "Notes", accelerator: "CmdOrCtrl+6", click: () => navigate("/notes") },
+        {
+          label: "Home",
+          accelerator: "CmdOrCtrl+1",
+          click: () => navigate("/"),
+        },
+        {
+          label: "Playground",
+          accelerator: "CmdOrCtrl+2",
+          click: () => navigate("/playground"),
+        },
+        {
+          label: "Practice",
+          accelerator: "CmdOrCtrl+3",
+          click: () => navigate("/learn"),
+        },
+        {
+          label: "Databases",
+          accelerator: "CmdOrCtrl+D",
+          click: () => navigate("/databases"),
+        },
+        {
+          label: "Schema",
+          accelerator: "CmdOrCtrl+4",
+          click: () => navigate("/schema"),
+        },
+        {
+          label: "Progress",
+          accelerator: "CmdOrCtrl+5",
+          click: () => navigate("/progress"),
+        },
+        {
+          label: "Notes",
+          accelerator: "CmdOrCtrl+6",
+          click: () => navigate("/notes"),
+        },
       ],
     },
     {
@@ -77,7 +106,11 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
     },
     {
       label: "Window",
-      submenu: [{ role: "minimize" }, { role: "zoom" }, ...(isMac ? [{ role: "front" as const }] : [])],
+      submenu: [
+        { role: "minimize" },
+        { role: "zoom" },
+        ...(isMac ? [{ role: "front" as const }] : []),
+      ],
     },
     {
       label: "Help",

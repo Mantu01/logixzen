@@ -61,7 +61,11 @@ interface ProgressActions {
 
 type ProgressStore = ProgressState & ProgressActions;
 
-const EMPTY_STREAK: StreakState = { currentStreak: 0, lastActiveDate: "", longestStreak: 0 };
+const EMPTY_STREAK: StreakState = {
+  currentStreak: 0,
+  lastActiveDate: "",
+  longestStreak: 0,
+};
 const PROGRESS_VERSION = 3;
 
 function today(): string {
@@ -74,11 +78,19 @@ function dayBefore(days: number): string {
   return dateKey(date);
 }
 
-function safeMap<T>(value: unknown, validate: (item: unknown) => boolean): Map<string, T> {
+function safeMap<T>(
+  value: unknown,
+  validate: (item: unknown) => boolean,
+): Map<string, T> {
   const map = new Map<string, T>();
   if (!Array.isArray(value)) return map;
   for (const entry of value) {
-    if (Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string" && validate(entry[1])) {
+    if (
+      Array.isArray(entry) &&
+      entry.length === 2 &&
+      typeof entry[0] === "string" &&
+      validate(entry[1])
+    ) {
       map.set(entry[0], entry[1] as T);
     }
   }
@@ -97,14 +109,18 @@ export const useProgressStore = create<ProgressStore>()(
       settings: { editorFontSize: 14, resultFontSize: 13 },
 
       markSolved: (questionId, timeMs, hintsUsed) => {
-        const attempts = (get().solvedQuestions.get(questionId)?.attempts ?? 0) + 1;
+        const attempts =
+          (get().solvedQuestions.get(questionId)?.attempts ?? 0) + 1;
         set((state) => {
           const next = new Map(state.solvedQuestions);
           const existing = next.get(questionId);
           next.set(questionId, {
             timestamp: Date.now(),
             attempts,
-            bestTimeMs: Math.min(timeMs, existing?.bestTimeMs ?? Number.POSITIVE_INFINITY),
+            bestTimeMs: Math.min(
+              timeMs,
+              existing?.bestTimeMs ?? Number.POSITIVE_INFINITY,
+            ),
             hintsUsed,
           });
           return {
@@ -116,7 +132,9 @@ export const useProgressStore = create<ProgressStore>()(
       },
 
       addPoints: (points) =>
-        set((state) => ({ totalPoints: Math.max(0, state.totalPoints + points) })),
+        set((state) => ({
+          totalPoints: Math.max(0, state.totalPoints + points),
+        })),
 
       recordActivity: (delta) =>
         set((state) => ({ activity: bumpActivity(state.activity, delta) })),
@@ -127,7 +145,10 @@ export const useProgressStore = create<ProgressStore>()(
         let nextStreak = state.streak.currentStreak;
         if (state.streak.lastActiveDate !== day) {
           const yesterday = dayBefore(1);
-          nextStreak = state.streak.lastActiveDate === yesterday ? state.streak.currentStreak + 1 : 1;
+          nextStreak =
+            state.streak.lastActiveDate === yesterday
+              ? state.streak.currentStreak + 1
+              : 1;
           set((current) => ({
             streak: {
               currentStreak: nextStreak,
@@ -147,7 +168,8 @@ export const useProgressStore = create<ProgressStore>()(
           return { badges: { earned } };
         }),
 
-      saveLastPosition: (topicId, questionId) => set({ lastPosition: { topicId, questionId } }),
+      saveLastPosition: (topicId, questionId) =>
+        set({ lastPosition: { topicId, questionId } }),
 
       exportProgress: () => {
         const state = get();
@@ -197,15 +219,32 @@ export const useProgressStore = create<ProgressStore>()(
         const value = (persisted ?? {}) as Record<string, unknown>;
         return {
           ...current,
-          solvedQuestions: safeMap<QuestionResult>(value.solvedQuestions, (item) => typeof item === "object" && item !== null),
-          activity: safeMap<number>(value.activity, (item) => typeof item === "number"),
+          solvedQuestions: safeMap<QuestionResult>(
+            value.solvedQuestions,
+            (item) => typeof item === "object" && item !== null,
+          ),
+          activity: safeMap<number>(
+            value.activity,
+            (item) => typeof item === "number",
+          ),
           badges: {
-            earned: safeMap<{ timestamp: number }>(value.badges, (item) => typeof item === "object" && item !== null),
+            earned: safeMap<{ timestamp: number }>(
+              value.badges,
+              (item) => typeof item === "object" && item !== null,
+            ),
           },
           streak: (value.streak as StreakState | undefined) ?? current.streak,
-          lastPosition: (value.lastPosition as ProgressState["lastPosition"] | undefined) ?? null,
-          totalPoints: typeof value.totalPoints === "number" ? value.totalPoints : current.totalPoints,
-          settings: { ...current.settings, ...((value.settings as Partial<EditorSettings> | undefined) ?? {}) },
+          lastPosition:
+            (value.lastPosition as ProgressState["lastPosition"] | undefined) ??
+            null,
+          totalPoints:
+            typeof value.totalPoints === "number"
+              ? value.totalPoints
+              : current.totalPoints,
+          settings: {
+            ...current.settings,
+            ...((value.settings as Partial<EditorSettings> | undefined) ?? {}),
+          },
         };
       },
       migrate: () => ({
@@ -221,7 +260,10 @@ export const useProgressStore = create<ProgressStore>()(
   ),
 );
 
-function bumpActivity(activity: Map<string, number>, delta = 1): Map<string, number> {
+function bumpActivity(
+  activity: Map<string, number>,
+  delta = 1,
+): Map<string, number> {
   const next = new Map(activity);
   const day = today();
   next.set(day, Math.max(0, (next.get(day) ?? 0) + delta));

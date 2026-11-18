@@ -1,0 +1,3888 @@
+{
+  "tables": {
+    "departments": {
+      "columns": [
+        "id",
+        "name",
+        "building",
+        "floor",
+        "head_teacher_id",
+        "budget"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "name": "Computer Science",
+          "building": "Tech Hall",
+          "floor": 1,
+          "head_teacher_id": 1,
+          "budget": 250000
+        },
+        {
+          "id": 2,
+          "name": "Mathematics",
+          "building": "Science Block",
+          "floor": 2,
+          "head_teacher_id": 5,
+          "budget": 180000
+        },
+        {
+          "id": 3,
+          "name": "English Literature",
+          "building": "Arts Building",
+          "floor": 1,
+          "head_teacher_id": 9,
+          "budget": 120000
+        },
+        {
+          "id": 4,
+          "name": "Physics",
+          "building": "Science Block",
+          "floor": 3,
+          "head_teacher_id": 12,
+          "budget": 300000
+        },
+        {
+          "id": 5,
+          "name": "Chemistry",
+          "building": "Science Block",
+          "floor": 3,
+          "head_teacher_id": 15,
+          "budget": 220000
+        },
+        {
+          "id": 6,
+          "name": "History",
+          "building": "Arts Building",
+          "floor": 2,
+          "head_teacher_id": null,
+          "budget": 95000
+        },
+        {
+          "id": 7,
+          "name": "Economics",
+          "building": "Business Wing",
+          "floor": 1,
+          "head_teacher_id": 20,
+          "budget": 160000
+        },
+        {
+          "id": 8,
+          "name": "Biology",
+          "building": "Science Block",
+          "floor": 4,
+          "head_teacher_id": 23,
+          "budget": 280000
+        }
+      ]
+    },
+    "teachers": {
+      "columns": [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "department_id",
+        "hire_date",
+        "salary",
+        "is_active"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "first_name": "Alan",
+          "last_name": "Turing",
+          "email": "alan.turing@logixzen.edu",
+          "phone": "555-0101",
+          "department_id": 1,
+          "hire_date": "2015-09-01",
+          "salary": 95000,
+          "is_active": 1
+        },
+        {
+          "id": 2,
+          "first_name": "Grace",
+          "last_name": "Hopper",
+          "email": "grace.hopper@logixzen.edu",
+          "phone": "555-0102",
+          "department_id": 1,
+          "hire_date": "2016-03-15",
+          "salary": 92000,
+          "is_active": 1
+        },
+        {
+          "id": 3,
+          "first_name": "Donald",
+          "last_name": "Knuth",
+          "email": "donald.knuth@logixzen.edu",
+          "phone": "555-0103",
+          "department_id": 1,
+          "hire_date": "2017-01-10",
+          "salary": 88000,
+          "is_active": 1
+        },
+        {
+          "id": 4,
+          "first_name": "Linus",
+          "last_name": "Torvalds",
+          "email": "linus.torvalds@logixzen.edu",
+          "phone": "555-0104",
+          "department_id": 1,
+          "hire_date": "2018-06-20",
+          "salary": 85000,
+          "is_active": 0
+        },
+        {
+          "id": 5,
+          "first_name": "Carl",
+          "last_name": "Friedrich",
+          "email": "carl.friedrich@logixzen.edu",
+          "phone": "555-0105",
+          "department_id": 2,
+          "hire_date": "2014-08-01",
+          "salary": 90000,
+          "is_active": 1
+        },
+        {
+          "id": 6,
+          "first_name": "Ada",
+          "last_name": "Lovelace",
+          "email": "ada.lovelace@logixzen.edu",
+          "phone": "555-0106",
+          "department_id": 2,
+          "hire_date": "2015-02-14",
+          "salary": 87000,
+          "is_active": 1
+        },
+        {
+          "id": 7,
+          "first_name": "Leonhard",
+          "last_name": "Euler",
+          "email": "leonhard.euler@logixzen.edu",
+          "phone": "555-0107",
+          "department_id": 2,
+          "hire_date": "2016-09-01",
+          "salary": 84000,
+          "is_active": 1
+        },
+        {
+          "id": 8,
+          "first_name": "Euclid",
+          "last_name": "Alexandria",
+          "email": "euclid@logixzen.edu",
+          "phone": "555-0108",
+          "department_id": 2,
+          "hire_date": "2019-01-15",
+          "salary": 78000,
+          "is_active": 1
+        },
+        {
+          "id": 9,
+          "first_name": "William",
+          "last_name": "Shakespeare",
+          "email": "william.shakespeare@logixzen.edu",
+          "phone": "555-0109",
+          "department_id": 3,
+          "hire_date": "2013-07-01",
+          "salary": 91000,
+          "is_active": 1
+        },
+        {
+          "id": 10,
+          "first_name": "Jane",
+          "last_name": "Austen",
+          "email": "jane.austen@logixzen.edu",
+          "phone": "555-0110",
+          "department_id": 3,
+          "hire_date": "2014-03-20",
+          "salary": 86000,
+          "is_active": 1
+        },
+        {
+          "id": 11,
+          "first_name": "George",
+          "last_name": "Orwell",
+          "email": "george.orwell@logixzen.edu",
+          "phone": "555-0111",
+          "department_id": 3,
+          "hire_date": "2015-11-05",
+          "salary": 83000,
+          "is_active": 1
+        },
+        {
+          "id": 12,
+          "first_name": "Isaac",
+          "last_name": "Newton",
+          "email": "isaac.newton@logixzen.edu",
+          "phone": "555-0112",
+          "department_id": 4,
+          "hire_date": "2012-01-01",
+          "salary": 98000,
+          "is_active": 1
+        },
+        {
+          "id": 13,
+          "first_name": "Marie",
+          "last_name": "Curie",
+          "email": "marie.curie@logixzen.edu",
+          "phone": "555-0113",
+          "department_id": 4,
+          "hire_date": "2013-06-15",
+          "salary": 94000,
+          "is_active": 1
+        },
+        {
+          "id": 14,
+          "first_name": "Richard",
+          "last_name": "Feynman",
+          "email": "richard.feynman@logixzen.edu",
+          "phone": "555-0114",
+          "department_id": 4,
+          "hire_date": "2014-09-01",
+          "salary": 91000,
+          "is_active": 1
+        },
+        {
+          "id": 15,
+          "first_name": "Antoine",
+          "last_name": "Lavoisier",
+          "email": "antoine.lavoisier@logixzen.edu",
+          "phone": "555-0115",
+          "department_id": 5,
+          "hire_date": "2015-03-01",
+          "salary": 88000,
+          "is_active": 1
+        },
+        {
+          "id": 16,
+          "first_name": "Dmitri",
+          "last_name": "Mendeleev",
+          "email": "dmitri.mendeleev@logixzen.edu",
+          "phone": "555-0116",
+          "department_id": 5,
+          "hire_date": "2016-07-20",
+          "salary": 85000,
+          "is_active": 1
+        },
+        {
+          "id": 17,
+          "first_name": "Rosalind",
+          "last_name": "Franklin",
+          "email": "rosalind.franklin@logixzen.edu",
+          "phone": "555-0117",
+          "department_id": 5,
+          "hire_date": "2017-01-10",
+          "salary": 82000,
+          "is_active": 1
+        },
+        {
+          "id": 18,
+          "first_name": "David",
+          "last_name": "Hume",
+          "email": "david.hume@logixzen.edu",
+          "phone": "555-0118",
+          "department_id": 6,
+          "hire_date": "2014-05-01",
+          "salary": 80000,
+          "is_active": 1
+        },
+        {
+          "id": 19,
+          "first_name": "Mary",
+          "last_name": "Sequel",
+          "email": "mary.sequel@logixzen.edu",
+          "phone": "555-0119",
+          "department_id": 6,
+          "hire_date": "2015-08-15",
+          "salary": 77000,
+          "is_active": 1
+        },
+        {
+          "id": 20,
+          "first_name": "Adam",
+          "last_name": "Smith",
+          "email": "adam.smith@logixzen.edu",
+          "phone": "555-0120",
+          "department_id": 7,
+          "hire_date": "2013-02-01",
+          "salary": 93000,
+          "is_active": 1
+        },
+        {
+          "id": 21,
+          "first_name": "Karl",
+          "last_name": "Marx",
+          "email": "karl.marx@logixzen.edu",
+          "phone": "555-0121",
+          "department_id": 7,
+          "hire_date": "2014-10-01",
+          "salary": 90000,
+          "is_active": 1
+        },
+        {
+          "id": 22,
+          "first_name": "Milton",
+          "last_name": "Friedman",
+          "email": "milton.friedman@logixzen.edu",
+          "phone": "555-0122",
+          "department_id": 7,
+          "hire_date": "2016-04-15",
+          "salary": 87000,
+          "is_active": 0
+        },
+        {
+          "id": 23,
+          "first_name": "Charles",
+          "last_name": "Darwin",
+          "email": "charles.darwin@logixzen.edu",
+          "phone": "555-0123",
+          "department_id": 8,
+          "hire_date": "2012-06-01",
+          "salary": 96000,
+          "is_active": 1
+        },
+        {
+          "id": 24,
+          "first_name": "Gregor",
+          "last_name": "Mendel",
+          "email": "gregor.mendel@logixzen.edu",
+          "phone": "555-0124",
+          "department_id": 8,
+          "hire_date": "2013-09-15",
+          "salary": 92000,
+          "is_active": 1
+        },
+        {
+          "id": 25,
+          "first_name": "Louis",
+          "last_name": "Pasteur",
+          "email": "louis.pasteur@logixzen.edu",
+          "phone": "555-0125",
+          "department_id": 8,
+          "hire_date": "2014-01-20",
+          "salary": 89000,
+          "is_active": 1
+        }
+      ]
+    },
+    "subjects": {
+      "columns": [
+        "id",
+        "code",
+        "name",
+        "description",
+        "department_id",
+        "credits",
+        "prerequisite_subject_id"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "code": "CS101",
+          "name": "Intro to Programming",
+          "description": "Learn programming fundamentals with Python",
+          "department_id": 1,
+          "credits": 4,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 2,
+          "code": "CS201",
+          "name": "Data Structures",
+          "description": "Arrays, linked lists, trees, graphs and algorithms",
+          "department_id": 1,
+          "credits": 4,
+          "prerequisite_subject_id": 1
+        },
+        {
+          "id": 3,
+          "code": "CS301",
+          "name": "Database Systems",
+          "description": "Relational databases, SQL, normalization and transactions",
+          "department_id": 1,
+          "credits": 4,
+          "prerequisite_subject_id": 2
+        },
+        {
+          "id": 4,
+          "code": "CS401",
+          "name": "Operating Systems",
+          "description": "Process management, memory, file systems",
+          "department_id": 1,
+          "credits": 4,
+          "prerequisite_subject_id": 2
+        },
+        {
+          "id": 5,
+          "code": "MATH101",
+          "name": "Calculus I",
+          "description": "Limits, derivatives and integrals",
+          "department_id": 2,
+          "credits": 4,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 6,
+          "code": "MATH201",
+          "name": "Linear Algebra",
+          "description": "Vectors, matrices, eigenvalues and eigenvectors",
+          "department_id": 2,
+          "credits": 3,
+          "prerequisite_subject_id": 5
+        },
+        {
+          "id": 7,
+          "code": "MATH301",
+          "name": "Discrete Mathematics",
+          "description": "Logic, sets, combinatorics and graph theory",
+          "department_id": 2,
+          "credits": 3,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 8,
+          "code": "ENG101",
+          "name": "English Composition",
+          "description": "Academic writing and rhetoric",
+          "department_id": 3,
+          "credits": 3,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 9,
+          "code": "ENG201",
+          "name": "Shakespearean Drama",
+          "description": "Analysis of Shakespeare plays",
+          "department_id": 3,
+          "credits": 3,
+          "prerequisite_subject_id": 8
+        },
+        {
+          "id": 10,
+          "code": "PHY101",
+          "name": "Classical Mechanics",
+          "description": "Newtonian physics, kinematics and dynamics",
+          "department_id": 4,
+          "credits": 4,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 11,
+          "code": "PHY201",
+          "name": "Electromagnetism",
+          "description": "Electric and magnetic fields, Maxwell equations",
+          "department_id": 4,
+          "credits": 4,
+          "prerequisite_subject_id": 10
+        },
+        {
+          "id": 12,
+          "code": "CHM101",
+          "name": "General Chemistry",
+          "description": "Atomic structure, bonding and reactions",
+          "department_id": 5,
+          "credits": 4,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 13,
+          "code": "HIST101",
+          "name": "World History",
+          "description": "Survey of major civilizations",
+          "department_id": 6,
+          "credits": 3,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 14,
+          "code": "HIST201",
+          "name": "Modern Europe",
+          "description": "European history from 1600 to present",
+          "department_id": 6,
+          "credits": 3,
+          "prerequisite_subject_id": 13
+        },
+        {
+          "id": 15,
+          "code": "ECO101",
+          "name": "Microeconomics",
+          "description": "Supply, demand, market structures",
+          "department_id": 7,
+          "credits": 3,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 16,
+          "code": "ECO201",
+          "name": "Macroeconomics",
+          "description": "GDP, inflation, monetary policy",
+          "department_id": 7,
+          "credits": 3,
+          "prerequisite_subject_id": 15
+        },
+        {
+          "id": 17,
+          "code": "BIO101",
+          "name": "Introduction to Biology",
+          "description": "Cell biology, genetics and evolution",
+          "department_id": 8,
+          "credits": 4,
+          "prerequisite_subject_id": null
+        },
+        {
+          "id": 18,
+          "code": "BIO201",
+          "name": "Molecular Biology",
+          "description": "DNA, RNA, protein synthesis and gene regulation",
+          "department_id": 8,
+          "credits": 4,
+          "prerequisite_subject_id": 17
+        }
+      ]
+    },
+    "students": {
+      "columns": [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "address",
+        "city",
+        "state",
+        "zip_code",
+        "enrollment_date",
+        "status",
+        "gpa",
+        "department_id",
+        "advisor_teacher_id"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "first_name": "Alice",
+          "last_name": "Johnson",
+          "email": "alice.johnson@logixzen.edu",
+          "phone": "555-1001",
+          "date_of_birth": "2002-03-15",
+          "gender": "Female",
+          "address": "123 Oak Street",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62701",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.85,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 2,
+          "first_name": "Bob",
+          "last_name": "Smith",
+          "email": "bob.smith@logixzen.edu",
+          "phone": "555-1002",
+          "date_of_birth": "2001-07-22",
+          "gender": "Male",
+          "address": "456 Maple Avenue",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62702",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.42,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 3,
+          "first_name": "Carol",
+          "last_name": "Williams",
+          "email": "carol.williams@logixzen.edu",
+          "phone": "555-1003",
+          "date_of_birth": "2002-11-08",
+          "gender": "Female",
+          "address": "789 Pine Road",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62703",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.91,
+          "department_id": 2,
+          "advisor_teacher_id": 5
+        },
+        {
+          "id": 4,
+          "first_name": "David",
+          "last_name": "Brown",
+          "email": "david.brown@logixzen.edu",
+          "phone": "555-1004",
+          "date_of_birth": "2001-01-30",
+          "gender": "Male",
+          "address": "321 Elm Drive",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62704",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.15,
+          "department_id": 3,
+          "advisor_teacher_id": 9
+        },
+        {
+          "id": 5,
+          "first_name": "Eva",
+          "last_name": "Davis",
+          "email": "eva.davis@logixzen.edu",
+          "phone": "555-1005",
+          "date_of_birth": "2003-05-17",
+          "gender": "Female",
+          "address": "654 Birch Lane",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62705",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.78,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 6,
+          "first_name": "Frank",
+          "last_name": "Miller",
+          "email": "frank.miller@logixzen.edu",
+          "phone": "555-1006",
+          "date_of_birth": "2002-09-03",
+          "gender": "Male",
+          "address": "987 Cedar Court",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62706",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 2.95,
+          "department_id": 4,
+          "advisor_teacher_id": 12
+        },
+        {
+          "id": 7,
+          "first_name": "Grace",
+          "last_name": "Wilson",
+          "email": "grace.wilson@logixzen.edu",
+          "phone": "555-1007",
+          "date_of_birth": "2001-12-25",
+          "gender": "Female",
+          "address": "147 Walnut Street",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62707",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.67,
+          "department_id": 2,
+          "advisor_teacher_id": 5
+        },
+        {
+          "id": 8,
+          "first_name": "Henry",
+          "last_name": "Moore",
+          "email": "henry.moore@logixzen.edu",
+          "phone": "555-1008",
+          "date_of_birth": "2002-06-14",
+          "gender": "Male",
+          "address": "258 Spruce Avenue",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62708",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.23,
+          "department_id": 5,
+          "advisor_teacher_id": 15
+        },
+        {
+          "id": 9,
+          "first_name": "Isla",
+          "last_name": "Taylor",
+          "email": "isla.taylor@logixzen.edu",
+          "phone": "555-1009",
+          "date_of_birth": "2003-02-28",
+          "gender": "Female",
+          "address": "369 Ash Boulevard",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62709",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.55,
+          "department_id": 3,
+          "advisor_teacher_id": 9
+        },
+        {
+          "id": 10,
+          "first_name": "Jack",
+          "last_name": "Anderson",
+          "email": "jack.anderson@logixzen.edu",
+          "phone": "555-1010",
+          "date_of_birth": "2001-08-19",
+          "gender": "Male",
+          "address": "741 Poplar Way",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62710",
+          "enrollment_date": "2021-09-01",
+          "status": "Graduated",
+          "gpa": 3.72,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 11,
+          "first_name": "Karen",
+          "last_name": "Thomas",
+          "email": "karen.thomas@logixzen.edu",
+          "phone": "555-1011",
+          "date_of_birth": "2002-04-07",
+          "gender": "Female",
+          "address": "852 Willow Path",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62711",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.08,
+          "department_id": 6,
+          "advisor_teacher_id": null
+        },
+        {
+          "id": 12,
+          "first_name": "Leo",
+          "last_name": "Jackson",
+          "email": "leo.jackson@logixzen.edu",
+          "phone": "555-1012",
+          "date_of_birth": "2001-10-13",
+          "gender": "Male",
+          "address": "963 Hickory Lane",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62712",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.44,
+          "department_id": 7,
+          "advisor_teacher_id": 20
+        },
+        {
+          "id": 13,
+          "first_name": "Mia",
+          "last_name": "White",
+          "email": "mia.white@logixzen.edu",
+          "phone": "555-1013",
+          "date_of_birth": "2003-01-22",
+          "gender": "Female",
+          "address": "174 Sycamore Drive",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62713",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.92,
+          "department_id": 8,
+          "advisor_teacher_id": 23
+        },
+        {
+          "id": 14,
+          "first_name": "Noah",
+          "last_name": "Harris",
+          "email": "noah.harris@logixzen.edu",
+          "phone": "555-1014",
+          "date_of_birth": "2002-07-05",
+          "gender": "Male",
+          "address": "285 Magnolia Court",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62714",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 2.88,
+          "department_id": 4,
+          "advisor_teacher_id": 12
+        },
+        {
+          "id": 15,
+          "first_name": "Olivia",
+          "last_name": "Martin",
+          "email": "olivia.martin@logixzen.edu",
+          "phone": "555-1015",
+          "date_of_birth": "2001-03-30",
+          "gender": "Female",
+          "address": "396 Dogwood Street",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62715",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.61,
+          "department_id": 2,
+          "advisor_teacher_id": 5
+        },
+        {
+          "id": 16,
+          "first_name": "Paul",
+          "last_name": "Garcia",
+          "email": "paul.garcia@logixzen.edu",
+          "phone": "555-1016",
+          "date_of_birth": "2002-12-11",
+          "gender": "Male",
+          "address": "507 Redwood Avenue",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62716",
+          "enrollment_date": "2022-09-01",
+          "status": "Suspended",
+          "gpa": 2.1,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 17,
+          "first_name": "Quinn",
+          "last_name": "Martinez",
+          "email": "quinn.martinez@logixzen.edu",
+          "phone": "555-1017",
+          "date_of_birth": "2003-06-26",
+          "gender": "Other",
+          "address": "618 Sequoia Road",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": null,
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.38,
+          "department_id": 3,
+          "advisor_teacher_id": 9
+        },
+        {
+          "id": 18,
+          "first_name": "Rachel",
+          "last_name": "Robinson",
+          "email": "rachel.robinson@logixzen.edu",
+          "phone": "555-1018",
+          "date_of_birth": "2001-05-09",
+          "gender": "Female",
+          "address": "729 Cypress Lane",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62718",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.75,
+          "department_id": 5,
+          "advisor_teacher_id": 15
+        },
+        {
+          "id": 19,
+          "first_name": "Sam",
+          "last_name": "Clark",
+          "email": "sam.clark@logixzen.edu",
+          "phone": "555-1019",
+          "date_of_birth": "2002-08-18",
+          "gender": "Male",
+          "address": "830 Juniper Way",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62719",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.02,
+          "department_id": 6,
+          "advisor_teacher_id": null
+        },
+        {
+          "id": 20,
+          "first_name": "Tara",
+          "last_name": "Rodriguez",
+          "email": "tara.rodriguez@logixzen.edu",
+          "phone": "555-1020",
+          "date_of_birth": "2001-11-04",
+          "gender": "Female",
+          "address": "941 Palm Drive",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62720",
+          "enrollment_date": "2021-09-01",
+          "status": "Graduated",
+          "gpa": 3.88,
+          "department_id": 7,
+          "advisor_teacher_id": 20
+        },
+        {
+          "id": 21,
+          "first_name": "Uma",
+          "last_name": "Lewis",
+          "email": "uma.lewis@logixzen.edu",
+          "phone": "555-1021",
+          "date_of_birth": "2003-03-21",
+          "gender": "Female",
+          "address": "152 Olive Court",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62721",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.65,
+          "department_id": 8,
+          "advisor_teacher_id": 23
+        },
+        {
+          "id": 22,
+          "first_name": "Victor",
+          "last_name": "Lee",
+          "email": "victor.lee@logixzen.edu",
+          "phone": "555-1022",
+          "date_of_birth": "2002-10-07",
+          "gender": "Male",
+          "address": "263 Fig Street",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62722",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 2.75,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        },
+        {
+          "id": 23,
+          "first_name": "Wendy",
+          "last_name": "Walker",
+          "email": "wendy.walker@logixzen.edu",
+          "phone": "555-1023",
+          "date_of_birth": "2001-02-14",
+          "gender": "Female",
+          "address": "374 Date Avenue",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62723",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.53,
+          "department_id": 2,
+          "advisor_teacher_id": 5
+        },
+        {
+          "id": 24,
+          "first_name": "Xavier",
+          "last_name": "Hall",
+          "email": "xavier.hall@logixzen.edu",
+          "phone": "555-1024",
+          "date_of_birth": "2002-05-03",
+          "gender": "Male",
+          "address": "485 Mango Road",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": null,
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.18,
+          "department_id": 4,
+          "advisor_teacher_id": 12
+        },
+        {
+          "id": 25,
+          "first_name": "Yolanda",
+          "last_name": "Allen",
+          "email": "yolanda.allen@logixzen.edu",
+          "phone": "555-1025",
+          "date_of_birth": "2003-09-16",
+          "gender": "Female",
+          "address": "596 Lemon Lane",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62725",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.82,
+          "department_id": 3,
+          "advisor_teacher_id": 9
+        },
+        {
+          "id": 26,
+          "first_name": "Zack",
+          "last_name": "Young",
+          "email": "zack.young@logixzen.edu",
+          "phone": "555-1026",
+          "date_of_birth": "2001-04-28",
+          "gender": "Male",
+          "address": "607 Apple Court",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62726",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 2.98,
+          "department_id": 5,
+          "advisor_teacher_id": 15
+        },
+        {
+          "id": 27,
+          "first_name": "Amy",
+          "last_name": "Hernandez",
+          "email": "amy.hernandez@logixzen.edu",
+          "phone": "555-1027",
+          "date_of_birth": "2002-01-09",
+          "gender": "Female",
+          "address": "718 Berry Drive",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62727",
+          "enrollment_date": "2022-09-01",
+          "status": "Active",
+          "gpa": 3.47,
+          "department_id": 6,
+          "advisor_teacher_id": 18
+        },
+        {
+          "id": 28,
+          "first_name": "Brian",
+          "last_name": "King",
+          "email": "brian.king@logixzen.edu",
+          "phone": "555-1028",
+          "date_of_birth": "2001-07-20",
+          "gender": "Male",
+          "address": "829 Cherry Way",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62728",
+          "enrollment_date": "2021-09-01",
+          "status": "Active",
+          "gpa": 3.33,
+          "department_id": 7,
+          "advisor_teacher_id": 20
+        },
+        {
+          "id": 29,
+          "first_name": "Chloe",
+          "last_name": "Wright",
+          "email": "chloe.wright@logixzen.edu",
+          "phone": "555-1029",
+          "date_of_birth": "2003-12-02",
+          "gender": "Female",
+          "address": "930 Grape Street",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62729",
+          "enrollment_date": "2023-09-01",
+          "status": "Active",
+          "gpa": 3.71,
+          "department_id": 8,
+          "advisor_teacher_id": 23
+        },
+        {
+          "id": 30,
+          "first_name": "Dan",
+          "last_name": "Lopez",
+          "email": "dan.lopez@logixzen.edu",
+          "phone": "555-1030",
+          "date_of_birth": "2002-08-25",
+          "gender": "Male",
+          "address": "141 melon Avenue",
+          "city": "Springfield",
+          "state": "IL",
+          "zip_code": "62730",
+          "enrollment_date": "2022-09-01",
+          "status": "Withdrawn",
+          "gpa": 2.45,
+          "department_id": 1,
+          "advisor_teacher_id": 1
+        }
+      ]
+    },
+    "courses": {
+      "columns": [
+        "id",
+        "subject_id",
+        "course_number",
+        "section",
+        "semester",
+        "year",
+        "teacher_id",
+        "room",
+        "max_students",
+        "enrolled_count",
+        "schedule"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "subject_id": 1,
+          "course_number": "CS101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 1,
+          "room": "Tech 101",
+          "max_students": 35,
+          "enrolled_count": 32,
+          "schedule": "Mon/Wed 9:00-10:15"
+        },
+        {
+          "id": 2,
+          "subject_id": 1,
+          "course_number": "CS101",
+          "section": "B",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 2,
+          "room": "Tech 102",
+          "max_students": 35,
+          "enrolled_count": 30,
+          "schedule": "Tue/Thu 10:30-11:45"
+        },
+        {
+          "id": 3,
+          "subject_id": 2,
+          "course_number": "CS201",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 3,
+          "room": "Tech 201",
+          "max_students": 30,
+          "enrolled_count": 28,
+          "schedule": "Mon/Wed 11:00-12:15"
+        },
+        {
+          "id": 4,
+          "subject_id": 3,
+          "course_number": "CS301",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 1,
+          "room": "Tech 301",
+          "max_students": 25,
+          "enrolled_count": 22,
+          "schedule": "Tue/Thu 14:00-15:15"
+        },
+        {
+          "id": 5,
+          "subject_id": 5,
+          "course_number": "MATH101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 5,
+          "room": "Science 101",
+          "max_students": 40,
+          "enrolled_count": 38,
+          "schedule": "Mon/Wed/Fri 9:00-9:50"
+        },
+        {
+          "id": 6,
+          "subject_id": 5,
+          "course_number": "MATH101",
+          "section": "B",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 6,
+          "room": "Science 102",
+          "max_students": 40,
+          "enrolled_count": 35,
+          "schedule": "Tue/Thu 9:00-9:50"
+        },
+        {
+          "id": 7,
+          "subject_id": 6,
+          "course_number": "MATH201",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 7,
+          "room": "Science 201",
+          "max_students": 30,
+          "enrolled_count": 27,
+          "schedule": "Mon/Wed 13:00-14:15"
+        },
+        {
+          "id": 8,
+          "subject_id": 8,
+          "course_number": "ENG101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 9,
+          "room": "Arts 101",
+          "max_students": 35,
+          "enrolled_count": 33,
+          "schedule": "Tue/Thu 11:00-12:15"
+        },
+        {
+          "id": 9,
+          "subject_id": 10,
+          "course_number": "PHY101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 12,
+          "room": "Science 301",
+          "max_students": 40,
+          "enrolled_count": 36,
+          "schedule": "Mon/Wed/Fri 10:30-11:20"
+        },
+        {
+          "id": 10,
+          "subject_id": 12,
+          "course_number": "CHM101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 15,
+          "room": "Science 302",
+          "max_students": 35,
+          "enrolled_count": 31,
+          "schedule": "Tue/Thu 13:00-14:15"
+        },
+        {
+          "id": 11,
+          "subject_id": 13,
+          "course_number": "HIST101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 18,
+          "room": "Arts 201",
+          "max_students": 40,
+          "enrolled_count": 38,
+          "schedule": "Mon/Wed 14:00-15:15"
+        },
+        {
+          "id": 12,
+          "subject_id": 15,
+          "course_number": "ECO101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 20,
+          "room": "Business 101",
+          "max_students": 45,
+          "enrolled_count": 42,
+          "schedule": "Tue/Thu 9:00-10:15"
+        },
+        {
+          "id": 13,
+          "subject_id": 17,
+          "course_number": "BIO101",
+          "section": "A",
+          "semester": "Fall",
+          "year": 2023,
+          "teacher_id": 23,
+          "room": "Science 401",
+          "max_students": 40,
+          "enrolled_count": 37,
+          "schedule": "Mon/Wed/Fri 11:30-12:20"
+        },
+        {
+          "id": 14,
+          "subject_id": 2,
+          "course_number": "CS201",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 3,
+          "room": "Tech 201",
+          "max_students": 30,
+          "enrolled_count": 0,
+          "schedule": "Mon/Wed 11:00-12:15"
+        },
+        {
+          "id": 15,
+          "subject_id": 3,
+          "course_number": "CS301",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 1,
+          "room": "Tech 301",
+          "max_students": 25,
+          "enrolled_count": 0,
+          "schedule": "Tue/Thu 14:00-15:15"
+        },
+        {
+          "id": 16,
+          "subject_id": 7,
+          "course_number": "MATH301",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 8,
+          "room": "Science 202",
+          "max_students": 30,
+          "enrolled_count": 0,
+          "schedule": "Mon/Wed 15:00-16:15"
+        },
+        {
+          "id": 17,
+          "subject_id": 9,
+          "course_number": "ENG201",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 10,
+          "room": "Arts 102",
+          "max_students": 25,
+          "enrolled_count": 0,
+          "schedule": "Tue/Thu 14:00-15:15"
+        },
+        {
+          "id": 18,
+          "subject_id": 11,
+          "course_number": "PHY201",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 13,
+          "room": "Science 303",
+          "max_students": 30,
+          "enrolled_count": 0,
+          "schedule": "Mon/Wed 13:00-14:15"
+        },
+        {
+          "id": 19,
+          "subject_id": 16,
+          "course_number": "ECO201",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 21,
+          "room": "Business 102",
+          "max_students": 40,
+          "enrolled_count": 0,
+          "schedule": "Tue/Thu 10:30-11:45"
+        },
+        {
+          "id": 20,
+          "subject_id": 18,
+          "course_number": "BIO201",
+          "section": "A",
+          "semester": "Spring",
+          "year": 2024,
+          "teacher_id": 24,
+          "room": "Science 402",
+          "max_students": 25,
+          "enrolled_count": 0,
+          "schedule": "Mon/Wed 10:30-11:45"
+        }
+      ]
+    },
+    "enrollments": {
+      "columns": [
+        "id",
+        "student_id",
+        "course_id",
+        "enrollment_date",
+        "grade",
+        "grade_points",
+        "status",
+        "attendance_percentage"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "student_id": 1,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 95.5
+        },
+        {
+          "id": 2,
+          "student_id": 1,
+          "course_id": 3,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 92
+        },
+        {
+          "id": 3,
+          "student_id": 1,
+          "course_id": 4,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 4,
+          "student_id": 1,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 97
+        },
+        {
+          "id": 5,
+          "student_id": 2,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 6,
+          "student_id": 2,
+          "course_id": 2,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 82
+        },
+        {
+          "id": 7,
+          "student_id": 2,
+          "course_id": 6,
+          "enrollment_date": "2023-09-01",
+          "grade": "C+",
+          "grade_points": 2.33,
+          "status": "Completed",
+          "attendance_percentage": 78
+        },
+        {
+          "id": 8,
+          "student_id": 3,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A+",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 98
+        },
+        {
+          "id": 9,
+          "student_id": 3,
+          "course_id": 7,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 96
+        },
+        {
+          "id": 10,
+          "student_id": 3,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 11,
+          "student_id": 4,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "B-",
+          "grade_points": 2.67,
+          "status": "Completed",
+          "attendance_percentage": 80
+        },
+        {
+          "id": 12,
+          "student_id": 4,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 91
+        },
+        {
+          "id": 13,
+          "student_id": 5,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 94
+        },
+        {
+          "id": 14,
+          "student_id": 5,
+          "course_id": 9,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 89
+        },
+        {
+          "id": 15,
+          "student_id": 5,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 93
+        },
+        {
+          "id": 16,
+          "student_id": 6,
+          "course_id": 9,
+          "enrollment_date": "2023-09-01",
+          "grade": "C",
+          "grade_points": 2,
+          "status": "Completed",
+          "attendance_percentage": 72
+        },
+        {
+          "id": 17,
+          "student_id": 6,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "C+",
+          "grade_points": 2.33,
+          "status": "Completed",
+          "attendance_percentage": 75
+        },
+        {
+          "id": 18,
+          "student_id": 7,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 19,
+          "student_id": 7,
+          "course_id": 7,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 87
+        },
+        {
+          "id": 20,
+          "student_id": 7,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 21,
+          "student_id": 8,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "B-",
+          "grade_points": 2.67,
+          "status": "Completed",
+          "attendance_percentage": 83
+        },
+        {
+          "id": 22,
+          "student_id": 8,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "C+",
+          "grade_points": 2.33,
+          "status": "Completed",
+          "attendance_percentage": 79
+        },
+        {
+          "id": 23,
+          "student_id": 9,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 95
+        },
+        {
+          "id": 24,
+          "student_id": 9,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 91
+        },
+        {
+          "id": 25,
+          "student_id": 10,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 96
+        },
+        {
+          "id": 26,
+          "student_id": 10,
+          "course_id": 3,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 93
+        },
+        {
+          "id": 27,
+          "student_id": 10,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A+",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 99
+        },
+        {
+          "id": 28,
+          "student_id": 11,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 84
+        },
+        {
+          "id": 29,
+          "student_id": 11,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "C+",
+          "grade_points": 2.33,
+          "status": "Completed",
+          "attendance_percentage": 77
+        },
+        {
+          "id": 30,
+          "student_id": 12,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 31,
+          "student_id": 12,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 92
+        },
+        {
+          "id": 32,
+          "student_id": 13,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A+",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 98
+        },
+        {
+          "id": 33,
+          "student_id": 13,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 96
+        },
+        {
+          "id": 34,
+          "student_id": 14,
+          "course_id": 9,
+          "enrollment_date": "2023-09-01",
+          "grade": "D+",
+          "grade_points": 1.33,
+          "status": "Completed",
+          "attendance_percentage": 65
+        },
+        {
+          "id": 35,
+          "student_id": 14,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "F",
+          "grade_points": 0,
+          "status": "Completed",
+          "attendance_percentage": 55
+        },
+        {
+          "id": 36,
+          "student_id": 15,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 91
+        },
+        {
+          "id": 37,
+          "student_id": 15,
+          "course_id": 7,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 86
+        },
+        {
+          "id": 38,
+          "student_id": 15,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 89
+        },
+        {
+          "id": 39,
+          "student_id": 16,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "F",
+          "grade_points": 0,
+          "status": "Dropped",
+          "attendance_percentage": 40
+        },
+        {
+          "id": 40,
+          "student_id": 16,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "D",
+          "grade_points": 1,
+          "status": "Dropped",
+          "attendance_percentage": 50
+        },
+        {
+          "id": 41,
+          "student_id": 17,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 42,
+          "student_id": 17,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 43,
+          "student_id": 18,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 94
+        },
+        {
+          "id": 44,
+          "student_id": 18,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 45,
+          "student_id": 19,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "C",
+          "grade_points": 2,
+          "status": "Completed",
+          "attendance_percentage": 76
+        },
+        {
+          "id": 46,
+          "student_id": 19,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "B-",
+          "grade_points": 2.67,
+          "status": "Completed",
+          "attendance_percentage": 81
+        },
+        {
+          "id": 47,
+          "student_id": 20,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 97
+        },
+        {
+          "id": 48,
+          "student_id": 20,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 94
+        },
+        {
+          "id": 49,
+          "student_id": 21,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 95
+        },
+        {
+          "id": 50,
+          "student_id": 21,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 51,
+          "student_id": 22,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "C-",
+          "grade_points": 1.67,
+          "status": "Completed",
+          "attendance_percentage": 70
+        },
+        {
+          "id": 52,
+          "student_id": 22,
+          "course_id": 9,
+          "enrollment_date": "2023-09-01",
+          "grade": "D",
+          "grade_points": 1,
+          "status": "Completed",
+          "attendance_percentage": 62
+        },
+        {
+          "id": 53,
+          "student_id": 23,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 87
+        },
+        {
+          "id": 54,
+          "student_id": 23,
+          "course_id": 7,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 84
+        },
+        {
+          "id": 55,
+          "student_id": 24,
+          "course_id": 9,
+          "enrollment_date": "2023-09-01",
+          "grade": "B-",
+          "grade_points": 2.67,
+          "status": "Completed",
+          "attendance_percentage": 80
+        },
+        {
+          "id": 56,
+          "student_id": 24,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "C+",
+          "grade_points": 2.33,
+          "status": "Completed",
+          "attendance_percentage": 77
+        },
+        {
+          "id": 57,
+          "student_id": 25,
+          "course_id": 8,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 96
+        },
+        {
+          "id": 58,
+          "student_id": 25,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 93
+        },
+        {
+          "id": 59,
+          "student_id": 26,
+          "course_id": 10,
+          "enrollment_date": "2023-09-01",
+          "grade": "C",
+          "grade_points": 2,
+          "status": "Completed",
+          "attendance_percentage": 74
+        },
+        {
+          "id": 60,
+          "student_id": 26,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "D+",
+          "grade_points": 1.33,
+          "status": "Completed",
+          "attendance_percentage": 68
+        },
+        {
+          "id": 61,
+          "student_id": 27,
+          "course_id": 11,
+          "enrollment_date": "2023-09-01",
+          "grade": "B",
+          "grade_points": 3,
+          "status": "Completed",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 62,
+          "student_id": 27,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "B-",
+          "grade_points": 2.67,
+          "status": "Completed",
+          "attendance_percentage": 82
+        },
+        {
+          "id": 63,
+          "student_id": 28,
+          "course_id": 12,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 91
+        },
+        {
+          "id": 64,
+          "student_id": 28,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "B+",
+          "grade_points": 3.33,
+          "status": "Completed",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 65,
+          "student_id": 29,
+          "course_id": 13,
+          "enrollment_date": "2023-09-01",
+          "grade": "A",
+          "grade_points": 4,
+          "status": "Completed",
+          "attendance_percentage": 95
+        },
+        {
+          "id": 66,
+          "student_id": 29,
+          "course_id": 5,
+          "enrollment_date": "2023-09-01",
+          "grade": "A-",
+          "grade_points": 3.67,
+          "status": "Completed",
+          "attendance_percentage": 92
+        },
+        {
+          "id": 67,
+          "student_id": 30,
+          "course_id": 1,
+          "enrollment_date": "2023-09-01",
+          "grade": "F",
+          "grade_points": 0,
+          "status": "Dropped",
+          "attendance_percentage": 30
+        },
+        {
+          "id": 68,
+          "student_id": 1,
+          "course_id": 14,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 78
+        },
+        {
+          "id": 69,
+          "student_id": 1,
+          "course_id": 15,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 82
+        },
+        {
+          "id": 70,
+          "student_id": 2,
+          "course_id": 14,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 75
+        },
+        {
+          "id": 71,
+          "student_id": 3,
+          "course_id": 14,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 72,
+          "student_id": 3,
+          "course_id": 16,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 73,
+          "student_id": 5,
+          "course_id": 14,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 74,
+          "student_id": 5,
+          "course_id": 15,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 80
+        },
+        {
+          "id": 75,
+          "student_id": 7,
+          "course_id": 16,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 83
+        },
+        {
+          "id": 76,
+          "student_id": 9,
+          "course_id": 17,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 91
+        },
+        {
+          "id": 77,
+          "student_id": 10,
+          "course_id": 14,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 87
+        },
+        {
+          "id": 78,
+          "student_id": 10,
+          "course_id": 15,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 84
+        },
+        {
+          "id": 79,
+          "student_id": 13,
+          "course_id": 17,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 92
+        },
+        {
+          "id": 80,
+          "student_id": 13,
+          "course_id": 16,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 89
+        },
+        {
+          "id": 81,
+          "student_id": 15,
+          "course_id": 16,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 81
+        },
+        {
+          "id": 82,
+          "student_id": 18,
+          "course_id": 18,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 86
+        },
+        {
+          "id": 83,
+          "student_id": 20,
+          "course_id": 19,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 90
+        },
+        {
+          "id": 84,
+          "student_id": 21,
+          "course_id": 20,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 88
+        },
+        {
+          "id": 85,
+          "student_id": 21,
+          "course_id": 15,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 85
+        },
+        {
+          "id": 86,
+          "student_id": 23,
+          "course_id": 16,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 82
+        },
+        {
+          "id": 87,
+          "student_id": 25,
+          "course_id": 17,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 93
+        },
+        {
+          "id": 88,
+          "student_id": 28,
+          "course_id": 19,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 87
+        },
+        {
+          "id": 89,
+          "student_id": 29,
+          "course_id": 20,
+          "enrollment_date": "2024-01-15",
+          "grade": null,
+          "grade_points": null,
+          "status": "In Progress",
+          "attendance_percentage": 90
+        }
+      ]
+    },
+    "authors": {
+      "columns": [
+        "id",
+        "first_name",
+        "last_name",
+        "bio",
+        "nationality",
+        "birth_year",
+        "death_year"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "first_name": "Harper",
+          "last_name": "Lee",
+          "bio": "American novelist, best known for To Kill a Mockingbird",
+          "nationality": "American",
+          "birth_year": 1926,
+          "death_year": 2016
+        },
+        {
+          "id": 2,
+          "first_name": "George",
+          "last_name": "Orwell",
+          "bio": "English novelist and essayist, known for 1984 and Animal Farm",
+          "nationality": "British",
+          "birth_year": 1903,
+          "death_year": 1950
+        },
+        {
+          "id": 3,
+          "first_name": "Jane",
+          "last_name": "Austen",
+          "bio": "English novelist known for sense and sensibility, pride and prejudice",
+          "nationality": "British",
+          "birth_year": 1775,
+          "death_year": 1817
+        },
+        {
+          "id": 4,
+          "first_name": "William",
+          "last_name": "Shakespeare",
+          "bio": "English playwright and poet, widely regarded as the greatest writer",
+          "nationality": "British",
+          "birth_year": 1564,
+          "death_year": 1616
+        },
+        {
+          "id": 5,
+          "first_name": "Leo",
+          "last_name": "Tolstoy",
+          "bio": "Russian writer, considered one of the greatest authors of all time",
+          "nationality": "Russian",
+          "birth_year": 1828,
+          "death_year": 1910
+        },
+        {
+          "id": 6,
+          "first_name": "F. Scott",
+          "last_name": "Fitzgerald",
+          "bio": "American novelist, known for The Great Gatsby",
+          "nationality": "American",
+          "birth_year": 1896,
+          "death_year": 1940
+        },
+        {
+          "id": 7,
+          "first_name": "Ernest",
+          "last_name": "Hemingway",
+          "bio": "American novelist and short story writer, Nobel laureate",
+          "nationality": "American",
+          "birth_year": 1899,
+          "death_year": 1961
+        },
+        {
+          "id": 8,
+          "first_name": "Agatha",
+          "last_name": "Christie",
+          "bio": "English writer known as the Queen of Crime",
+          "nationality": "British",
+          "birth_year": 1890,
+          "death_year": 1976
+        },
+        {
+          "id": 9,
+          "first_name": "Charles",
+          "last_name": "Dickens",
+          "bio": "English writer and social critic, created some of literature's most iconic characters",
+          "nationality": "British",
+          "birth_year": 1812,
+          "death_year": 1870
+        },
+        {
+          "id": 10,
+          "first_name": "Mark",
+          "last_name": "Twain",
+          "bio": "American writer and humorist, known for Adventures of Huckleberry Finn",
+          "nationality": "American",
+          "birth_year": 1835,
+          "death_year": 1910
+        },
+        {
+          "id": 11,
+          "first_name": "Aldous",
+          "last_name": "Huxley",
+          "bio": "English writer and philosopher, author of Brave New World",
+          "nationality": "British",
+          "birth_year": 1894,
+          "death_year": 1963
+        },
+        {
+          "id": 12,
+          "first_name": "Richard",
+          "last_name": "Dawkins",
+          "bio": "British evolutionary biologist, author of The Selfish Gene",
+          "nationality": "British",
+          "birth_year": 1941,
+          "death_year": null
+        },
+        {
+          "id": 13,
+          "first_name": "Stephen",
+          "last_name": "Hawking",
+          "bio": "English theoretical physicist, author of A Brief History of Time",
+          "nationality": "British",
+          "birth_year": 1942,
+          "death_year": 2018
+        },
+        {
+          "id": 14,
+          "first_name": "Charles",
+          "last_name": "Darwin",
+          "bio": "English naturalist, author of The Origin of Species",
+          "nationality": "British",
+          "birth_year": 1809,
+          "death_year": 1882
+        },
+        {
+          "id": 15,
+          "first_name": "James",
+          "last_name": "Watson",
+          "bio": "American molecular biologist, co-discoverer of DNA structure",
+          "nationality": "American",
+          "birth_year": 1928,
+          "death_year": null
+        },
+        {
+          "id": 16,
+          "first_name": "Carl",
+          "last_name": "Sagan",
+          "bio": "American astronomer and science communicator, author of Cosmos",
+          "nationality": "American",
+          "birth_year": 1934,
+          "death_year": 1996
+        }
+      ]
+    },
+    "books": {
+      "columns": [
+        "id",
+        "isbn",
+        "title",
+        "description",
+        "published_year",
+        "price",
+        "stock",
+        "category",
+        "subject_id"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "isbn": "978-0-06-112008-4",
+          "title": "To Kill a Mockingbird",
+          "description": "A novel about racial injustice in the Deep South",
+          "published_year": 1960,
+          "price": 12.99,
+          "stock": 15,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 2,
+          "isbn": "978-0-452-28423-4",
+          "title": "1984",
+          "description": "A dystopian novel about totalitarian surveillance",
+          "published_year": 1949,
+          "price": 11.99,
+          "stock": 22,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 3,
+          "isbn": "978-0-14-143951-8",
+          "title": "Pride and Prejudice",
+          "description": "A romantic novel of manners",
+          "published_year": 1813,
+          "price": 9.99,
+          "stock": 18,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 4,
+          "isbn": "978-0-7432-7356-5",
+          "title": "The Great Gatsby",
+          "description": "A story of wealth and decadence in the Jazz Age",
+          "published_year": 1925,
+          "price": 10.99,
+          "stock": 20,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 5,
+          "isbn": "978-0-684-80122-3",
+          "title": "A Farewell to Arms",
+          "description": "A novel about love during World War I",
+          "published_year": 1929,
+          "price": 11.49,
+          "stock": 12,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 6,
+          "isbn": "978-0-06-093546-7",
+          "title": "To Kill a Mockingbird Study Guide",
+          "description": "An academic companion to Lee's novel",
+          "published_year": 2001,
+          "price": 15.99,
+          "stock": 8,
+          "category": "Academic",
+          "subject_id": 9
+        },
+        {
+          "id": 7,
+          "isbn": "978-0-14-044913-6",
+          "title": "Crime and Punishment",
+          "description": "A psychological novel about guilt and redemption",
+          "published_year": 1866,
+          "price": 13.99,
+          "stock": 14,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 8,
+          "isbn": "978-0-06-112009-1",
+          "title": "1984 Study Guide",
+          "description": "Critical analysis of Orwell's masterpiece",
+          "published_year": 2003,
+          "price": 14.99,
+          "stock": 6,
+          "category": "Academic",
+          "subject_id": 9
+        },
+        {
+          "id": 9,
+          "isbn": "978-0-316-76948-0",
+          "title": "The Catcher in the Rye",
+          "description": "A novel about teenage alienation",
+          "published_year": 1951,
+          "price": 10.49,
+          "stock": 16,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 10,
+          "isbn": "978-0-14-144115-3",
+          "title": "Emma",
+          "description": "A comic novel of youthful hubris and matchmaking",
+          "published_year": 1815,
+          "price": 9.49,
+          "stock": 10,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 11,
+          "isbn": "978-0-451-52493-5",
+          "title": "Animal Farm",
+          "description": "An allegorical novella about Soviet totalitarianism",
+          "published_year": 1945,
+          "price": 8.99,
+          "stock": 25,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 12,
+          "isbn": "978-0-06-093547-4",
+          "title": "Brave New World",
+          "description": "A dystopian novel about a technologically advanced future",
+          "published_year": 1932,
+          "price": 12.49,
+          "stock": 19,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 13,
+          "isbn": "978-0-14-028329-7",
+          "title": "Great Expectations",
+          "description": "A coming-of-age novel by Charles Dickens",
+          "published_year": 1861,
+          "price": 10.99,
+          "stock": 11,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 14,
+          "isbn": "978-0-06-112010-7",
+          "title": "Adventures of Huckleberry Finn",
+          "description": "A novel about a boy's journey down the Mississippi",
+          "published_year": 1884,
+          "price": 11.49,
+          "stock": 13,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 15,
+          "isbn": "978-0-14-144116-0",
+          "title": "Sense and Sensibility",
+          "description": "A novel about two sisters and their different approaches to love",
+          "published_year": 1811,
+          "price": 9.99,
+          "stock": 9,
+          "category": "Fiction",
+          "subject_id": 9
+        },
+        {
+          "id": 16,
+          "isbn": "978-0-393-97024-8",
+          "title": "The Selfish Gene",
+          "description": "A book popularizing individual-centered selection",
+          "published_year": 1976,
+          "price": 16.99,
+          "stock": 7,
+          "category": "Science",
+          "subject_id": 17
+        },
+        {
+          "id": 17,
+          "isbn": "978-0-393-35434-2",
+          "title": "A Brief History of Time",
+          "description": "An exploration of cosmology by Stephen Hawking",
+          "published_year": 1988,
+          "price": 18.99,
+          "stock": 10,
+          "category": "Science",
+          "subject_id": 10
+        },
+        {
+          "id": 18,
+          "isbn": "978-0-393-60977-5",
+          "title": "The Origin of Species",
+          "description": "Darwin's foundational work on evolutionary biology",
+          "published_year": 1859,
+          "price": 14.99,
+          "stock": 5,
+          "category": "Science",
+          "subject_id": 17
+        },
+        {
+          "id": 19,
+          "isbn": "978-0-393-73455-4",
+          "title": "The Double Helix",
+          "description": "A personal account of the discovery of DNA structure",
+          "published_year": 1968,
+          "price": 13.99,
+          "stock": 8,
+          "category": "Science",
+          "subject_id": 18
+        },
+        {
+          "id": 20,
+          "isbn": "978-0-393-35244-7",
+          "title": "Cosmos",
+          "description": "A bestselling science book by Carl Sagan",
+          "published_year": 1980,
+          "price": 17.99,
+          "stock": 12,
+          "category": "Science",
+          "subject_id": 10
+        }
+      ]
+    },
+    "book_authors": {
+      "columns": [
+        "book_id",
+        "author_id"
+      ],
+      "rows": [
+        {
+          "book_id": 1,
+          "author_id": 1
+        },
+        {
+          "book_id": 2,
+          "author_id": 2
+        },
+        {
+          "book_id": 3,
+          "author_id": 3
+        },
+        {
+          "book_id": 4,
+          "author_id": 6
+        },
+        {
+          "book_id": 5,
+          "author_id": 7
+        },
+        {
+          "book_id": 6,
+          "author_id": 1
+        },
+        {
+          "book_id": 7,
+          "author_id": 5
+        },
+        {
+          "book_id": 8,
+          "author_id": 2
+        },
+        {
+          "book_id": 9,
+          "author_id": 6
+        },
+        {
+          "book_id": 10,
+          "author_id": 3
+        },
+        {
+          "book_id": 11,
+          "author_id": 2
+        },
+        {
+          "book_id": 12,
+          "author_id": 11
+        },
+        {
+          "book_id": 13,
+          "author_id": 9
+        },
+        {
+          "book_id": 14,
+          "author_id": 10
+        },
+        {
+          "book_id": 15,
+          "author_id": 3
+        },
+        {
+          "book_id": 16,
+          "author_id": 12
+        },
+        {
+          "book_id": 17,
+          "author_id": 13
+        },
+        {
+          "book_id": 18,
+          "author_id": 14
+        },
+        {
+          "book_id": 19,
+          "author_id": 15
+        },
+        {
+          "book_id": 20,
+          "author_id": 16
+        }
+      ]
+    },
+    "loans": {
+      "columns": [
+        "id",
+        "student_id",
+        "book_id",
+        "loan_date",
+        "due_date",
+        "return_date",
+        "fine",
+        "status"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "student_id": 1,
+          "book_id": 1,
+          "loan_date": "2023-10-01",
+          "due_date": "2023-10-15",
+          "return_date": "2023-10-14",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 2,
+          "student_id": 1,
+          "book_id": 3,
+          "loan_date": "2023-10-01",
+          "due_date": "2023-10-15",
+          "return_date": "2023-10-20",
+          "fine": 1,
+          "status": "Returned"
+        },
+        {
+          "id": 3,
+          "student_id": 2,
+          "book_id": 2,
+          "loan_date": "2023-10-05",
+          "due_date": "2023-10-19",
+          "return_date": "2023-10-18",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 4,
+          "student_id": 2,
+          "book_id": 11,
+          "loan_date": "2023-10-05",
+          "due_date": "2023-10-19",
+          "return_date": "2023-11-01",
+          "fine": 5,
+          "status": "Returned"
+        },
+        {
+          "id": 5,
+          "student_id": 3,
+          "book_id": 4,
+          "loan_date": "2023-11-01",
+          "due_date": "2023-11-15",
+          "return_date": "2023-11-14",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 6,
+          "student_id": 3,
+          "book_id": 16,
+          "loan_date": "2023-11-01",
+          "due_date": "2023-11-15",
+          "return_date": "2023-11-15",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 7,
+          "student_id": 5,
+          "book_id": 1,
+          "loan_date": "2023-11-10",
+          "due_date": "2023-11-24",
+          "return_date": "2023-11-23",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 8,
+          "student_id": 5,
+          "book_id": 9,
+          "loan_date": "2023-11-10",
+          "due_date": "2023-11-24",
+          "return_date": "2023-12-01",
+          "fine": 3,
+          "status": "Returned"
+        },
+        {
+          "id": 9,
+          "student_id": 7,
+          "book_id": 3,
+          "loan_date": "2023-12-01",
+          "due_date": "2023-12-15",
+          "return_date": "2023-12-14",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 10,
+          "student_id": 7,
+          "book_id": 7,
+          "loan_date": "2023-12-01",
+          "due_date": "2023-12-15",
+          "return_date": "2023-12-18",
+          "fine": 1,
+          "status": "Returned"
+        },
+        {
+          "id": 11,
+          "student_id": 9,
+          "book_id": 5,
+          "loan_date": "2023-12-10",
+          "due_date": "2023-12-24",
+          "return_date": "2023-12-22",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 12,
+          "student_id": 10,
+          "book_id": 2,
+          "loan_date": "2023-12-15",
+          "due_date": "2024-01-05",
+          "return_date": "2024-01-04",
+          "fine": 0,
+          "status": "Returned"
+        },
+        {
+          "id": 13,
+          "student_id": 13,
+          "book_id": 18,
+          "loan_date": "2024-01-10",
+          "due_date": "2024-01-24",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 14,
+          "student_id": 13,
+          "book_id": 19,
+          "loan_date": "2024-01-10",
+          "due_date": "2024-01-24",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 15,
+          "student_id": 21,
+          "book_id": 16,
+          "loan_date": "2024-01-15",
+          "due_date": "2024-01-29",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 16,
+          "student_id": 25,
+          "book_id": 17,
+          "loan_date": "2024-01-15",
+          "due_date": "2024-01-29",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 17,
+          "student_id": 29,
+          "book_id": 20,
+          "loan_date": "2024-01-20",
+          "due_date": "2024-02-03",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 18,
+          "student_id": 6,
+          "book_id": 11,
+          "loan_date": "2024-01-20",
+          "due_date": "2024-02-03",
+          "return_date": "2024-02-10",
+          "fine": 3.5,
+          "status": "Returned"
+        },
+        {
+          "id": 19,
+          "student_id": 14,
+          "book_id": 9,
+          "loan_date": "2024-01-22",
+          "due_date": "2024-02-05",
+          "return_date": null,
+          "fine": 0,
+          "status": "Active"
+        },
+        {
+          "id": 20,
+          "student_id": 22,
+          "book_id": 14,
+          "loan_date": "2024-01-25",
+          "due_date": "2024-02-08",
+          "return_date": "2024-02-15",
+          "fine": 3.5,
+          "status": "Returned"
+        }
+      ]
+    },
+    "exams": {
+      "columns": [
+        "id",
+        "course_id",
+        "exam_number",
+        "title",
+        "exam_date",
+        "total_marks",
+        "duration_minutes",
+        "exam_type"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "course_id": 1,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-15",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 2,
+          "course_id": 1,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-12",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 3,
+          "course_id": 2,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-16",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 4,
+          "course_id": 2,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-13",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 5,
+          "course_id": 3,
+          "exam_number": 1,
+          "title": "Quiz 1",
+          "exam_date": "2023-09-20",
+          "total_marks": 50,
+          "duration_minutes": 30,
+          "exam_type": "Quiz"
+        },
+        {
+          "id": 6,
+          "course_id": 3,
+          "exam_number": 2,
+          "title": "Quiz 2",
+          "exam_date": "2023-10-18",
+          "total_marks": 50,
+          "duration_minutes": 30,
+          "exam_type": "Quiz"
+        },
+        {
+          "id": 7,
+          "course_id": 3,
+          "exam_number": 3,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-25",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 8,
+          "course_id": 3,
+          "exam_number": 4,
+          "title": "Final Exam",
+          "exam_date": "2023-12-14",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 9,
+          "course_id": 5,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-16",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 10,
+          "course_id": 5,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-14",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 11,
+          "course_id": 8,
+          "exam_number": 1,
+          "title": "Essay Exam",
+          "exam_date": "2023-11-01",
+          "total_marks": 100,
+          "duration_minutes": 60,
+          "exam_type": "Project"
+        },
+        {
+          "id": 12,
+          "course_id": 9,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-17",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 13,
+          "course_id": 9,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-15",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 14,
+          "course_id": 10,
+          "exam_number": 1,
+          "title": "Lab Report",
+          "exam_date": "2023-11-15",
+          "total_marks": 100,
+          "duration_minutes": 0,
+          "exam_type": "Lab"
+        },
+        {
+          "id": 15,
+          "course_id": 10,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-15",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 16,
+          "course_id": 11,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-18",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 17,
+          "course_id": 11,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-16",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 18,
+          "course_id": 12,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-19",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        },
+        {
+          "id": 19,
+          "course_id": 12,
+          "exam_number": 2,
+          "title": "Final Exam",
+          "exam_date": "2023-12-16",
+          "total_marks": 100,
+          "duration_minutes": 120,
+          "exam_type": "Final"
+        },
+        {
+          "id": 20,
+          "course_id": 13,
+          "exam_number": 1,
+          "title": "Midterm Exam",
+          "exam_date": "2023-10-20",
+          "total_marks": 100,
+          "duration_minutes": 90,
+          "exam_type": "Midterm"
+        }
+      ]
+    },
+    "exam_results": {
+      "columns": [
+        "id",
+        "exam_id",
+        "student_id",
+        "marks_obtained",
+        "submitted_at"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "exam_id": 1,
+          "student_id": 1,
+          "marks_obtained": 88,
+          "submitted_at": "2023-10-15 14:30:00"
+        },
+        {
+          "id": 2,
+          "exam_id": 1,
+          "student_id": 2,
+          "marks_obtained": 72,
+          "submitted_at": "2023-10-15 14:25:00"
+        },
+        {
+          "id": 3,
+          "exam_id": 1,
+          "student_id": 5,
+          "marks_obtained": 91,
+          "submitted_at": "2023-10-15 14:35:00"
+        },
+        {
+          "id": 4,
+          "exam_id": 1,
+          "student_id": 10,
+          "marks_obtained": 95,
+          "submitted_at": "2023-10-15 14:28:00"
+        },
+        {
+          "id": 5,
+          "exam_id": 1,
+          "student_id": 16,
+          "marks_obtained": 35,
+          "submitted_at": "2023-10-15 14:20:00"
+        },
+        {
+          "id": 6,
+          "exam_id": 1,
+          "student_id": 22,
+          "marks_obtained": 55,
+          "submitted_at": "2023-10-15 14:32:00"
+        },
+        {
+          "id": 7,
+          "exam_id": 1,
+          "student_id": 30,
+          "marks_obtained": 28,
+          "submitted_at": "2023-10-15 14:15:00"
+        },
+        {
+          "id": 8,
+          "exam_id": 2,
+          "student_id": 1,
+          "marks_obtained": 92,
+          "submitted_at": "2023-12-12 10:00:00"
+        },
+        {
+          "id": 9,
+          "exam_id": 2,
+          "student_id": 2,
+          "marks_obtained": 78,
+          "submitted_at": "2023-12-12 10:05:00"
+        },
+        {
+          "id": 10,
+          "exam_id": 2,
+          "student_id": 5,
+          "marks_obtained": 89,
+          "submitted_at": "2023-12-12 09:55:00"
+        },
+        {
+          "id": 11,
+          "exam_id": 2,
+          "student_id": 10,
+          "marks_obtained": 94,
+          "submitted_at": "2023-12-12 10:02:00"
+        },
+        {
+          "id": 12,
+          "exam_id": 2,
+          "student_id": 16,
+          "marks_obtained": 30,
+          "submitted_at": "2023-12-12 10:10:00"
+        },
+        {
+          "id": 13,
+          "exam_id": 2,
+          "student_id": 22,
+          "marks_obtained": 60,
+          "submitted_at": "2023-12-12 10:08:00"
+        },
+        {
+          "id": 14,
+          "exam_id": 3,
+          "student_id": 1,
+          "marks_obtained": 85,
+          "submitted_at": "2023-10-16 14:30:00"
+        },
+        {
+          "id": 15,
+          "exam_id": 3,
+          "student_id": 2,
+          "marks_obtained": 70,
+          "submitted_at": "2023-10-16 14:25:00"
+        },
+        {
+          "id": 16,
+          "exam_id": 3,
+          "student_id": 5,
+          "marks_obtained": 88,
+          "submitted_at": "2023-10-16 14:35:00"
+        },
+        {
+          "id": 17,
+          "exam_id": 3,
+          "student_id": 10,
+          "marks_obtained": 92,
+          "submitted_at": "2023-10-16 14:28:00"
+        },
+        {
+          "id": 18,
+          "exam_id": 4,
+          "student_id": 1,
+          "marks_obtained": 90,
+          "submitted_at": "2023-12-13 10:00:00"
+        },
+        {
+          "id": 19,
+          "exam_id": 4,
+          "student_id": 2,
+          "marks_obtained": 75,
+          "submitted_at": "2023-12-13 10:05:00"
+        },
+        {
+          "id": 20,
+          "exam_id": 4,
+          "student_id": 5,
+          "marks_obtained": 87,
+          "submitted_at": "2023-12-13 09:55:00"
+        },
+        {
+          "id": 21,
+          "exam_id": 4,
+          "student_id": 10,
+          "marks_obtained": 93,
+          "submitted_at": "2023-12-13 10:02:00"
+        },
+        {
+          "id": 22,
+          "exam_id": 5,
+          "student_id": 1,
+          "marks_obtained": 45,
+          "submitted_at": "2023-09-20 11:00:00"
+        },
+        {
+          "id": 23,
+          "exam_id": 5,
+          "student_id": 2,
+          "marks_obtained": 38,
+          "submitted_at": "2023-09-20 11:00:00"
+        },
+        {
+          "id": 24,
+          "exam_id": 5,
+          "student_id": 5,
+          "marks_obtained": 47,
+          "submitted_at": "2023-09-20 11:00:00"
+        },
+        {
+          "id": 25,
+          "exam_id": 5,
+          "student_id": 10,
+          "marks_obtained": 49,
+          "submitted_at": "2023-09-20 11:00:00"
+        },
+        {
+          "id": 26,
+          "exam_id": 6,
+          "student_id": 1,
+          "marks_obtained": 48,
+          "submitted_at": "2023-10-18 11:00:00"
+        },
+        {
+          "id": 27,
+          "exam_id": 6,
+          "student_id": 2,
+          "marks_obtained": 42,
+          "submitted_at": "2023-10-18 11:00:00"
+        },
+        {
+          "id": 28,
+          "exam_id": 6,
+          "student_id": 5,
+          "marks_obtained": 46,
+          "submitted_at": "2023-10-18 11:00:00"
+        },
+        {
+          "id": 29,
+          "exam_id": 9,
+          "student_id": 3,
+          "marks_obtained": 96,
+          "submitted_at": "2023-10-16 14:30:00"
+        },
+        {
+          "id": 30,
+          "exam_id": 9,
+          "student_id": 7,
+          "marks_obtained": 88,
+          "submitted_at": "2023-10-16 14:25:00"
+        },
+        {
+          "id": 31,
+          "exam_id": 9,
+          "student_id": 15,
+          "marks_obtained": 85,
+          "submitted_at": "2023-10-16 14:35:00"
+        },
+        {
+          "id": 32,
+          "exam_id": 9,
+          "student_id": 23,
+          "marks_obtained": 82,
+          "submitted_at": "2023-10-16 14:28:00"
+        },
+        {
+          "id": 33,
+          "exam_id": 9,
+          "student_id": 26,
+          "marks_obtained": 70,
+          "submitted_at": "2023-10-16 14:20:00"
+        },
+        {
+          "id": 34,
+          "exam_id": 9,
+          "student_id": 8,
+          "marks_obtained": 94,
+          "submitted_at": "2023-10-16 14:32:00"
+        },
+        {
+          "id": 35,
+          "exam_id": 10,
+          "student_id": 3,
+          "marks_obtained": 98,
+          "submitted_at": "2023-12-14 10:00:00"
+        },
+        {
+          "id": 36,
+          "exam_id": 10,
+          "student_id": 7,
+          "marks_obtained": 90,
+          "submitted_at": "2023-12-14 10:05:00"
+        },
+        {
+          "id": 37,
+          "exam_id": 10,
+          "student_id": 15,
+          "marks_obtained": 87,
+          "submitted_at": "2023-12-14 09:55:00"
+        },
+        {
+          "id": 38,
+          "exam_id": 10,
+          "student_id": 23,
+          "marks_obtained": 84,
+          "submitted_at": "2023-12-14 10:02:00"
+        },
+        {
+          "id": 39,
+          "exam_id": 10,
+          "student_id": 26,
+          "marks_obtained": 72,
+          "submitted_at": "2023-12-14 10:10:00"
+        },
+        {
+          "id": 40,
+          "exam_id": 10,
+          "student_id": 10,
+          "marks_obtained": 95,
+          "submitted_at": "2023-12-14 10:08:00"
+        },
+        {
+          "id": 41,
+          "exam_id": 12,
+          "student_id": 5,
+          "marks_obtained": 82,
+          "submitted_at": "2023-10-17 14:30:00"
+        },
+        {
+          "id": 42,
+          "exam_id": 12,
+          "student_id": 6,
+          "marks_obtained": 65,
+          "submitted_at": "2023-10-17 14:25:00"
+        },
+        {
+          "id": 43,
+          "exam_id": 12,
+          "student_id": 14,
+          "marks_obtained": 58,
+          "submitted_at": "2023-10-17 14:35:00"
+        },
+        {
+          "id": 44,
+          "exam_id": 12,
+          "student_id": 18,
+          "marks_obtained": 90,
+          "submitted_at": "2023-10-17 14:28:00"
+        },
+        {
+          "id": 45,
+          "exam_id": 12,
+          "student_id": 24,
+          "marks_obtained": 72,
+          "submitted_at": "2023-10-17 14:20:00"
+        },
+        {
+          "id": 46,
+          "exam_id": 13,
+          "student_id": 5,
+          "marks_obtained": 85,
+          "submitted_at": "2023-12-15 10:00:00"
+        },
+        {
+          "id": 47,
+          "exam_id": 13,
+          "student_id": 6,
+          "marks_obtained": 68,
+          "submitted_at": "2023-12-15 10:05:00"
+        },
+        {
+          "id": 48,
+          "exam_id": 13,
+          "student_id": 14,
+          "marks_obtained": 55,
+          "submitted_at": "2023-12-15 09:55:00"
+        },
+        {
+          "id": 49,
+          "exam_id": 13,
+          "student_id": 18,
+          "marks_obtained": 92,
+          "submitted_at": "2023-12-15 10:02:00"
+        },
+        {
+          "id": 50,
+          "exam_id": 13,
+          "student_id": 24,
+          "marks_obtained": 75,
+          "submitted_at": "2023-12-15 10:10:00"
+        }
+      ]
+    },
+    "scholarships": {
+      "columns": [
+        "id",
+        "name",
+        "description",
+        "amount",
+        "GPA_requirement",
+        "min_age",
+        "max_age",
+        "department_id",
+        "active"
+      ],
+      "rows": [
+        {
+          "id": 1,
+          "name": "Merit Scholarship",
+          "description": "For students with outstanding academic performance",
+          "amount": 5000,
+          "GPA_requirement": 3.5,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 2,
+          "name": "Need-Based Grant",
+          "description": "Financial assistance for students demonstrating need",
+          "amount": 3000,
+          "GPA_requirement": 2,
+          "min_age": 18,
+          "max_age": 30,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 3,
+          "name": "CS Department Award",
+          "description": "Exclusive to Computer Science majors",
+          "amount": 2500,
+          "GPA_requirement": 3,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": 1,
+          "active": 1
+        },
+        {
+          "id": 4,
+          "name": "STEM Scholarship",
+          "description": "For students pursuing science or mathematics",
+          "amount": 4000,
+          "GPA_requirement": 3.2,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 5,
+          "name": "Athletic Excellence",
+          "description": "For student athletes maintaining good grades",
+          "amount": 3500,
+          "GPA_requirement": 2.5,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 6,
+          "name": "First-Generation College",
+          "description": "Support for first-generation college students",
+          "amount": 2000,
+          "GPA_requirement": 2,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 7,
+          "name": "Engineering Innovator",
+          "description": "For creative problem-solving in engineering",
+          "amount": 3000,
+          "GPA_requirement": 3,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": 1,
+          "active": 1
+        },
+        {
+          "id": 8,
+          "name": "Humanities Fellowship",
+          "description": "For excellence in literature and languages",
+          "amount": 2500,
+          "GPA_requirement": 3,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": 3,
+          "active": 1
+        },
+        {
+          "id": 9,
+          "name": "Research Assistantship",
+          "description": "For students assisting faculty research",
+          "amount": 4000,
+          "GPA_requirement": 3.3,
+          "min_age": 19,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        },
+        {
+          "id": 10,
+          "name": "Dean's List Bonus",
+          "description": "Additional support for Dean's List students",
+          "amount": 1500,
+          "GPA_requirement": 3.7,
+          "min_age": 18,
+          "max_age": 25,
+          "department_id": null,
+          "active": 1
+        }
+      ]
+    },
+    "student_scholarships": {
+      "columns": [
+        "student_id",
+        "scholarship_id",
+        "awarded_date",
+        "amount_awarded"
+      ],
+      "rows": [
+        {
+          "student_id": 1,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 1,
+          "scholarship_id": 3,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 2500
+        },
+        {
+          "student_id": 3,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 3,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 5,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 7,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 9,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 10,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 10,
+          "scholarship_id": 3,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 2500
+        },
+        {
+          "student_id": 13,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 13,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 15,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 18,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 20,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 21,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 25,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 28,
+          "scholarship_id": 4,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 4000
+        },
+        {
+          "student_id": 29,
+          "scholarship_id": 1,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 5000
+        },
+        {
+          "student_id": 2,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 6,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 11,
+          "scholarship_id": 6,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 2000
+        },
+        {
+          "student_id": 14,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 16,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 19,
+          "scholarship_id": 6,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 2000
+        },
+        {
+          "student_id": 22,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 26,
+          "scholarship_id": 2,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 3000
+        },
+        {
+          "student_id": 30,
+          "scholarship_id": 6,
+          "awarded_date": "2023-09-01",
+          "amount_awarded": 2000
+        }
+      ]
+    }
+  },
+  "deptHeadUpdates": [
+    {
+      "departmentId": 1,
+      "headTeacherId": 1
+    },
+    {
+      "departmentId": 2,
+      "headTeacherId": 5
+    },
+    {
+      "departmentId": 3,
+      "headTeacherId": 9
+    },
+    {
+      "departmentId": 4,
+      "headTeacherId": 12
+    },
+    {
+      "departmentId": 5,
+      "headTeacherId": 15
+    },
+    {
+      "departmentId": 6,
+      "headTeacherId": 18
+    },
+    {
+      "departmentId": 7,
+      "headTeacherId": 20
+    },
+    {
+      "departmentId": 8,
+      "headTeacherId": 23
+    }
+  ]
+}

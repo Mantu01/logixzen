@@ -76,15 +76,23 @@ export function PlaygroundResultPanel({
       if (a === b) return 0;
       if (a === null || a === undefined) return 1;
       if (b === null || b === undefined) return -1;
-      return String(a).localeCompare(String(b), undefined, { numeric: true }) * direction;
+      return (
+        String(a).localeCompare(String(b), undefined, { numeric: true }) *
+        direction
+      );
     });
   }, [result, searchTerm, sortColumn, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const visibleRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const visibleRows = rows.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
   const executionTime =
-    result?.executionTimeMs !== undefined ? `${result.executionTimeMs.toFixed(2)} ms` : null;
+    result?.executionTimeMs !== undefined
+      ? `${result.executionTimeMs.toFixed(2)} ms`
+      : null;
 
   const handleSort = (column: string): void => {
     if (sortColumn !== column) {
@@ -120,7 +128,10 @@ export function PlaygroundResultPanel({
     );
   }
 
-  if (result === null || (result.rows.length === 0 && result.columns.length === 0)) {
+  if (
+    result === null ||
+    (result.rows.length === 0 && result.columns.length === 0)
+  ) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <span className="flex size-10 items-center justify-center border border-border bg-surface-alt/60">
@@ -142,7 +153,8 @@ export function PlaygroundResultPanel({
         </p>
         {result.message === undefined ? (
           <p className="text-[11px] text-muted-dim">
-            {result.rowsAffected ?? 0} row{(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
+            {result.rowsAffected ?? 0} row
+            {(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
           </p>
         ) : null}
       </div>
@@ -159,7 +171,9 @@ export function PlaygroundResultPanel({
           {rows.length}
         </span>
         {executionTime !== null ? (
-          <span className="numeric text-[10px] text-muted-dim">{executionTime}</span>
+          <span className="numeric text-[10px] text-muted-dim">
+            {executionTime}
+          </span>
         ) : null}
 
         <div className="relative ml-auto">
@@ -177,13 +191,31 @@ export function PlaygroundResultPanel({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button onClick={() => onCopy(result)} variant="ghost" size="icon-xs" title="Copy results (CSV)" className="text-muted">
+          <Button
+            onClick={() => onCopy(result)}
+            variant="ghost"
+            size="icon-xs"
+            title="Copy results (CSV)"
+            className="text-muted"
+          >
             <ClipboardCopy />
           </Button>
-          <Button onClick={() => onExportCsv(result)} variant="ghost" size="icon-xs" title="Export CSV" className="text-muted">
+          <Button
+            onClick={() => onExportCsv(result)}
+            variant="ghost"
+            size="icon-xs"
+            title="Export CSV"
+            className="text-muted"
+          >
             <Download />
           </Button>
-          <Button onClick={() => onExportJson(result)} variant="ghost" size="icon-xs" title="Export JSON" className="text-muted">
+          <Button
+            onClick={() => onExportJson(result)}
+            variant="ghost"
+            size="icon-xs"
+            title="Export JSON"
+            className="text-muted"
+          >
             <FileJson />
           </Button>
         </div>
@@ -193,7 +225,9 @@ export function PlaygroundResultPanel({
         <Table className="font-mono" style={{ fontSize }}>
           <TableHeader className="sticky top-0 z-10 bg-surface">
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="w-12 text-[10px] font-medium text-muted-dim">#</TableHead>
+              <TableHead className="w-12 text-[10px] font-medium text-muted-dim">
+                #
+              </TableHead>
               {columns.map((column) => (
                 <TableHead key={column} className="whitespace-nowrap p-0">
                   <button
@@ -238,7 +272,10 @@ export function PlaygroundResultPanel({
             ))}
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="py-8 text-center text-muted">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  className="py-8 text-center text-muted"
+                >
                   No rows match the filter
                 </TableCell>
               </TableRow>

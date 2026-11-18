@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { BookOpen, Check, ChevronRight, Copy, FileText, Search } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  ChevronRight,
+  Copy,
+  FileText,
+  Search,
+} from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { usePackStore } from "@/stores/usePackStore";
 import type { Note } from "@/lib/packs/types";
@@ -21,13 +28,17 @@ export default function NotesPage(): React.ReactElement {
     for (const note of notes) {
       counts.set(note.category, (counts.get(note.category) ?? 0) + 1);
     }
-    return Array.from(counts.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    return Array.from(counts.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    );
   }, [notes]);
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return notes
-      .filter((note) => (category === "all" ? true : note.category === category))
+      .filter((note) =>
+        category === "all" ? true : note.category === category,
+      )
       .filter((note) =>
         term === ""
           ? true
@@ -35,12 +46,20 @@ export default function NotesPage(): React.ReactElement {
             note.content.toLowerCase().includes(term) ||
             note.tags.some((tag) => tag.toLowerCase().includes(term)),
       )
-      .sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
+      .sort(
+        (a, b) =>
+          a.category.localeCompare(b.category) ||
+          a.title.localeCompare(b.title),
+      );
   }, [notes, search, category]);
 
-  const selected = visible.find((note) => note.id === selectedId) ?? visible[0] ?? null;
+  const selected =
+    visible.find((note) => note.id === selectedId) ?? visible[0] ?? null;
 
-  const blocks = useMemo(() => (selected ? splitBlocks(selected.content) : []), [selected]);
+  const blocks = useMemo(
+    () => (selected ? splitBlocks(selected.content) : []),
+    [selected],
+  );
 
   const copyCode = (block: Block, index: number): void => {
     if (block.kind !== "code") return;
@@ -56,7 +75,8 @@ export default function NotesPage(): React.ReactElement {
           <BookOpen className="size-8 text-muted-dim" />
           <p className="text-[13px] font-medium">No notes yet</p>
           <p className="max-w-sm text-[11.5px] text-muted-dim">
-            Import the notes pack from the Data Hub, or generate one with the notes AI prompt.
+            Import the notes pack from the Data Hub, or generate one with the
+            notes AI prompt.
           </p>
         </div>
       </PageShell>
@@ -66,7 +86,11 @@ export default function NotesPage(): React.ReactElement {
   return (
     <PageShell
       title="Notes"
-      subtitle={hydrated ? `${notes.length} notes · ${categories.length} categories` : undefined}
+      subtitle={
+        hydrated
+          ? `${notes.length} notes · ${categories.length} categories`
+          : undefined
+      }
       toolbar={
         <>
           <div className="relative">
@@ -104,7 +128,9 @@ export default function NotesPage(): React.ReactElement {
       <div className="flex h-full min-h-0">
         <aside className="w-72 shrink-0 overflow-y-auto border-r border-border bg-surface">
           {visible.length === 0 ? (
-            <p className="px-3 py-8 text-center text-[11px] text-muted-dim">No notes match</p>
+            <p className="px-3 py-8 text-center text-[11px] text-muted-dim">
+              No notes match
+            </p>
           ) : null}
           {visible.map((note) => (
             <NoteListItem
@@ -155,7 +181,8 @@ export default function NotesPage(): React.ReactElement {
                 ))}
               </div>
               <footer className="mt-10 border-t border-border pt-4 text-[10px] text-muted-dim">
-                {notes.length} notes installed · content from imported packs, offline
+                {notes.length} notes installed · content from imported packs,
+                offline
               </footer>
             </article>
           ) : (
@@ -190,17 +217,23 @@ function NoteListItem({
       )}
     >
       <span className="flex items-center gap-1.5">
-        {active ? <ChevronRight className="size-3 shrink-0 text-primary" /> : null}
+        {active ? (
+          <ChevronRight className="size-3 shrink-0 text-primary" />
+        ) : null}
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-[12.5px]",
-            active ? "font-semibold text-foreground" : "font-medium text-foreground/90",
+            active
+              ? "font-semibold text-foreground"
+              : "font-medium text-foreground/90",
           )}
         >
           {note.title}
         </span>
       </span>
-      <span className="line-clamp-2 text-[10.5px] leading-snug text-muted-dim">{snippet}</span>
+      <span className="line-clamp-2 text-[10.5px] leading-snug text-muted-dim">
+        {snippet}
+      </span>
       <span className="flex items-center gap-1.5">
         <span
           className={cn(
@@ -244,7 +277,14 @@ function CategoryChip({
       )}
     >
       {label}
-      <span className={cn("numeric text-[9px]", active ? "text-primary" : "text-muted-dim")}>{count}</span>
+      <span
+        className={cn(
+          "numeric text-[9px]",
+          active ? "text-primary" : "text-muted-dim",
+        )}
+      >
+        {count}
+      </span>
     </button>
   );
 }
@@ -276,12 +316,18 @@ function splitBlocks(content: string): Block[] {
 
     if (/^#{1,3}\s/.test(trimmed)) {
       const level = (trimmed.match(/^#+/)?.[0].length ?? 1) as 1 | 2 | 3;
-      blocks.push({ kind: "heading", level, text: trimmed.replace(/^#+\s*/, "") });
+      blocks.push({
+        kind: "heading",
+        level,
+        text: trimmed.replace(/^#+\s*/, ""),
+      });
       continue;
     }
 
     if (/^\|.*\|$/.test(trimmed)) {
-      const lines = trimmed.split("\n").filter((line) => line.trim().length > 0);
+      const lines = trimmed
+        .split("\n")
+        .filter((line) => line.trim().length > 0);
       const parseRow = (line: string): string[] =>
         line
           .trim()
@@ -297,20 +343,30 @@ function splitBlocks(content: string): Block[] {
       continue;
     }
 
-    if (/^[-*]\s/m.test(trimmed) && trimmed.split("\n").every((line) => /^[-*]\s/.test(line.trim()))) {
+    if (
+      /^[-*]\s/m.test(trimmed) &&
+      trimmed.split("\n").every((line) => /^[-*]\s/.test(line.trim()))
+    ) {
       blocks.push({
         kind: "list",
         ordered: false,
-        items: trimmed.split("\n").map((line) => line.trim().replace(/^[-*]\s*/, "")),
+        items: trimmed
+          .split("\n")
+          .map((line) => line.trim().replace(/^[-*]\s*/, "")),
       });
       continue;
     }
 
-    if (/^\d+\.\s/m.test(trimmed) && trimmed.split("\n").every((line) => /^\d+\.\s/.test(line.trim()))) {
+    if (
+      /^\d+\.\s/m.test(trimmed) &&
+      trimmed.split("\n").every((line) => /^\d+\.\s/.test(line.trim()))
+    ) {
       blocks.push({
         kind: "list",
         ordered: true,
-        items: trimmed.split("\n").map((line) => line.trim().replace(/^\d+\.\s*/, "")),
+        items: trimmed
+          .split("\n")
+          .map((line) => line.trim().replace(/^\d+\.\s*/, "")),
       });
       continue;
     }
@@ -343,7 +399,8 @@ function NoteBlock({
             "font-semibold tracking-[-0.01em] text-foreground",
             block.level === 1 && "text-[17px]",
             block.level === 2 && "text-[15px] pt-2",
-            block.level === 3 && "text-[13px] uppercase tracking-wider text-muted",
+            block.level === 3 &&
+              "text-[13px] uppercase tracking-wider text-muted",
           )}
         >
           {block.text}
@@ -358,7 +415,10 @@ function NoteBlock({
             <thead>
               <tr className="border-b border-border bg-surface-alt">
                 {block.header.map((cell, index) => (
-                  <th key={index} className="px-3 py-1.5 text-left font-mono text-[11px] font-semibold text-foreground/90">
+                  <th
+                    key={index}
+                    className="px-3 py-1.5 text-left font-mono text-[11px] font-semibold text-foreground/90"
+                  >
                     <Inline text={cell} />
                   </th>
                 ))}
@@ -366,9 +426,15 @@ function NoteBlock({
             </thead>
             <tbody>
               {block.rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-b border-border/50 last:border-0">
+                <tr
+                  key={rowIndex}
+                  className="border-b border-border/50 last:border-0"
+                >
                   {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} className="px-3 py-1.5 align-top text-muted">
+                    <td
+                      key={cellIndex}
+                      className="px-3 py-1.5 align-top text-muted"
+                    >
                       <Inline text={cell} />
                     </td>
                   ))}
@@ -383,7 +449,9 @@ function NoteBlock({
         <ol className="space-y-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
           {block.items.map((item, index) => (
             <li key={index} className="flex gap-2.5">
-              <span className="numeric shrink-0 font-mono text-[11px] text-primary">{index + 1}.</span>
+              <span className="numeric shrink-0 font-mono text-[11px] text-primary">
+                {index + 1}.
+              </span>
               <span className="min-w-0">
                 <Inline text={item} />
               </span>
@@ -394,7 +462,10 @@ function NoteBlock({
         <ul className="space-y-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
           {block.items.map((item, index) => (
             <li key={index} className="flex gap-2.5">
-              <span className="mt-[7px] size-1 shrink-0 bg-primary" aria-hidden="true" />
+              <span
+                className="mt-[7px] size-1 shrink-0 bg-primary"
+                aria-hidden="true"
+              />
               <span className="min-w-0">
                 <Inline text={item} />
               </span>
@@ -413,7 +484,15 @@ function NoteBlock({
   }
 }
 
-function CodeBlock({ code, copied, onCopy }: { code: string; copied: boolean; onCopy: () => void }): React.ReactElement {
+function CodeBlock({
+  code,
+  copied,
+  onCopy,
+}: {
+  code: string;
+  copied: boolean;
+  onCopy: () => void;
+}): React.ReactElement {
   return (
     <div className="overflow-hidden border border-border bg-editor">
       <div className="flex h-7 items-center justify-between border-b border-border bg-surface px-2">
@@ -427,7 +506,11 @@ function CodeBlock({ code, copied, onCopy }: { code: string; copied: boolean; on
           onClick={onCopy}
           className="flex items-center gap-1 px-1.5 text-[10px] text-muted-dim transition-colors hover:text-foreground"
         >
-          {copied ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
+          {copied ? (
+            <Check className="size-3 text-success" />
+          ) : (
+            <Copy className="size-3" />
+          )}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
@@ -450,21 +533,78 @@ interface Token {
 }
 
 const KEYWORDS = new Set([
-  "select", "from", "where", "and", "or", "not", "in", "as", "on", "join", "left", "right",
-  "inner", "outer", "full", "cross", "group", "by", "order", "having", "limit", "offset",
-  "insert", "into", "values", "update", "set", "delete", "create", "table", "primary", "key",
-  "foreign", "references", "unique", "index", "view", "with", "union", "all", "distinct",
-  "case", "when", "then", "else", "end", "null", "is", "like", "between", "exists", "asc",
-  "desc", "constraint", "check", "default", "alter", "drop", "add", "column", "cascade",
+  "select",
+  "from",
+  "where",
+  "and",
+  "or",
+  "not",
+  "in",
+  "as",
+  "on",
+  "join",
+  "left",
+  "right",
+  "inner",
+  "outer",
+  "full",
+  "cross",
+  "group",
+  "by",
+  "order",
+  "having",
+  "limit",
+  "offset",
+  "insert",
+  "into",
+  "values",
+  "update",
+  "set",
+  "delete",
+  "create",
+  "table",
+  "primary",
+  "key",
+  "foreign",
+  "references",
+  "unique",
+  "index",
+  "view",
+  "with",
+  "union",
+  "all",
+  "distinct",
+  "case",
+  "when",
+  "then",
+  "else",
+  "end",
+  "null",
+  "is",
+  "like",
+  "between",
+  "exists",
+  "asc",
+  "desc",
+  "constraint",
+  "check",
+  "default",
+  "alter",
+  "drop",
+  "add",
+  "column",
+  "cascade",
 ]);
 
 function highlightSql(code: string): Token[] {
   const tokens: Token[] = [];
-  const pattern = /(--[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_][\w]*)|([(),;*+=<>!]+)/g;
+  const pattern =
+    /(--[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_][\w]*)|([(),;*+=<>!]+)/g;
   let last = 0;
   for (const match of code.matchAll(pattern)) {
     const index = match.index ?? 0;
-    if (index > last) tokens.push({ text: code.slice(last, index), className: "" });
+    if (index > last)
+      tokens.push({ text: code.slice(last, index), className: "" });
     const [full, comment, string, number, word, operator] = match;
     if (comment !== undefined) {
       tokens.push({ text: full, className: "text-muted-dim italic" });
@@ -484,12 +624,15 @@ function highlightSql(code: string): Token[] {
     }
     last = index + full.length;
   }
-  if (last < code.length) tokens.push({ text: code.slice(last), className: "" });
+  if (last < code.length)
+    tokens.push({ text: code.slice(last), className: "" });
   return tokens;
 }
 
 function Inline({ text }: { text: string }): React.ReactElement {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter((part) => part.length > 0);
+  const parts = text
+    .split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+    .filter((part) => part.length > 0);
   return (
     <>
       {parts.map((part, index) => {
@@ -519,7 +662,8 @@ function Inline({ text }: { text: string }): React.ReactElement {
 function noteSnippet(content: string): string {
   for (const paragraph of content.split(/\n\n+/)) {
     const line = paragraph.trim().split("\n")[0]?.trim() ?? "";
-    if (line.startsWith("#") || line.startsWith("```") || line.startsWith("|")) continue;
+    if (line.startsWith("#") || line.startsWith("```") || line.startsWith("|"))
+      continue;
     return line.replace(/[*`]/g, "").slice(0, 160);
   }
   return "";

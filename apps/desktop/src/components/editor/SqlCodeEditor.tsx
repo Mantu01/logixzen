@@ -2,11 +2,12 @@
 
 import { useMemo } from "react";
 import CodeMirror, { EditorView, type Extension } from "@uiw/react-codemirror";
-import { sql, PostgreSQL } from "@codemirror/lang-sql";
+import { sql, PostgreSQL, SQLite, MSSQL, MySQL } from "@codemirror/lang-sql";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import { keymap } from "@codemirror/view";
 import { Prec } from "@codemirror/state";
+import type { EngineDialect } from "@/shared/engines";
 
 interface SqlCodeEditorProps {
   value: string;
@@ -17,6 +18,7 @@ interface SqlCodeEditorProps {
   placeholder?: string;
   readOnly?: boolean;
   tables?: Record<string, string[]>;
+  dialect?: EngineDialect;
   minHeight?: string;
   maxHeight?: string;
 }
@@ -30,12 +32,22 @@ export function SqlCodeEditor({
   placeholder,
   readOnly = false,
   tables,
+  dialect = "sqlite",
   minHeight = "120px",
   maxHeight = "none",
 }: SqlCodeEditorProps): React.ReactElement {
   const extensions = useMemo(() => {
+    const cmDialect =
+      dialect === "tsql"
+        ? MSSQL
+        : dialect === "mysql"
+          ? MySQL
+          : dialect === "sqlite"
+            ? SQLite
+            : PostgreSQL;
+
     const list: Extension[] = [
-      sql({ dialect: PostgreSQL, schema: tables, upperCaseKeywords: true }),
+      sql({ dialect: cmDialect, schema: tables, upperCaseKeywords: true }),
       syntaxHighlighting(highlightStyle),
       EditorView.lineWrapping,
       Prec.high(
@@ -62,7 +74,7 @@ export function SqlCodeEditor({
       ),
     ];
     return list;
-  }, [tables, onRun, onSubmit]);
+  }, [tables, dialect, onRun, onSubmit]);
 
   return (
     <div
@@ -119,8 +131,15 @@ const highlightStyle = HighlightStyle.define([
   { tag: t.keyword, color: "var(--primary)", fontWeight: "600" },
   { tag: [t.string, t.special(t.string)], color: "var(--success)" },
   { tag: [t.number, t.integer, t.float], color: "var(--warning)" },
-  { tag: [t.comment, t.lineComment, t.blockComment], color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)", fontStyle: "italic" },
-  { tag: [t.function(t.variableName), t.function(t.propertyName)], color: "var(--info)" },
+  {
+    tag: [t.comment, t.lineComment, t.blockComment],
+    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    fontStyle: "italic",
+  },
+  {
+    tag: [t.function(t.variableName), t.function(t.propertyName)],
+    color: "var(--info)",
+  },
   { tag: [t.operator, t.operatorKeyword], color: "var(--foreground)" },
   { tag: [t.punctuation, t.separator], color: "var(--muted-foreground)" },
   { tag: [t.bool, t.null], color: "var(--warning)", fontWeight: "600" },

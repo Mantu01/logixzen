@@ -30,7 +30,9 @@ const EMPTY_RESULT: SqlResult = {
 
 function pickResult(results: SqlResult[]): SqlResult {
   const ok = results.filter((result) => result.error === undefined);
-  const select = ok.filter((result) => result.isSelect && result.columns.length > 0);
+  const select = ok.filter(
+    (result) => result.isSelect && result.columns.length > 0,
+  );
   return select.at(-1) ?? ok.at(-1) ?? results[0] ?? EMPTY_RESULT;
 }
 
@@ -41,11 +43,14 @@ export function useGrading(question: Question | null): {
 } {
   const [isGrading, setIsGrading] = useState(false);
 
-  const runAnswer = useCallback(async (answer: string): Promise<SqlResult[]> => {
-    const dataset = findDataset(question);
-    if (!dataset || window.logixzen === undefined) return [];
-    return window.logixzen.database.isolatedRun(dataset.setupSql, answer);
-  }, [question]);
+  const runAnswer = useCallback(
+    async (answer: string): Promise<SqlResult[]> => {
+      const dataset = findDataset(question);
+      if (!dataset || window.logixzen === undefined) return [];
+      return window.logixzen.database.isolatedRun(dataset.setupSql, answer);
+    },
+    [question],
+  );
 
   const grade = useCallback(
     async (answer: string): Promise<GradeResult> => {
@@ -82,7 +87,14 @@ async function gradeQuestion(
     const passed = answer === question.correctOptionId;
     return {
       passed,
-      testCases: [singleCase("answer", "Correct option", passed, passed ? undefined : "Selected option is wrong.")],
+      testCases: [
+        singleCase(
+          "answer",
+          "Correct option",
+          passed,
+          passed ? undefined : "Selected option is wrong.",
+        ),
+      ],
       pointsEarned: passed ? question.points : 0,
       totalTimeMs: performance.now() - started,
     };
@@ -91,10 +103,19 @@ async function gradeQuestion(
   if (question.type === "mcq-multi") {
     const selected = new Set(answer.split(",").filter(Boolean));
     const correct = new Set(question.correctOptionIds);
-    const passed = selected.size === correct.size && Array.from(correct).every((id) => selected.has(id));
+    const passed =
+      selected.size === correct.size &&
+      Array.from(correct).every((id) => selected.has(id));
     return {
       passed,
-      testCases: [singleCase("answer", "Correct selection", passed, passed ? undefined : "Select every correct option, and only those.")],
+      testCases: [
+        singleCase(
+          "answer",
+          "Correct selection",
+          passed,
+          passed ? undefined : "Select every correct option, and only those.",
+        ),
+      ],
       pointsEarned: passed ? question.points : 0,
       totalTimeMs: performance.now() - started,
     };
@@ -102,12 +123,22 @@ async function gradeQuestion(
 
   if (question.type === "fill-blank") {
     const submitted = answer.split("|").map((part) => part.trim());
-    const cases = Object.entries(question.acceptedAnswers).map(([position, accepted]) => {
-      const index = Number(position);
-      const value = submitted[Number.isNaN(index) ? submitted.length : index] ?? "";
-      const passed = accepted.some((option) => option.toLowerCase() === value.toLowerCase());
-      return singleCase(`blank-${position}`, `Blank ${position}`, passed, passed ? undefined : `Blank ${position} is wrong.`);
-    });
+    const cases = Object.entries(question.acceptedAnswers).map(
+      ([position, accepted]) => {
+        const index = Number(position);
+        const value =
+          submitted[Number.isNaN(index) ? submitted.length : index] ?? "";
+        const passed = accepted.some(
+          (option) => option.toLowerCase() === value.toLowerCase(),
+        );
+        return singleCase(
+          `blank-${position}`,
+          `Blank ${position}`,
+          passed,
+          passed ? undefined : `Blank ${position} is wrong.`,
+        );
+      },
+    );
     const passed = cases.every((testCase) => testCase.passed);
     return {
       passed,
@@ -119,11 +150,19 @@ async function gradeQuestion(
 
   const dataset = findDataset(question);
   if (!dataset) {
-    return failed("dataset", `Dataset "${question.datasetId}" not found. Import the databases pack first.`, started);
+    return failed(
+      "dataset",
+      `Dataset "${question.datasetId}" not found. Import the databases pack first.`,
+      started,
+    );
   }
   const bridge = window.logixzen;
   if (bridge === undefined) {
-    return failed("bridge", "Desktop bridge unavailable. Run the Electron app.", started);
+    return failed(
+      "bridge",
+      "Desktop bridge unavailable. Run the Electron app.",
+      started,
+    );
   }
 
   if (question.type === "dml-check") {
@@ -131,10 +170,18 @@ async function gradeQuestion(
       dataset.setupSql,
       `${stripTrailingSemicolon(question.dmlStatement)};\n${question.verificationQuery}`,
     );
-    const affected = results.reduce((total, result) => total + result.rowsAffected, 0);
+    const affected = results.reduce(
+      (total, result) => total + result.rowsAffected,
+      0,
+    );
     const verification = pickResult(results);
-    const failedStatement = results.find((result) => result.error !== undefined);
-    const passed = failedStatement === undefined && affected === question.expectedChanges && verification.error === undefined;
+    const failedStatement = results.find(
+      (result) => result.error !== undefined,
+    );
+    const passed =
+      failedStatement === undefined &&
+      affected === question.expectedChanges &&
+      verification.error === undefined;
     return {
       passed,
       testCases: [
@@ -142,7 +189,11 @@ async function gradeQuestion(
           "rows-affected",
           `Affects ${question.expectedChanges} rows`,
           passed,
-          failedStatement?.error ?? verification.error ?? (passed ? undefined : `Expected ${question.expectedChanges} affected rows, got ${affected}.`),
+          failedStatement?.error ??
+            verification.error ??
+            (passed
+              ? undefined
+              : `Expected ${question.expectedChanges} affected rows, got ${affected}.`),
         ),
       ],
       pointsEarned: passed ? question.points : 0,
@@ -151,7 +202,9 @@ async function gradeQuestion(
   }
 
   if (question.type === "predict-output") {
-    const actual = pickResult(await bridge.database.isolatedRun(dataset.setupSql, answer));
+    const actual = pickResult(
+      await bridge.database.isolatedRun(dataset.setupSql, answer),
+    );
     const expectedColumns = Object.keys(question.expectedOutput[0] ?? {});
     const expected: SqlResult = {
       ...EMPTY_RESULT,
@@ -171,7 +224,14 @@ async function gradeQuestion(
     });
     return {
       passed: comparison.match,
-      testCases: [singleCase("output", "Predicted output", comparison.match, comparison.message)],
+      testCases: [
+        singleCase(
+          "output",
+          "Predicted output",
+          comparison.match,
+          comparison.message,
+        ),
+      ],
       pointsEarned: comparison.match ? question.points : 0,
       totalTimeMs: performance.now() - started,
     };
@@ -179,7 +239,11 @@ async function gradeQuestion(
 
   const typed = question;
   if (!("solutionSql" in typed)) {
-    return failed("solution", "This question has no reference solution.", started);
+    return failed(
+      "solution",
+      "This question has no reference solution.",
+      started,
+    );
   }
 
   const cases: TestCaseResult[] = [];
@@ -190,15 +254,25 @@ async function gradeQuestion(
     let expected: SqlResult;
     let failure: string | undefined;
 
-    const answerResults = await bridge.database.isolatedRun(dataset.setupSql, answer);
-    const answerError = answerResults.find((result) => result.error !== undefined);
+    const answerResults = await bridge.database.isolatedRun(
+      dataset.setupSql,
+      answer,
+    );
+    const answerError = answerResults.find(
+      (result) => result.error !== undefined,
+    );
     if (answerError) {
       actual = answerError;
       expected = EMPTY_RESULT;
       failure = answerError.error;
     } else if (testCase.expected.type === "fromSolution") {
-      const solutionResults = await bridge.database.isolatedRun(dataset.setupSql, typed.solutionSql);
-      const solutionError = solutionResults.find((result) => result.error !== undefined);
+      const solutionResults = await bridge.database.isolatedRun(
+        dataset.setupSql,
+        typed.solutionSql,
+      );
+      const solutionError = solutionResults.find(
+        (result) => result.error !== undefined,
+      );
       if (solutionError) {
         actual = answerResults[0] ?? EMPTY_RESULT;
         expected = EMPTY_RESULT;
@@ -209,7 +283,8 @@ async function gradeQuestion(
       }
     } else {
       actual = pickResult(answerResults);
-      const literal = testCase.expected.type === "literal" ? testCase.expected : null;
+      const literal =
+        testCase.expected.type === "literal" ? testCase.expected : null;
       expected = {
         ...EMPTY_RESULT,
         columns: literal?.columns ?? [],
@@ -224,14 +299,15 @@ async function gradeQuestion(
       };
     }
 
-    const comparison = failure === undefined
-      ? compareResults(actual, expected, {
-          orderMatters: typed.validation.orderMatters,
-          columnNamesMatter: typed.validation.columnNamesMatter,
-          floatTolerance: typed.validation.floatTolerance,
-          caseSensitiveStrings: typed.validation.caseSensitiveStrings,
-        })
-      : { match: false, message: failure };
+    const comparison =
+      failure === undefined
+        ? compareResults(actual, expected, {
+            orderMatters: typed.validation.orderMatters,
+            columnNamesMatter: typed.validation.columnNamesMatter,
+            floatTolerance: typed.validation.floatTolerance,
+            caseSensitiveStrings: typed.validation.caseSensitiveStrings,
+          })
+        : { match: false, message: failure };
 
     if (!comparison.match) anyFailed = true;
     cases.push({
@@ -252,8 +328,19 @@ async function gradeQuestion(
   };
 }
 
-function singleCase(id: string, label: string, passed: boolean, message?: string): TestCaseResult {
-  return { id, label, passed, hidden: false, message: passed ? undefined : message };
+function singleCase(
+  id: string,
+  label: string,
+  passed: boolean,
+  message?: string,
+): TestCaseResult {
+  return {
+    id,
+    label,
+    passed,
+    hidden: false,
+    message: passed ? undefined : message,
+  };
 }
 
 function failed(id: string, message: string, started: number): GradeResult {

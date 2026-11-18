@@ -48,7 +48,10 @@ function schemaContext(tables: TableInfo[] | undefined): string {
 
 function historyContext(history: string[] | undefined): string {
   if (history === undefined || history.length === 0) return "";
-  return `\nRecent queries from this session:\n${history.slice(-10).map((query) => `- ${query}`).join("\n")}\n`;
+  return `\nRecent queries from this session:\n${history
+    .slice(-10)
+    .map((query) => `- ${query}`)
+    .join("\n")}\n`;
 }
 
 function progressContext(progress: ProgressDigest | undefined): string {
@@ -58,9 +61,12 @@ function progressContext(progress: ProgressDigest | undefined): string {
 
 function contextBlock(request: CommonRequest): string {
   const parts: string[] = [];
-  if (request.privacySettings.sendSchemaOnly) parts.push(schemaContext(request.schema));
-  if (request.privacySettings.sendHistory) parts.push(historyContext(request.history));
-  if (request.privacySettings.sendProgress) parts.push(progressContext(request.progress));
+  if (request.privacySettings.sendSchemaOnly)
+    parts.push(schemaContext(request.schema));
+  if (request.privacySettings.sendHistory)
+    parts.push(historyContext(request.history));
+  if (request.privacySettings.sendProgress)
+    parts.push(progressContext(request.progress));
   return parts.join("");
 }
 
@@ -94,7 +100,9 @@ The student has made ${studentAttemptCount} attempt(s). Generate the NEXT hint (
 Output ONLY the hint text, nothing else.`;
 }
 
-export function buildErrorExplanationPrompt(request: ErrorExplanationRequest): string {
+export function buildErrorExplanationPrompt(
+  request: ErrorExplanationRequest,
+): string {
   const { question, sql, errorMessage } = request;
 
   return `You are a SQL tutor. The student got an error running their query.
@@ -106,7 +114,9 @@ Error: ${errorMessage ?? "N/A"}
 Explain the error in simple terms and suggest how to fix it. Keep the explanation under 3 sentences.`;
 }
 
-export function buildQueryExplanationPrompt(request: QueryExplanationRequest): string {
+export function buildQueryExplanationPrompt(
+  request: QueryExplanationRequest,
+): string {
   const { question, sql } = request;
 
   return `You are a SQL tutor. Explain what this query does in simple terms.

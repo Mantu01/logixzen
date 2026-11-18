@@ -1,3 +1,28 @@
+import type {
+  BackupManifest,
+  BridgeResult,
+  ContainerLifecycleAction,
+  ContainerStats,
+  ContainerTechnicalDetails,
+  DiagnosticsSummary,
+  DockerGuidanceContent,
+  DocsTopicId,
+  EngineCatalogEntry,
+  EngineDoctorReport,
+  EngineOffer,
+  EngineOptionId,
+  EngineStorageUsage,
+  InstallationRecord,
+  Job,
+  LogFileSummary,
+  OrphanContainerSummary,
+  PlatformSnapshot,
+  ProgressEvent,
+  StartJobRequest,
+  SupportBundleSummary,
+  VerificationResult,
+} from "./engines";
+
 export interface FileFilter {
   name: string;
   extensions: string[];
@@ -60,6 +85,89 @@ export interface AiCompletionRequest {
   maxTokens?: number;
 }
 
+export interface SetupApi {
+  snapshot: () => Promise<BridgeResult<PlatformSnapshot>>;
+  catalog: () => Promise<BridgeResult<EngineCatalogEntry[]>>;
+  compatibility: () => Promise<BridgeResult<EngineOffer[]>>;
+  installations: () => Promise<BridgeResult<InstallationRecord[]>>;
+  refresh: () => Promise<BridgeResult<PlatformSnapshot>>;
+  verifyConnection: (
+    optionId: EngineOptionId,
+  ) => Promise<BridgeResult<VerificationResult>>;
+  startJob: (request: StartJobRequest) => Promise<BridgeResult<Job>>;
+  cancelJob: (jobId: string) => Promise<BridgeResult<Job>>;
+  resumeJob: (jobId: string) => Promise<BridgeResult<Job>>;
+  cleanupJob: (jobId: string) => Promise<BridgeResult<Job>>;
+  checkWaitingJob: (jobId: string) => Promise<BridgeResult<Job>>;
+  confirmIrreversible: (
+    jobId: string,
+    proceed: boolean,
+  ) => Promise<BridgeResult<Job>>;
+  getJob: (jobId: string) => Promise<BridgeResult<Job | null>>;
+  subscribeProgress: (callback: (event: ProgressEvent) => void) => () => void;
+  switch: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  getActiveEngine: () => Promise<BridgeResult<EngineOptionId>>;
+  storageUsage: () => Promise<BridgeResult<Record<string, EngineStorageUsage>>>;
+  activate: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  start: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  stop: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  restart: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  repair: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  reset: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  reinitialize: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  backup: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  restore: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  listBackups: (
+    optionId?: EngineOptionId,
+  ) => Promise<BridgeResult<BackupManifest[]>>;
+  cleanupBackups: (
+    keepCount?: number,
+  ) => Promise<BridgeResult<{ deletedCount: number; freedBytes: number }>>;
+  uninstall: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  removeData: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  provisionContainer: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  containerLifecycle: (
+    optionId: EngineOptionId,
+    action: ContainerLifecycleAction,
+  ) => Promise<BridgeResult<Job>>;
+  containerStats: (
+    optionId: EngineOptionId,
+  ) => Promise<BridgeResult<ContainerStats>>;
+  containerDetails: (
+    optionId: EngineOptionId,
+  ) => Promise<BridgeResult<ContainerTechnicalDetails>>;
+  containerLogs: (
+    optionId: EngineOptionId,
+    tail?: number,
+  ) => Promise<BridgeResult<string[]>>;
+  containerUpdateImage: (
+    optionId: EngineOptionId,
+  ) => Promise<BridgeResult<Job>>;
+  removeContainer: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  removeVolume: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
+  listOrphanContainers: () => Promise<BridgeResult<OrphanContainerSummary[]>>;
+  cleanupOrphanContainer: (name: string) => Promise<BridgeResult<void>>;
+  listLogs: () => Promise<BridgeResult<LogFileSummary[]>>;
+  tailLog: (name: string, lines?: number) => Promise<BridgeResult<string[]>>;
+  openLogsFolder: () => Promise<BridgeResult<void>>;
+  diagnosticsSummary: () => Promise<BridgeResult<DiagnosticsSummary>>;
+  openDocs: (topic: DocsTopicId) => Promise<BridgeResult<void>>;
+  getDockerGuidance: () => Promise<BridgeResult<DockerGuidanceContent>>;
+  openExternalUrl: (url: string) => Promise<BridgeResult<void>>;
+  cacheSize: () => Promise<BridgeResult<number>>;
+  clearCache: () => Promise<BridgeResult<void>>;
+  doctor: (
+    optionId: EngineOptionId,
+  ) => Promise<BridgeResult<EngineDoctorReport>>;
+  repairIssue: (
+    optionId: EngineOptionId,
+    issueId?: string,
+  ) => Promise<BridgeResult<void>>;
+  exportSupportBundle: (
+    targetPath?: string,
+  ) => Promise<BridgeResult<SupportBundleSummary>>;
+}
+
 export interface DesktopApi {
   window: {
     minimize: () => void;
@@ -93,6 +201,7 @@ export interface DesktopApi {
     readText: (filePath: string) => Promise<string>;
     writeText: (filePath: string, content: string) => Promise<void>;
   };
+  setup: SetupApi;
   ai: {
     complete: (request: AiCompletionRequest) => Promise<string>;
   };

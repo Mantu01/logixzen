@@ -10,12 +10,12 @@ import {
   Database,
   GraduationCap,
   Import,
+  Network,
   PanelLeft,
   Settings2,
   Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { activeSubject } from "@/lib/subjects";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { usePackStore } from "@/stores/usePackStore";
 
@@ -35,7 +35,8 @@ const GROUPS: NavGroup[] = [
     label: "Data",
     items: [
       { href: "/playground", label: "Editor", icon: Terminal },
-      { href: "/schema", label: activeSubject.dataLabel, icon: Database },
+      { href: "/databases", label: "Databases", icon: Database },
+      { href: "/schema", label: "Schema", icon: Network },
       { href: "/import", label: "Data Hub", icon: Import },
     ],
   },
@@ -54,7 +55,9 @@ const STORAGE_KEY = "logixzen.sidebar.collapsed";
 export function AppSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(
-    () => typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY) === "true",
+    () =>
+      typeof window !== "undefined" &&
+      window.localStorage.getItem(STORAGE_KEY) === "true",
   );
   const totalPoints = useProgressStore((state) => state.totalPoints);
   const solvedCount = useProgressStore((state) => state.solvedQuestions.size);
@@ -87,14 +90,23 @@ export function AppSidebar() {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="flex size-6 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
         >
-          {collapsed ? <PanelLeft className="size-5" /> : <ChevronLeft className="size-3.5" />}
+          {collapsed ? (
+            <PanelLeft className="size-5" />
+          ) : (
+            <ChevronLeft className="size-3.5" />
+          )}
         </button>
       </div>
 
-      <nav aria-label="Main" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1.5 py-2">
+      <nav
+        aria-label="Main"
+        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1.5 py-2"
+      >
         {GROUPS.map((group) => (
           <div key={group.label} className="flex flex-col gap-0.5">
-            {collapsed ? null : <span className="section-label px-2 pb-1">{group.label}</span>}
+            {collapsed ? null : (
+              <span className="section-label px-2 pb-1">{group.label}</span>
+            )}
             {group.items.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
@@ -128,14 +140,18 @@ export function AppSidebar() {
                   <Icon
                     className={cn(
                       "size-3.5 shrink-0",
-                      active ? "text-primary" : "text-muted-dim group-hover:text-foreground",
+                      active
+                        ? "text-primary"
+                        : "text-muted-dim group-hover:text-foreground",
                     )}
                   />
                   {collapsed ? null : (
                     <span className="flex flex-1 items-center justify-between gap-2">
                       <span className="truncate">{item.label}</span>
                       {count !== undefined && count > 0 ? (
-                        <span className="numeric text-[10px] text-muted-dim">{count}</span>
+                        <span className="numeric text-[10px] text-muted-dim">
+                          {count}
+                        </span>
                       ) : null}
                     </span>
                   )}
@@ -169,7 +185,9 @@ export function AppSidebar() {
           <Settings2
             className={cn(
               "size-3.5 shrink-0",
-              isActive("/settings") ? "text-primary" : "text-muted-dim group-hover:text-foreground",
+              isActive("/settings")
+                ? "text-primary"
+                : "text-muted-dim group-hover:text-foreground",
             )}
           />
           {collapsed ? null : <span>Settings</span>}
@@ -182,8 +200,12 @@ export function AppSidebar() {
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col items-center gap-0.5 px-1 py-1.5">
-      <span className="numeric text-[12px] font-semibold text-foreground">{value}</span>
-      <span className="text-[9px] uppercase tracking-wider text-muted-dim">{label}</span>
+      <span className="numeric text-[12px] font-semibold text-foreground">
+        {value}
+      </span>
+      <span className="text-[9px] uppercase tracking-wider text-muted-dim">
+        {label}
+      </span>
     </div>
   );
 }

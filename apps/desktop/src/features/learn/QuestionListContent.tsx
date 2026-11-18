@@ -10,12 +10,18 @@ import { useProgressStore } from "@/stores/useProgressStore";
 import { cn } from "@/lib/utils";
 import type { Question } from "@logixzen/shared/content";
 
-export function QuestionListContent({ topicId }: { topicId: string }): React.ReactElement {
+export function QuestionListContent({
+  topicId,
+}: {
+  topicId: string;
+}): React.ReactElement {
   const questions = usePackStore((state) => state.questions);
   const hydrated = usePackStore((state) => state.hydrated);
   const solved = useProgressStore((state) => state.solvedQuestions);
   const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState<"all" | "easy" | "medium" | "hard">("all");
+  const [difficulty, setDifficulty] = useState<
+    "all" | "easy" | "medium" | "hard"
+  >("all");
 
   const topicQuestions = useMemo(
     () => questions.filter((question) => question.topicId === topicId),
@@ -25,7 +31,8 @@ export function QuestionListContent({ topicId }: { topicId: string }): React.Rea
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return topicQuestions.filter((question) => {
-      if (difficulty !== "all" && question.difficulty !== difficulty) return false;
+      if (difficulty !== "all" && question.difficulty !== difficulty)
+        return false;
       if (term === "") return true;
       return (
         question.title.toLowerCase().includes(term) ||
@@ -35,14 +42,21 @@ export function QuestionListContent({ topicId }: { topicId: string }): React.Rea
     });
   }, [topicQuestions, search, difficulty]);
 
-  const solvedCount = topicQuestions.filter((question) => solved.has(question.id)).length;
+  const solvedCount = topicQuestions.filter((question) =>
+    solved.has(question.id),
+  ).length;
 
   return (
     <PageShell
       title={topicId.replace(/[-_]/g, " ")}
-      subtitle={hydrated ? `${solvedCount}/${topicQuestions.length} solved` : undefined}
+      subtitle={
+        hydrated ? `${solvedCount}/${topicQuestions.length} solved` : undefined
+      }
       actions={
-        <Link href="/learn" className="flex items-center gap-1 text-[11.5px] text-muted transition-colors hover:text-foreground">
+        <Link
+          href="/learn"
+          className="flex items-center gap-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
+        >
           <ChevronLeft className="size-3.5" /> All topics
         </Link>
       }
@@ -66,7 +80,9 @@ export function QuestionListContent({ topicId }: { topicId: string }): React.Rea
                 onClick={() => setDifficulty(value)}
                 className={cn(
                   "h-8 px-3 text-[11.5px] capitalize transition-colors",
-                  difficulty === value ? "bg-accent text-accent-foreground" : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
+                  difficulty === value
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
                 )}
               >
                 {value}
@@ -77,7 +93,8 @@ export function QuestionListContent({ topicId }: { topicId: string }): React.Rea
 
         {topicQuestions.length === 0 && hydrated ? (
           <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
-            No questions in this topic. Import the questions pack from the Data Hub.
+            No questions in this topic. Import the questions pack from the Data
+            Hub.
           </p>
         ) : null}
 
@@ -113,14 +130,20 @@ function QuestionRow({
       <span
         className={cn(
           "flex size-5 shrink-0 items-center justify-center border text-[10px]",
-          solved ? "border-success/40 bg-success/10 text-success" : "border-border text-muted-dim",
+          solved
+            ? "border-success/40 bg-success/10 text-success"
+            : "border-border text-muted-dim",
         )}
       >
         {solved ? <Check className="size-3" /> : index + 1}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-medium">{question.title}</span>
-        <span className="block truncate text-[10.5px] text-muted-dim">{question.tags.join(" · ")}</span>
+        <span className="block truncate text-[13px] font-medium">
+          {question.title}
+        </span>
+        <span className="block truncate text-[10.5px] text-muted-dim">
+          {question.tags.join(" · ")}
+        </span>
       </span>
       <span
         className={cn(
@@ -132,7 +155,9 @@ function QuestionRow({
       >
         {question.difficulty}
       </span>
-      <span className="numeric w-10 shrink-0 text-right text-[10.5px] text-muted-dim">{question.points} pts</span>
+      <span className="numeric w-10 shrink-0 text-right text-[10.5px] text-muted-dim">
+        {question.points} pts
+      </span>
       {!solved ? <X className="invisible size-3" /> : null}
     </Link>
   );

@@ -20,12 +20,22 @@ export default function LearnPage(): React.ReactElement {
   const [filter, setFilter] = useState<"all" | "unsolved">("all");
 
   const topics = useMemo(() => {
-    const map = new Map<string, { total: number; solved: number; difficulties: Map<string, number> }>();
+    const map = new Map<
+      string,
+      { total: number; solved: number; difficulties: Map<string, number> }
+    >();
     for (const question of questions) {
-      const entry = map.get(question.topicId) ?? { total: 0, solved: 0, difficulties: new Map() };
+      const entry = map.get(question.topicId) ?? {
+        total: 0,
+        solved: 0,
+        difficulties: new Map(),
+      };
       entry.total += 1;
       if (solved.has(question.id)) entry.solved += 1;
-      entry.difficulties.set(question.difficulty, (entry.difficulties.get(question.difficulty) ?? 0) + 1);
+      entry.difficulties.set(
+        question.difficulty,
+        (entry.difficulties.get(question.difficulty) ?? 0) + 1,
+      );
       map.set(question.topicId, entry);
     }
     return Array.from(map.entries())
@@ -47,7 +57,11 @@ export default function LearnPage(): React.ReactElement {
   return (
     <PageShell
       title="Practice"
-      subtitle={hydrated ? `${topics.length} topics · ${totalSolved}/${questions.length} solved` : undefined}
+      subtitle={
+        hydrated
+          ? `${topics.length} topics · ${totalSolved}/${questions.length} solved`
+          : undefined
+      }
     >
       <div className="mx-auto max-w-4xl px-5 py-6">
         <div className="mb-4 flex items-center gap-2">
@@ -68,7 +82,9 @@ export default function LearnPage(): React.ReactElement {
                 onClick={() => setFilter(value)}
                 className={cn(
                   "h-8 px-3 text-[11.5px] capitalize transition-colors",
-                  filter === value ? "bg-accent text-accent-foreground" : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
+                  filter === value
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
                 )}
               >
                 {value}
@@ -76,7 +92,10 @@ export default function LearnPage(): React.ReactElement {
             ))}
           </div>
           {lastPosition ? (
-            <Link href={`/learn/practice?topic=${lastPosition.topicId}&q=${lastPosition.questionId}`} className="ml-auto">
+            <Link
+              href={`/learn/practice?topic=${lastPosition.topicId}&q=${lastPosition.questionId}`}
+              className="ml-auto"
+            >
               <Button size="sm" className="gap-1.5">
                 Continue <ArrowRight className="size-3.5" />
               </Button>
@@ -94,7 +113,10 @@ export default function LearnPage(): React.ReactElement {
 
         <div className="divide-y divide-border border border-border bg-surface">
           {visible.map((topic) => {
-            const percent = topic.total === 0 ? 0 : Math.round((topic.solved / topic.total) * 100);
+            const percent =
+              topic.total === 0
+                ? 0
+                : Math.round((topic.solved / topic.total) * 100);
             return (
               <Link
                 key={topic.id}
@@ -121,9 +143,17 @@ export default function LearnPage(): React.ReactElement {
                 </div>
                 <div className="flex w-40 shrink-0 items-center gap-2">
                   <div className="h-1 flex-1 bg-surface-hover">
-                    <div className={cn("h-full", percent === 100 ? "bg-success" : "bg-primary")} style={{ width: `${percent}%` }} />
+                    <div
+                      className={cn(
+                        "h-full",
+                        percent === 100 ? "bg-success" : "bg-primary",
+                      )}
+                      style={{ width: `${percent}%` }}
+                    />
                   </div>
-                  <span className="numeric w-8 text-right text-[10.5px] text-muted-dim">{percent}%</span>
+                  <span className="numeric w-8 text-right text-[10.5px] text-muted-dim">
+                    {percent}%
+                  </span>
                 </div>
                 <ChevronRight className="size-4 shrink-0 text-muted-dim opacity-0 transition-opacity group-hover:opacity-100" />
               </Link>

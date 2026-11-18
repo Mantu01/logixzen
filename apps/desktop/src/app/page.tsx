@@ -31,7 +31,10 @@ export default function HomePage(): React.ReactElement {
   const topics = useMemo(() => {
     const map = new Map<string, { id: string; count: number }>();
     for (const question of questions) {
-      const entry = map.get(question.topicId) ?? { id: question.topicId, count: 0 };
+      const entry = map.get(question.topicId) ?? {
+        id: question.topicId,
+        count: 0,
+      };
       entry.count += 1;
       map.set(question.topicId, entry);
     }
@@ -40,7 +43,10 @@ export default function HomePage(): React.ReactElement {
 
   const lastQuestion = useMemo(() => {
     if (!lastPosition) return null;
-    return questions.find((question) => question.id === lastPosition.questionId) ?? null;
+    return (
+      questions.find((question) => question.id === lastPosition.questionId) ??
+      null
+    );
   }, [lastPosition, questions]);
 
   const empty = databases.length === 0 || questions.length === 0;
@@ -48,7 +54,11 @@ export default function HomePage(): React.ReactElement {
   return (
     <PageShell
       title="Dashboard"
-      subtitle={empty ? "Set up your data to begin" : `${questions.length} questions · ${databases.length} databases`}
+      subtitle={
+        empty
+          ? "Set up your data to begin"
+          : `${questions.length} questions · ${databases.length} databases`
+      }
       actions={<ReadyBadge hydrated={hydrated} empty={empty} />}
     >
       <div className="mx-auto max-w-4xl px-5 py-6">
@@ -57,18 +67,37 @@ export default function HomePage(): React.ReactElement {
         ) : (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-2">
-              <StatCard label="Points" value={totalPoints} icon={<GraduationCap className="size-3.5" />} />
-              <StatCard label="Solved" value={solvedCount} icon={<CheckCircle2 className="size-3.5" />} />
-              <StatCard label="Streak" value={streak} suffix="d" icon={<Flame className="size-3.5" />} />
+              <StatCard
+                label="Points"
+                value={totalPoints}
+                icon={<GraduationCap className="size-3.5" />}
+              />
+              <StatCard
+                label="Solved"
+                value={solvedCount}
+                icon={<CheckCircle2 className="size-3.5" />}
+              />
+              <StatCard
+                label="Streak"
+                value={streak}
+                suffix="d"
+                icon={<Flame className="size-3.5" />}
+              />
             </div>
 
             {lastQuestion && lastPosition ? (
               <div className="flex items-center justify-between gap-4 border border-primary/40 bg-primary/5 px-4 py-3">
                 <div className="min-w-0">
-                  <div className="section-label">Continue where you left off</div>
-                  <div className="mt-0.5 truncate text-[13px] font-medium">{lastQuestion.title}</div>
+                  <div className="section-label">
+                    Continue where you left off
+                  </div>
+                  <div className="mt-0.5 truncate text-[13px] font-medium">
+                    {lastQuestion.title}
+                  </div>
                 </div>
-                <Link href={`/learn/practice?topic=${lastPosition.topicId}&q=${lastPosition.questionId}`}>
+                <Link
+                  href={`/learn/practice?topic=${lastPosition.topicId}&q=${lastPosition.questionId}`}
+                >
                   <Button size="sm" className="gap-1.5">
                     Resume <ArrowRight className="size-3.5" />
                   </Button>
@@ -79,7 +108,10 @@ export default function HomePage(): React.ReactElement {
             <section>
               <div className="mb-2 flex items-center justify-between">
                 <span className="section-label">Topics</span>
-                <Link href="/learn" className="flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-foreground">
+                <Link
+                  href="/learn"
+                  className="flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-foreground"
+                >
                   All topics <ArrowRight className="size-3" />
                 </Link>
               </div>
@@ -96,7 +128,9 @@ export default function HomePage(): React.ReactElement {
                     <span className="min-w-0 flex-1 truncate text-[13px] font-medium capitalize">
                       {topic.id.replace(/[-_]/g, " ")}
                     </span>
-                    <span className="numeric shrink-0 text-[11px] text-muted-dim">{topic.count} Q</span>
+                    <span className="numeric shrink-0 text-[11px] text-muted-dim">
+                      {topic.count} Q
+                    </span>
                     <ArrowRight className="size-3.5 shrink-0 text-muted-dim opacity-0 transition-opacity group-hover:opacity-100" />
                   </Link>
                 ))}
@@ -106,7 +140,10 @@ export default function HomePage(): React.ReactElement {
             <section>
               <div className="mb-2 flex items-center justify-between">
                 <span className="section-label">Databases</span>
-                <Link href="/schema" className="flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-foreground">
+                <Link
+                  href="/schema"
+                  className="flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-foreground"
+                >
                   Manage <ArrowRight className="size-3" />
                 </Link>
               </div>
@@ -119,7 +156,9 @@ export default function HomePage(): React.ReactElement {
                   >
                     <div className="flex items-center gap-2">
                       <Database className="size-3.5 shrink-0 text-primary" />
-                      <span className="truncate font-mono text-[12px] font-medium">{dataset.name}</span>
+                      <span className="truncate font-mono text-[12px] font-medium">
+                        {dataset.name}
+                      </span>
                     </div>
                     <div className="numeric mt-1 text-[10.5px] text-muted-dim">
                       {dataset.tables.length} tables
@@ -135,7 +174,13 @@ export default function HomePage(): React.ReactElement {
   );
 }
 
-function ReadyBadge({ hydrated, empty }: { hydrated: boolean; empty: boolean }): React.ReactElement {
+function ReadyBadge({
+  hydrated,
+  empty,
+}: {
+  hydrated: boolean;
+  empty: boolean;
+}): React.ReactElement {
   if (!hydrated) {
     return (
       <span className="flex items-center gap-1.5 text-[11px] text-muted-dim">
@@ -174,7 +219,9 @@ function StatCard({
       </div>
       <div className="numeric mt-1 text-2xl font-semibold leading-none">
         {value}
-        {suffix ? <span className="text-[13px] text-muted-dim">{suffix}</span> : null}
+        {suffix ? (
+          <span className="text-[13px] text-muted-dim">{suffix}</span>
+        ) : null}
       </div>
     </div>
   );
@@ -221,8 +268,9 @@ function EmptyState({ hydrated }: { hydrated: boolean }): React.ReactElement {
       <div className="border border-border bg-surface p-5">
         <h2 className="text-[15px] font-semibold">Welcome to LogixZen</h2>
         <p className="mt-1 max-w-lg text-[12.5px] text-muted">
-          LogixZen runs fully offline. Study content lives in data packs you import — databases,
-          questions and notes. SQL first, more subjects later.
+          LogixZen runs fully offline. Study content lives in data packs you
+          import — databases, questions and notes. SQL first, more subjects
+          later.
         </p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -236,7 +284,9 @@ function EmptyState({ hydrated }: { hydrated: boolean }): React.ReactElement {
               {step.icon}
             </span>
             <span className="mt-1 text-[13px] font-semibold">{step.title}</span>
-            <span className="text-[11.5px] leading-relaxed text-muted">{step.body}</span>
+            <span className="text-[11.5px] leading-relaxed text-muted">
+              {step.body}
+            </span>
           </Link>
         ))}
       </div>

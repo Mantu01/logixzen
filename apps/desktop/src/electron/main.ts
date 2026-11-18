@@ -4,7 +4,9 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { registerIpcHandlers } from "./ipc";
 import { buildApplicationMenu } from "./menu";
+import { prepareInstallState } from "./state/startup";
 import { createTray, destroyTray } from "./tray";
+import { connectionRegistry } from "./sql/registry";
 
 const DEV_SERVER_URL = "http://localhost:3000";
 const APP_SCHEME = "logixzen";
@@ -31,7 +33,11 @@ function delay(ms: number): Promise<void> {
 function resolveExportFile(pathname: string): string {
   const decoded = decodeURIComponent(pathname);
   const relative = decoded.startsWith("/") ? decoded.slice(1) : decoded;
-  const candidates = [relative, `${relative}.html`, join(relative, "index.html")];
+  const candidates = [
+    relative,
+    `${relative}.html`,
+    join(relative, "index.html"),
+  ];
 
   for (const candidate of candidates) {
     const file = resolve(EXPORT_DIR, candidate);
@@ -80,8 +86,11 @@ async function loadDevServer(window: BrowserWindow): Promise<void> {
     }
   }
 
-  const message = "Could not reach http://localhost:3000. Start the dev server with `pnpm dev`.";
-  await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(message)}`);
+  const message =
+    "Could not reach http://localhost:3000. Start the dev server with `pnpm dev`.";
+  await window.loadURL(
+    `data:text/html;charset=utf-8,${encodeURIComponent(message)}`,
+  );
 }
 
 function createWindow(): BrowserWindow {
@@ -114,6 +123,19 @@ function createWindow(): BrowserWindow {
     }
   });
 
+  window.webContents.session.webRequest.onHeadersReceived(
+    (details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          "Content-Security-Policy": [
+            "default-src 'self' logixzen:; script-src 'self' 'unsafe-eval' 'unsafe-inline' logixzen:; style-src 'self' 'unsafe-inline' logixzen:; img-src 'self' data: logixzen:; font-src 'self' data: logixzen:; connect-src 'self' logixzen: ws://localhost:* http://localhost:*;",
+          ],
+        },
+      });
+    },
+  );
+
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https://")) {
       void shell.openExternal(url);
@@ -131,27 +153,45 @@ function createWindow(): BrowserWindow {
   return window;
 }
 
-app.whenReady().then(() => {
-  registerAppProtocol();
-  registerIpcHandlers(ipcMain);
-  buildApplicationMenu(navigate);
-  createWindow();
-  createTray(() => mainWindow, (path) => {
-    if (mainWindow === null) {
-      mainWindow = createWindow();
-    }
-    navigate(path);
+const instanceLock = app.requestSingleInstanceLock();
+
+if (!instanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow === null) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
   });
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+  app.whenReady().then(async () => {
+    registerAppProtocol();
+    registerIpcHandlers(ipcMain);
+    buildApplicationMenu(navigate);
+    await prepareInstallState();
+    createWindow();
+    createTray(
+      () => mainWindow,
+      (path) => {
+        if (mainWindow === null) {
+          mainWindow = createWindow();
+        }
+        navigate(path);
+      },
+    );
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
   });
-});
+}
 
 app.on("before-quit", () => {
   destroyTray();
+  void connectionRegistry.disposeAll();
 });
 
 app.on("window-all-closed", () => {

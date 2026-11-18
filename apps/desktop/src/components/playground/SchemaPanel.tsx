@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronRight, PanelRightClose, PanelRightOpen, Search, Table2 } from "lucide-react";
+import {
+  ChevronRight,
+  PanelRightClose,
+  PanelRightOpen,
+  Search,
+  Table2,
+} from "lucide-react";
 import type { TableInfo } from "@/shared/desktop-api";
 import { cn } from "@/lib/utils";
 
@@ -23,11 +29,15 @@ export function SchemaPanel({
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const tableNames = useMemo(() => new Set(tables.map((table) => table.name)), [tables]);
+  const tableNames = useMemo(
+    () => new Set(tables.map((table) => table.name)),
+    [tables],
+  );
 
   const openTables = useMemo(() => {
     const valid = new Set([...expanded].filter((name) => tableNames.has(name)));
-    if (activeTable !== null && tableNames.has(activeTable)) valid.add(activeTable);
+    if (activeTable !== null && tableNames.has(activeTable))
+      valid.add(activeTable);
     return valid;
   }, [expanded, tableNames, activeTable]);
 
@@ -37,7 +47,9 @@ export function SchemaPanel({
     return tables.filter(
       (table) =>
         table.name.toLowerCase().includes(term) ||
-        table.columns.some((column) => column.name.toLowerCase().includes(term)),
+        table.columns.some((column) =>
+          column.name.toLowerCase().includes(term),
+        ),
     );
   }, [tables, search]);
 
@@ -80,7 +92,9 @@ export function SchemaPanel({
       <div className="flex h-8 shrink-0 items-center justify-between border-b border-border pl-2.5 pr-1.5">
         <div className="flex items-center gap-1.5">
           <span className="section-label">Schema</span>
-          <span className="numeric text-[9.5px] text-muted-dim">{tables.length}</span>
+          <span className="numeric text-[9.5px] text-muted-dim">
+            {tables.length}
+          </span>
         </div>
         {onToggleCollapsed ? (
           <button
@@ -125,7 +139,9 @@ export function SchemaPanel({
               >
                 <button
                   type="button"
-                  aria-label={open ? `Collapse ${table.name}` : `Expand ${table.name}`}
+                  aria-label={
+                    open ? `Collapse ${table.name}` : `Expand ${table.name}`
+                  }
                   aria-expanded={open}
                   onClick={() => toggle(table.name)}
                   className="flex size-6 shrink-0 items-center justify-center"
@@ -146,9 +162,14 @@ export function SchemaPanel({
                   className="flex h-7 min-w-0 flex-1 items-center gap-1.5 pr-2 text-left"
                 >
                   <Table2
-                    className={cn("size-3 shrink-0", selected ? "text-primary" : "text-muted-dim")}
+                    className={cn(
+                      "size-3 shrink-0",
+                      selected ? "text-primary" : "text-muted-dim",
+                    )}
                   />
-                  <span className="min-w-0 flex-1 truncate font-mono">{table.name}</span>
+                  <span className="min-w-0 flex-1 truncate font-mono">
+                    {table.name}
+                  </span>
                   <span className="numeric shrink-0 text-[9.5px] text-muted-dim">
                     {table.columns.length}
                   </span>

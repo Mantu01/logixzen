@@ -31,7 +31,9 @@ export const useSnippetsStore = create<SnippetsState>()(
         set((state) => ({ snippets: [snippet, ...state.snippets] }));
       },
       removeSnippet: (id) =>
-        set((state) => ({ snippets: state.snippets.filter((snippet) => snippet.id !== id) })),
+        set((state) => ({
+          snippets: state.snippets.filter((snippet) => snippet.id !== id),
+        })),
     }),
     { name: "logixzen_snippets" },
   ),

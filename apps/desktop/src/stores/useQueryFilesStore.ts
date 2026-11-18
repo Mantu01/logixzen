@@ -62,7 +62,9 @@ export const useQueryFilesStore = create<QueryFilesState>()(
           if (index === -1) return state;
           const files = state.files.filter((file) => file.id !== id);
           const activeId =
-            state.activeId === id ? (files[index - 1]?.id ?? files[index]?.id ?? null) : state.activeId;
+            state.activeId === id
+              ? (files[index - 1]?.id ?? files[index]?.id ?? null)
+              : state.activeId;
           return { files, activeId };
         }),
 
@@ -71,14 +73,24 @@ export const useQueryFilesStore = create<QueryFilesState>()(
           const trimmed = name.trim();
           if (trimmed.length === 0) return state;
           const files = state.files.map((file) =>
-            file.id === id ? { ...file, name: uniqueName(state.files.filter((f) => f.id !== id), trimmed.endsWith(".sql") ? trimmed : `${trimmed}.sql`) } : file,
+            file.id === id
+              ? {
+                  ...file,
+                  name: uniqueName(
+                    state.files.filter((f) => f.id !== id),
+                    trimmed.endsWith(".sql") ? trimmed : `${trimmed}.sql`,
+                  ),
+                }
+              : file,
           );
           return { files };
         }),
 
       setContent: (id, content) =>
         set((state) => ({
-          files: state.files.map((file) => (file.id === id ? { ...file, content } : file)),
+          files: state.files.map((file) =>
+            file.id === id ? { ...file, content } : file,
+          ),
         })),
 
       setActive: (id) => set({ activeId: id }),
@@ -90,7 +102,8 @@ export const useQueryFilesStore = create<QueryFilesState>()(
       partialize: (state) => ({ files: state.files, activeId: state.activeId }),
       merge: (persisted, current) => {
         const value = (persisted ?? {}) as Partial<QueryFilesState>;
-        if (!Array.isArray(value.files) || value.files.length === 0) return current;
+        if (!Array.isArray(value.files) || value.files.length === 0)
+          return current;
         return {
           ...current,
           files: value.files,

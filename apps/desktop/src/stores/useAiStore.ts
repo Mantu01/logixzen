@@ -37,7 +37,11 @@ interface AiState {
 }
 
 function client(state: AiState): AiClient {
-  return new AiClient({ provider: state.provider, model: state.model, baseUrl: state.baseUrl });
+  return new AiClient({
+    provider: state.provider,
+    model: state.model,
+    baseUrl: state.baseUrl,
+  });
 }
 
 export const useAiStore = create<AiState>()(
@@ -47,7 +51,11 @@ export const useAiStore = create<AiState>()(
       model: "gpt-4o-mini",
       apiKey: null,
       baseUrl: null,
-      privacySettings: { sendSchemaOnly: true, sendHistory: false, sendProgress: false },
+      privacySettings: {
+        sendSchemaOnly: true,
+        sendHistory: false,
+        sendProgress: false,
+      },
       isConnected: false,
 
       setProvider: (provider) => set({ provider }),
@@ -69,7 +77,8 @@ export const useAiStore = create<AiState>()(
         set({ apiKey: stored === null ? null : "stored" });
       },
 
-      setBaseUrl: (baseUrl) => set({ baseUrl: baseUrl.trim() === "" ? null : baseUrl }),
+      setBaseUrl: (baseUrl) =>
+        set({ baseUrl: baseUrl.trim() === "" ? null : baseUrl }),
       setPrivacySettings: (privacySettings) => set({ privacySettings }),
 
       testConnection: async () => {

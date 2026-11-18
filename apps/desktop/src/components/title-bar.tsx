@@ -6,7 +6,12 @@ import { useDesktopBridge } from "@/hooks/use-desktop-bridge";
 function MinimizeIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M1.5 6h9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+      <path
+        d="M1.5 6h9"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -14,7 +19,15 @@ function MinimizeIcon() {
 function MaximizeIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1" />
+      <rect
+        x="2"
+        y="2"
+        width="8"
+        height="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
     </svg>
   );
 }
@@ -22,7 +35,12 @@ function MaximizeIcon() {
 function CloseIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M2.5 2.5l7 7m0-7l-7 7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+      <path
+        d="M2.5 2.5l7 7m0-7l-7 7"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -57,21 +75,31 @@ export function TitleBar() {
               />
             </svg>
           </span>
-          <span className="text-[12.5px] font-semibold tracking-tight text-foreground">LogixZen</span>
+          <span className="text-[12.5px] font-semibold tracking-tight text-foreground">
+            LogixZen
+          </span>
         </Link>
       </div>
 
       <div className="app-no-drag flex h-full items-center">
         <div className="mr-2 hidden items-center gap-1.5 text-[10.5px] text-muted-dim md:flex">
-          <span className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`} />
+          <span
+            className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
+          />
           {connected ? "Engine connected" : "Browser preview"}
         </div>
         {connected ? (
           <>
-            <TitleButton label="Minimize window" onClick={() => window.logixzen?.window.minimize()}>
+            <TitleButton
+              label="Minimize window"
+              onClick={() => window.logixzen?.window.minimize()}
+            >
               <MinimizeIcon />
             </TitleButton>
-            <TitleButton label="Toggle maximize" onClick={() => window.logixzen?.window.maximize()}>
+            <TitleButton
+              label="Toggle maximize"
+              onClick={() => window.logixzen?.window.maximize()}
+            >
               <MaximizeIcon />
             </TitleButton>
             <button

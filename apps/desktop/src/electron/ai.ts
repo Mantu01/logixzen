@@ -28,7 +28,10 @@ function endpointFor(request: AiCompletionRequest): string {
   }
 }
 
-function headersFor(request: AiCompletionRequest, apiKey: string): Record<string, string> {
+function headersFor(
+  request: AiCompletionRequest,
+  apiKey: string,
+): Record<string, string> {
   if (request.provider === "anthropic") {
     return {
       "Content-Type": "application/json",
@@ -42,7 +45,9 @@ function headersFor(request: AiCompletionRequest, apiKey: string): Record<string
   };
 }
 
-export async function completeAi(request: AiCompletionRequest): Promise<string> {
+export async function completeAi(
+  request: AiCompletionRequest,
+): Promise<string> {
   const apiKey = retrieveSecret("ai_api_key");
   if (apiKey === null || apiKey.trim() === "") {
     throw new Error("No AI API key configured");
@@ -63,11 +68,13 @@ export async function completeAi(request: AiCompletionRequest): Promise<string> 
 
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ErrorBody;
-    throw new Error(error.error?.message ?? `AI request failed (${response.status})`);
+    throw new Error(
+      error.error?.message ?? `AI request failed (${response.status})`,
+    );
   }
 
   const data = (await response.json()) as ChatResponse;
   return request.provider === "anthropic"
-    ? data.content?.[0]?.text ?? ""
-    : data.choices?.[0]?.message?.content ?? "";
+    ? (data.content?.[0]?.text ?? "")
+    : (data.choices?.[0]?.message?.content ?? "");
 }

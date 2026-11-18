@@ -1,13 +1,28 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Bot, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Key, Link } from "lucide-react";
+import {
+  Bot,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Key,
+  Link,
+} from "lucide-react";
 import { useAiStore } from "@/stores/useAiStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type AiProvider = "openai" | "anthropic" | "openrouter" | "custom";
 
@@ -36,7 +51,9 @@ export function AiConfigSection(): React.ReactElement {
 
   const [showKey, setShowKey] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
-  const [testResult, setTestResult] = useState<"success" | "failed" | null>(null);
+  const [testResult, setTestResult] = useState<"success" | "failed" | null>(
+    null,
+  );
   const [modelInput, setModelInput] = useState(model);
   const [baseUrlInput, setBaseUrlInput] = useState(baseUrl ?? "");
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -65,14 +82,21 @@ export function AiConfigSection(): React.ReactElement {
       <div className="mb-3 flex items-center gap-2">
         <Bot className="size-3.5 text-primary" />
         <span className="section-label">AI configuration</span>
-        {testResult === "success" ? <CheckCircle2 className="ml-auto size-3.5 text-success" /> : null}
-        {testResult === "failed" ? <XCircle className="ml-auto size-3.5 text-destructive" /> : null}
+        {testResult === "success" ? (
+          <CheckCircle2 className="ml-auto size-3.5 text-success" />
+        ) : null}
+        {testResult === "failed" ? (
+          <XCircle className="ml-auto size-3.5 text-destructive" />
+        ) : null}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-[11.5px] text-muted">Provider</Label>
-          <Select value={provider} onValueChange={(value) => setProvider(value as AiProvider)}>
+          <Select
+            value={provider}
+            onValueChange={(value) => setProvider(value as AiProvider)}
+          >
             <SelectTrigger className="w-full text-[12px]">
               <SelectValue placeholder="Select a provider" />
             </SelectTrigger>
@@ -133,19 +157,36 @@ export function AiConfigSection(): React.ReactElement {
                 onClick={() => setShowKey((value) => !value)}
                 className="absolute right-1 top-1/2 -translate-y-1/2"
               >
-                {showKey ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                {showKey ? (
+                  <EyeOff className="size-3" />
+                ) : (
+                  <Eye className="size-3" />
+                )}
               </Button>
             </div>
-            <Button onClick={() => void handleSaveApiKey()} disabled={!apiKeyInput.trim()} size="sm">
+            <Button
+              onClick={() => void handleSaveApiKey()}
+              disabled={!apiKeyInput.trim()}
+              size="sm"
+            >
               Save
             </Button>
             {apiKey ? (
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => void handleClearKey()}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => void handleClearKey()}
+              >
                 Clear
               </Button>
             ) : null}
           </div>
-          {apiKey ? <p className="text-[10.5px] text-success">Key configured — stored securely on this machine.</p> : null}
+          {apiKey ? (
+            <p className="text-[10.5px] text-success">
+              Key configured — stored securely on this machine.
+            </p>
+          ) : null}
         </div>
 
         <div className="col-span-2 flex items-center gap-2">
@@ -170,7 +211,10 @@ export function AiConfigSection(): React.ReactElement {
             <Checkbox
               checked={privacySettings.sendSchemaOnly}
               onCheckedChange={(checked) =>
-                setPrivacySettings({ ...privacySettings, sendSchemaOnly: checked === true })
+                setPrivacySettings({
+                  ...privacySettings,
+                  sendSchemaOnly: checked === true,
+                })
               }
             />
             Send schema only (no data)
@@ -179,7 +223,10 @@ export function AiConfigSection(): React.ReactElement {
             <Checkbox
               checked={privacySettings.sendHistory}
               onCheckedChange={(checked) =>
-                setPrivacySettings({ ...privacySettings, sendHistory: checked === true })
+                setPrivacySettings({
+                  ...privacySettings,
+                  sendHistory: checked === true,
+                })
               }
             />
             Send query history
@@ -188,7 +235,10 @@ export function AiConfigSection(): React.ReactElement {
             <Checkbox
               checked={privacySettings.sendProgress}
               onCheckedChange={(checked) =>
-                setPrivacySettings({ ...privacySettings, sendProgress: checked === true })
+                setPrivacySettings({
+                  ...privacySettings,
+                  sendProgress: checked === true,
+                })
               }
             />
             Send progress data

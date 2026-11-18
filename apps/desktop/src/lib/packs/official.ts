@@ -14,14 +14,16 @@ export const OFFICIAL_PACKS: OfficialPack[] = [
     kind: "databases",
     label: "Databases",
     fileName: "sample-databases.sql",
-    description: "Schema, tables and seed data needed to run every exercise, as one .sql file.",
+    description:
+      "Schema, tables and seed data needed to run every exercise, as one .sql file.",
     url: `${OFFICIAL_PACK_BASE_URL}/sample-databases.sql`,
   },
   {
     kind: "questions",
     label: "Questions",
     fileName: "sample-questions.json",
-    description: "Question bank with descriptions, test cases, hints and solutions.",
+    description:
+      "Question bank with descriptions, test cases, hints and solutions.",
     url: `${OFFICIAL_PACK_BASE_URL}/sample-questions.json`,
   },
   {

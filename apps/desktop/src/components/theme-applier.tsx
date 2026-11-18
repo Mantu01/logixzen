@@ -10,7 +10,8 @@ export function ThemeApplier() {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const apply = (): void => {
-      const resolved = theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      const resolved =
+        theme === "system" ? (media.matches ? "dark" : "light") : theme;
       const root = document.documentElement;
       root.setAttribute("data-theme", resolved);
       root.classList.toggle("dark", resolved === "dark");

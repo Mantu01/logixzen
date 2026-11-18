@@ -79,8 +79,13 @@ Every note object must have:
 - "content": the note body as markdown (headings, lists, code fences for SQL)
 
 Rules:
-- Write concise study notes a learner can read in 3-5 minutes.
-- Use SQLite-compatible SQL examples.`;
+- Write EXTENSIVE, COMPREHENSIVE study notes — each note must be a complete mini-course (aim for 8,000–15,000+ characters).
+- Cover every concept from absolute zero: explain terminology before using it, use analogies, show mistakes and corrections.
+- Progress from basics → intermediate → advanced within each note. Include "Key Takeaways" and "Common Mistakes" sections.
+- Use SQLite-compatible SQL examples. Every code block must include comments explaining WHY it works.
+- Include visual ASCII diagrams where helpful (e.g., showing how JOINs combine tables).
+- Organize notes by topic category matching these IDs: select-basics, where-filters, order-by-limit, aggregate-functions, group-by-having, joins, subqueries, set-operations, string-functions, date-functions, null-handling, window-functions, cte-views, dml-operations, ddl-schema, index-constraints, transactions, advanced-select, performance, database-design, real-world, challenge-patterns.
+- Create at least one note per topic ID above. Each note should stand alone as a complete reference.`;
 
 export const PACK_PROMPTS = {
   questions: QUESTION_PACK_PROMPT,

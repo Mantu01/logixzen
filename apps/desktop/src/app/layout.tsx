@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { StatusBar } from "@/components/app-shell/status-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MenuNavigation } from "@/components/menu-navigation";
+import { SetupGate } from "@/components/setup/setup-gate";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -21,13 +22,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={cn("dark h-full font-sans antialiased", geist.variable, mono.variable)}
+      className={cn(
+        "dark h-full font-sans antialiased",
+        geist.variable,
+        mono.variable,
+      )}
       data-theme="dark"
       suppressHydrationWarning
     >
       <body className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
         <ThemeApplier />
         <MenuNavigation />
+        <SetupGate />
         <TooltipProvider delayDuration={200}>
           <TitleBar />
           <div className="flex min-h-0 flex-1">

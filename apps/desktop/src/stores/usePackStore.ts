@@ -5,7 +5,15 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { Dataset, Question, Topic } from "@logixzen/shared/content";
 import { nativeStorage } from "@/lib/native-storage";
 import { mergeById, parsePackFile } from "@/lib/packs/packs";
-import type { DatabasePack, Note, NotesPack, PackIssue, PackKind, PackSummary, QuestionsPack } from "@/lib/packs/types";
+import type {
+  DatabasePack,
+  Note,
+  NotesPack,
+  PackIssue,
+  PackKind,
+  PackSummary,
+  QuestionsPack,
+} from "@/lib/packs/types";
 
 export interface PackImportOutcome {
   ok: boolean;
@@ -35,7 +43,12 @@ interface PersistedPacks {
   notes: Note[];
 }
 
-const EMPTY: PersistedPacks = { databases: [], questions: [], topics: [], notes: [] };
+const EMPTY: PersistedPacks = {
+  databases: [],
+  questions: [],
+  topics: [],
+  notes: [],
+};
 
 export const usePackStore = create<PackState>()(
   persist(
@@ -55,7 +68,13 @@ export const usePackStore = create<PackState>()(
         importFile: (text) => {
           const detected = parsePackFile(text);
           if (detected === null) {
-            return outcome(false, "questions", [{ path: "$", message: "Invalid JSON" }], 0, 0);
+            return outcome(
+              false,
+              "questions",
+              [{ path: "$", message: "Invalid JSON" }],
+              0,
+              0,
+            );
           }
           const { kind, result } = detected;
           if (!result.ok || result.data === null) {
@@ -72,10 +91,14 @@ export const usePackStore = create<PackState>()(
         },
 
         addDataset: (dataset) =>
-          set((state) => ({ databases: mergeById(state.databases, [dataset]).list })),
+          set((state) => ({
+            databases: mergeById(state.databases, [dataset]).list,
+          })),
 
         removeDataset: (datasetId) =>
-          set((state) => ({ databases: state.databases.filter((item) => item.id !== datasetId) })),
+          set((state) => ({
+            databases: state.databases.filter((item) => item.id !== datasetId),
+          })),
 
         resetAll: () => set({ ...EMPTY }),
       };
@@ -85,7 +108,13 @@ export const usePackStore = create<PackState>()(
         incoming: Dataset[],
       ): PackImportOutcome {
         if (incoming.length === 0) {
-          return outcome(false, "databases", [{ path: "datasets", message: "No datasets found" }], 0, 0);
+          return outcome(
+            false,
+            "databases",
+            [{ path: "datasets", message: "No datasets found" }],
+            0,
+            0,
+          );
         }
         const { list, added, updated } = mergeById(get().databases, incoming);
         setFn({ databases: list });
@@ -98,17 +127,35 @@ export const usePackStore = create<PackState>()(
         incomingTopics: Topic[],
       ): PackImportOutcome {
         if (incoming.length === 0) {
-          return outcome(false, "questions", [{ path: "questions", message: "No questions found" }], 0, 0);
+          return outcome(
+            false,
+            "questions",
+            [{ path: "questions", message: "No questions found" }],
+            0,
+            0,
+          );
         }
         const merged = mergeById(get().questions, incoming);
-        const topics = incomingTopics.length > 0 ? mergeById(get().topics, incomingTopics).list : get().topics;
+        const topics =
+          incomingTopics.length > 0
+            ? mergeById(get().topics, incomingTopics).list
+            : get().topics;
         setFn({ questions: merged.list, topics });
         return outcome(true, "questions", [], merged.added, merged.updated);
       }
 
-      function applyNotes(setFn: (partial: Partial<PackState>) => void, incoming: Note[]): PackImportOutcome {
+      function applyNotes(
+        setFn: (partial: Partial<PackState>) => void,
+        incoming: Note[],
+      ): PackImportOutcome {
         if (incoming.length === 0) {
-          return outcome(false, "notes", [{ path: "notes", message: "No notes found" }], 0, 0);
+          return outcome(
+            false,
+            "notes",
+            [{ path: "notes", message: "No notes found" }],
+            0,
+            0,
+          );
         }
         const merged = mergeById(get().notes, incoming);
         setFn({ notes: merged.list });
@@ -143,7 +190,10 @@ export function summarizePacks(state: {
   return {
     databases: state.databases.length,
     questions: state.questions.length,
-    topics: state.topics.length > 0 ? state.topics.length : countUniqueTopics(state.questions),
+    topics:
+      state.topics.length > 0
+        ? state.topics.length
+        : countUniqueTopics(state.questions),
     notes: state.notes.length,
   };
 }

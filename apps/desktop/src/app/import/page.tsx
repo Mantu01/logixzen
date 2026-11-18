@@ -39,12 +39,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { summarizePacks, usePackStore } from "@/stores/usePackStore";
 import type { PackImportOutcome } from "@/stores/usePackStore";
-import { OFFICIAL_PACKS, fetchOfficialPack, isConfigured } from "@/lib/packs/official";
-import { PACK_PROMPTS } from "@/lib/packs/prompts";
 import {
-  serializeNotesPack,
-  serializeQuestionsPack,
-} from "@/lib/packs/packs";
+  OFFICIAL_PACKS,
+  fetchOfficialPack,
+  isConfigured,
+} from "@/lib/packs/official";
+import { PACK_PROMPTS } from "@/lib/packs/prompts";
+import { serializeNotesPack, serializeQuestionsPack } from "@/lib/packs/packs";
 import { saveTextFile } from "@/lib/save-file";
 import { buildDatasetFromSql, dbNameFromSql } from "@/lib/dataset-from-sql";
 import { useSqlStore } from "@/sql/useSqlStore";
@@ -58,7 +59,10 @@ function exportDatabasesSql(): void {
   const header = (name: string, description: string): string =>
     `-- ============================== ${name} ==============================\n-- ${description}\n`;
   const body = store.databases
-    .map((dataset) => `${header(dataset.name, dataset.description)}${dataset.setupSql.trim()}`)
+    .map(
+      (dataset) =>
+        `${header(dataset.name, dataset.description)}${dataset.setupSql.trim()}`,
+    )
     .join("\n\n");
   void saveTextFile("logixzen-databases.sql", `${body}\n`, [
     { name: "SQL", extensions: ["sql"] },
@@ -76,16 +80,30 @@ function exportInstalledJson(kind: "questions" | "notes"): void {
   ]);
 }
 
-
-const TABS: Array<{ key: PackTab; label: string; icon: React.ReactNode; hint: string }> = [
+const TABS: Array<{
+  key: PackTab;
+  label: string;
+  icon: React.ReactNode;
+  hint: string;
+}> = [
   {
     key: "databases",
     label: activeSubject.dataLabel,
     icon: <Database className="size-3.5" />,
     hint: `${activeSubject.label} dataset — ${activeSubject.scriptExtension} script`,
   },
-  { key: "questions", label: "Questions", icon: <FlaskConical className="size-3.5" />, hint: "Question pack — .json" },
-  { key: "notes", label: "Notes", icon: <NotebookPen className="size-3.5" />, hint: "Notes pack — .json" },
+  {
+    key: "questions",
+    label: "Questions",
+    icon: <FlaskConical className="size-3.5" />,
+    hint: "Question pack — .json",
+  },
+  {
+    key: "notes",
+    label: "Notes",
+    icon: <NotebookPen className="size-3.5" />,
+    hint: "Notes pack — .json",
+  },
 ];
 
 const ACCEPT: Record<PackTab, string> = {
@@ -161,18 +179,36 @@ export default function ImportPage(): React.ReactElement {
             <div>
               <div className="section-label">Installed</div>
               <div className="mt-0.5 text-[11.5px] text-muted-dim">
-                {summary.databases} databases · {summary.questions} questions · {summary.topics} topics ·{" "}
-                {summary.notes} notes
+                {summary.databases} databases · {summary.questions} questions ·{" "}
+                {summary.topics} topics · {summary.notes} notes
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.databases.length === 0} onClick={exportDatabasesSql}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={packState.databases.length === 0}
+                onClick={exportDatabasesSql}
+              >
                 <Download className="size-3.5" /> Export .sql
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.questions.length === 0} onClick={() => void exportInstalledJson("questions")}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={packState.questions.length === 0}
+                onClick={() => void exportInstalledJson("questions")}
+              >
                 <Download className="size-3.5" /> Export questions
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" disabled={packState.notes.length === 0} onClick={() => void exportInstalledJson("notes")}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={packState.notes.length === 0}
+                onClick={() => void exportInstalledJson("notes")}
+              >
                 <Download className="size-3.5" /> Export notes
               </Button>
               <AlertDialog>
@@ -181,17 +217,23 @@ export default function ImportPage(): React.ReactElement {
                     variant="outline"
                     size="sm"
                     className="gap-1.5 text-destructive hover:text-destructive"
-                    disabled={packState.databases.length === 0 && packState.questions.length === 0 && packState.notes.length === 0}
+                    disabled={
+                      packState.databases.length === 0 &&
+                      packState.questions.length === 0 &&
+                      packState.notes.length === 0
+                    }
                   >
                     <Trash2 className="size-3.5" /> Clear all
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Remove every content pack?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Remove every content pack?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This removes all imported databases, questions and notes from this machine.
-                      Your progress is not affected.
+                      This removes all imported databases, questions and notes
+                      from this machine. Your progress is not affected.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -235,7 +277,9 @@ function SummaryCard({
       aria-pressed={active}
       className={cn(
         "flex items-center gap-3 border px-4 py-3 text-left transition-colors",
-        active ? "border-primary/50 bg-primary/5" : "border-border bg-surface hover:bg-surface-hover",
+        active
+          ? "border-primary/50 bg-primary/5"
+          : "border-border bg-surface hover:bg-surface-hover",
       )}
     >
       <span
@@ -248,25 +292,41 @@ function SummaryCard({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[12.5px] font-semibold">{label}</span>
-        <span className="block truncate text-[10px] uppercase tracking-wider text-muted-dim">{hint}</span>
+        <span className="block truncate text-[10px] uppercase tracking-wider text-muted-dim">
+          {hint}
+        </span>
       </span>
       <span className="numeric text-lg font-semibold">{value}</span>
     </button>
   );
 }
 
-function SectionHeader({ title, description }: { title: string; description: string }): React.ReactElement {
+function SectionHeader({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}): React.ReactElement {
   return (
     <div className="mb-2">
       <h2 className="text-[13px] font-semibold">{title}</h2>
-      <p className="mt-0.5 max-w-2xl text-[11.5px] text-muted-dim">{description}</p>
+      <p className="mt-0.5 max-w-2xl text-[11.5px] text-muted-dim">
+        {description}
+      </p>
     </div>
   );
 }
 
-function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): React.ReactElement {
+function OfficialCard({
+  pack,
+}: {
+  pack: (typeof OFFICIAL_PACKS)[number];
+}): React.ReactElement {
   const store = usePackStore();
-  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">(
+    "idle",
+  );
   const [message, setMessage] = useState("");
 
   const install = useCallback(async () => {
@@ -274,7 +334,9 @@ function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): Reac
     try {
       const text = await fetchOfficialPack(pack);
       if (pack.kind === "databases") {
-        const fallback = pack.fileName.replace(/\.sql$/i, "").replace(/^sample-/i, "");
+        const fallback = pack.fileName
+          .replace(/\.sql$/i, "")
+          .replace(/^sample-/i, "");
         const name = dbNameFromSql(text, fallback);
         const dataset = await buildDatasetFromSql(name, text);
         store.addDataset(dataset);
@@ -306,9 +368,13 @@ function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): Reac
           <FileJson className="size-3.5 text-primary" />
         )}
         <span className="text-[12.5px] font-semibold">{pack.label}</span>
-        <span className="font-mono text-[9.5px] text-muted-dim">{pack.fileName}</span>
+        <span className="font-mono text-[9.5px] text-muted-dim">
+          {pack.fileName}
+        </span>
       </div>
-      <p className="mt-1 flex-1 text-[11px] leading-relaxed text-muted">{pack.description}</p>
+      <p className="mt-1 flex-1 text-[11px] leading-relaxed text-muted">
+        {pack.description}
+      </p>
       <div className="mt-2">
         <Button
           size="xs"
@@ -317,14 +383,24 @@ function OfficialCard({ pack }: { pack: (typeof OFFICIAL_PACKS)[number] }): Reac
           disabled={!isConfigured(pack) || state === "loading"}
           onClick={() => void install()}
         >
-          {state === "loading" ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />}
+          {state === "loading" ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : (
+            <Download className="size-3" />
+          )}
           {state === "done" ? "Installed" : "Download & install"}
         </Button>
         {!isConfigured(pack) ? (
-          <p className="mt-1 text-[10px] text-muted-dim">Download URL not configured yet.</p>
+          <p className="mt-1 text-[10px] text-muted-dim">
+            Download URL not configured yet.
+          </p>
         ) : null}
-        {state === "error" ? <p className="mt-1 text-[10px] text-error">{message}</p> : null}
-        {state === "done" ? <p className="mt-1 text-[10px] text-success">{message}</p> : null}
+        {state === "error" ? (
+          <p className="mt-1 text-[10px] text-error">{message}</p>
+        ) : null}
+        {state === "done" ? (
+          <p className="mt-1 text-[10px] text-success">{message}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -350,7 +426,10 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
       setBusy(true);
       setOutcome(null);
       try {
-        const dataset = await buildDatasetFromSql(dbNameFromSql(text, fallbackName || "imported-db"), text);
+        const dataset = await buildDatasetFromSql(
+          dbNameFromSql(text, fallbackName || "imported-db"),
+          text,
+        );
         store.addDataset(dataset);
         await useSqlStore.getState().activateDataset(dataset.id);
         setOutcome({
@@ -364,7 +443,12 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
         setOutcome({
           ok: false,
           kind: "databases",
-          issues: [{ path: "sql", message: error instanceof Error ? error.message : String(error) }],
+          issues: [
+            {
+              path: "sql",
+              message: error instanceof Error ? error.message : String(error),
+            },
+          ],
           added: 0,
           updated: 0,
         });
@@ -381,7 +465,10 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
       reader.onload = () => {
         const text = String(reader.result ?? "");
         if (tab === "databases") {
-          void runSql(text, file.name.replace(/\.(sql|txt)$/i, "").replace(/^sample-/i, ""));
+          void runSql(
+            text,
+            file.name.replace(/\.(sql|txt)$/i, "").replace(/^sample-/i, ""),
+          );
         } else {
           runJson(text);
         }
@@ -403,7 +490,9 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
             className="h-7 w-56 border border-border bg-surface px-2 text-[11.5px] outline-none placeholder:text-muted-dim focus:border-primary/50"
           />
           <span className="text-[10.5px] text-muted-dim">
-            optional — the name you type after <code className="font-mono">USE</code> in the editor; defaults to the file name
+            optional — the name you type after{" "}
+            <code className="font-mono">USE</code> in the editor; defaults to
+            the file name
           </span>
         </div>
       ) : null}
@@ -424,11 +513,14 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
         }}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") inputRef.current?.click();
+          if (event.key === "Enter" || event.key === " ")
+            inputRef.current?.click();
         }}
         className={cn(
           "flex h-28 cursor-pointer flex-col items-center justify-center gap-1.5 border border-dashed transition-colors",
-          dragging ? "border-primary bg-primary/5" : "border-border bg-surface-alt/60 hover:border-primary/40",
+          dragging
+            ? "border-primary bg-primary/5"
+            : "border-border bg-surface-alt/60 hover:border-primary/40",
           busy && "opacity-60",
         )}
       >
@@ -458,7 +550,11 @@ function ImportDropzone({ tab }: { tab: PackTab }): React.ReactElement {
         }}
       />
 
-      <PasteImport tab={tab} onImportJson={runJson} onImportSql={(text) => void runSql(text, name)} />
+      <PasteImport
+        tab={tab}
+        onImportJson={runJson}
+        onImportSql={(text) => void runSql(text, name)}
+      />
       <OutcomeReport outcome={outcome} />
       {outcome?.ok ? (
         <p className="mt-2 text-[11px] text-muted-dim">
@@ -493,10 +589,14 @@ function PasteImport({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="mt-2 gap-1.5">
-          <ClipboardPaste className="size-3.5" /> Paste {tab === "databases" ? "SQL" : "JSON"} instead
+          <ClipboardPaste className="size-3.5" /> Paste{" "}
+          {tab === "databases" ? "SQL" : "JSON"} instead
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0" showCloseButton={false}>
+      <DialogContent
+        className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0"
+        showCloseButton={false}
+      >
         <div className="shrink-0 border-b border-border bg-surface-alt px-4 py-3">
           <DialogTitle className="text-[13px]">
             {tab === "databases" ? "Paste SQL script" : "Paste pack JSON"}
@@ -521,7 +621,11 @@ function PasteImport({
           <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button size="sm" disabled={text.trim().length === 0} onClick={submit}>
+          <Button
+            size="sm"
+            disabled={text.trim().length === 0}
+            onClick={submit}
+          >
             Validate &amp; import
           </Button>
         </div>
@@ -530,7 +634,11 @@ function PasteImport({
   );
 }
 
-function OutcomeReport({ outcome }: { outcome: PackImportOutcome | null }): React.ReactElement {
+function OutcomeReport({
+  outcome,
+}: {
+  outcome: PackImportOutcome | null;
+}): React.ReactElement {
   if (!outcome) return <div className="mt-3" />;
   if (!outcome.ok) {
     return (
@@ -539,7 +647,9 @@ function OutcomeReport({ outcome }: { outcome: PackImportOutcome | null }): Reac
           <AlertTriangle className="size-3.5" /> Validation failed
         </div>
         {outcome.issues.length === 0 ? (
-          <p className="mt-1 font-mono text-[11px] text-error/80">Unknown error</p>
+          <p className="mt-1 font-mono text-[11px] text-error/80">
+            Unknown error
+          </p>
         ) : (
           <ul className="mt-1.5 space-y-0.5">
             {outcome.issues.slice(0, 12).map((issue, index) => (
@@ -550,7 +660,9 @@ function OutcomeReport({ outcome }: { outcome: PackImportOutcome | null }): Reac
           </ul>
         )}
         {outcome.issues.length > 12 ? (
-          <p className="mt-1 text-[10.5px] text-muted-dim">and {outcome.issues.length - 12} more issues</p>
+          <p className="mt-1 text-[10.5px] text-muted-dim">
+            and {outcome.issues.length - 12} more issues
+          </p>
         ) : null}
       </div>
     );
@@ -569,14 +681,20 @@ function OutcomeReport({ outcome }: { outcome: PackImportOutcome | null }): Reac
 function PackBuilderCards(): React.ReactElement {
   return (
     <div className="grid grid-cols-3 gap-2">
-      {(Object.keys(PACK_PROMPTS) as Array<keyof typeof PACK_PROMPTS>).map((kind) => (
-        <PackBuilderCard key={kind} kind={kind} />
-      ))}
+      {(Object.keys(PACK_PROMPTS) as Array<keyof typeof PACK_PROMPTS>).map(
+        (kind) => (
+          <PackBuilderCard key={kind} kind={kind} />
+        ),
+      )}
     </div>
   );
 }
 
-function PackBuilderCard({ kind }: { kind: keyof typeof PACK_PROMPTS }): React.ReactElement {
+function PackBuilderCard({
+  kind,
+}: {
+  kind: keyof typeof PACK_PROMPTS;
+}): React.ReactElement {
   const [copied, setCopied] = useState(false);
 
   const copy = useCallback(async () => {
@@ -589,12 +707,19 @@ function PackBuilderCard({ kind }: { kind: keyof typeof PACK_PROMPTS }): React.R
     <div className="flex flex-col border border-border bg-surface p-3">
       <div className="flex items-center gap-2">
         <FilePlus2 className="size-3.5 text-primary" />
-        <span className="text-[12.5px] font-semibold capitalize">{kind} prompt</span>
+        <span className="text-[12.5px] font-semibold capitalize">
+          {kind} prompt
+        </span>
       </div>
       <p className="mt-1 flex-1 text-[11px] leading-relaxed text-muted">
         Paste this into any AI assistant to get a validated {kind} pack.
       </p>
-      <Button size="xs" variant="outline" className="mt-2 gap-1.5" onClick={() => void copy()}>
+      <Button
+        size="xs"
+        variant="outline"
+        className="mt-2 gap-1.5"
+        onClick={() => void copy()}
+      >
         {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
         {copied ? "Prompt copied" : "Copy prompt"}
       </Button>

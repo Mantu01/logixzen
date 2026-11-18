@@ -122,7 +122,12 @@ export function unquoteIdentifier(name: string): string {
   if (value.length >= 2) {
     const first = value.charAt(0);
     const last = value.charAt(value.length - 1);
-    const closing: Record<string, string> = { "[": "]", '"': '"', "`": "`", "'": "'" };
+    const closing: Record<string, string> = {
+      "[": "]",
+      '"': '"',
+      "`": "`",
+      "'": "'",
+    };
     if (closing[first] === last) value = value.slice(1, -1).trim();
   }
   return value;
@@ -135,19 +140,31 @@ export function parseUseStatement(sql: string): string | null {
   return name.length > 0 ? name : null;
 }
 
-const CREATE_DATABASE = /^CREATE\s+DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
-const DROP_DATABASE = /^DROP\s+DATABASE\s+(IF\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
-
-export function parseCreateDatabase(sql: string): string | null {
-  const match = CREATE_DATABASE.exec(sql.trim());
-  if (match === null) return null;
-  const name = unquoteIdentifier(match[2] ?? "");
-  return name.length > 0 ? name : null;
+export interface DatabaseTarget {
+  name: string;
+  ifClause: boolean;
 }
 
-export function parseDropDatabase(sql: string): string | null {
-  const match = DROP_DATABASE.exec(sql.trim());
+const CREATE_DATABASE =
+  /^CREATE\s+DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
+const DROP_DATABASE =
+  /^DROP\s+DATABASE\s+(IF\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
+
+function parseDatabaseTarget(
+  sql: string,
+  regex: RegExp,
+): DatabaseTarget | null {
+  const match = regex.exec(sql.trim());
   if (match === null) return null;
   const name = unquoteIdentifier(match[2] ?? "");
-  return name.length > 0 ? name : null;
+  if (name.length === 0) return null;
+  return { name, ifClause: (match[1] ?? "").trim().length > 0 };
+}
+
+export function parseCreateDatabase(sql: string): DatabaseTarget | null {
+  return parseDatabaseTarget(sql, CREATE_DATABASE);
+}
+
+export function parseDropDatabase(sql: string): DatabaseTarget | null {
+  return parseDatabaseTarget(sql, DROP_DATABASE);
 }

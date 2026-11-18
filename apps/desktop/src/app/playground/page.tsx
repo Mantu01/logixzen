@@ -1,19 +1,64 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
-import { Group, Panel, Separator, usePanelRef, type PanelSize } from "react-resizable-panels";
+import {
+  Group,
+  Panel,
+  Separator,
+  usePanelRef,
+  type PanelSize,
+} from "react-resizable-panels";
 import { FolderOpen, Plus, Save, X } from "lucide-react";
 import type { SqlResult } from "@/shared/desktop-api";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
-import { CopySqlButton, HistoryDialog, RunButton, SnippetsDialog } from "@/components/playground/tool-dialogs";
+import {
+  CopySqlButton,
+  HistoryDialog,
+  RunButton,
+  SnippetsDialog,
+} from "@/components/playground/tool-dialogs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { useQueryHistoryStore } from "@/stores/useQueryHistoryStore";
@@ -52,11 +97,21 @@ function PlaygroundInner(): React.ReactElement {
   const execute = useSqlStore((state) => state.execute);
   const activateDataset = useSqlStore((state) => state.activateDataset);
   const clearError = useSqlStore((state) => state.clearError);
+  const activeDialect = useSqlStore((state) => state.activeDialect);
+  const lastResult = useSqlStore((state) => state.lastResult);
   const addToHistory = useQueryHistoryStore((state) => state.addToHistory);
-  const editorFontSize = useProgressStore((state) => state.settings.editorFontSize);
-  const setEditorFontSize = useProgressStore((state) => state.setEditorFontSize);
-  const resultFontSize = useProgressStore((state) => state.settings.resultFontSize);
-  const setResultFontSize = useProgressStore((state) => state.setResultFontSize);
+  const editorFontSize = useProgressStore(
+    (state) => state.settings.editorFontSize,
+  );
+  const setEditorFontSize = useProgressStore(
+    (state) => state.setEditorFontSize,
+  );
+  const resultFontSize = useProgressStore(
+    (state) => state.settings.resultFontSize,
+  );
+  const setResultFontSize = useProgressStore(
+    (state) => state.setResultFontSize,
+  );
 
   const files = useQueryFilesStore((state) => state.files);
   const activeId = useQueryFilesStore((state) => state.activeId);
@@ -66,10 +121,13 @@ function PlaygroundInner(): React.ReactElement {
   const closeFile = useQueryFilesStore((state) => state.closeFile);
   const openFileTab = useQueryFilesStore((state) => state.openFile);
 
-  const [results, setResults] = useState<SqlResult[]>([]);
+  const results = useMemo(() => lastResult ?? [], [lastResult]);
   const [resultIndex, setResultIndex] = useState(0);
   const [activeTable, setActiveTable] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
+  const [pendingDestructive, setPendingDestructive] = useState<string | null>(
+    null,
+  );
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const schemaPanelRef = usePanelRef();
@@ -100,21 +158,36 @@ function PlaygroundInner(): React.ReactElement {
     void activateDataset(databases[0]?.id ?? null);
   }, [activeDatasetId, databases, activateDataset]);
 
+  const runSqlNow = useCallback(
+    async (text: string) => {
+      clearError();
+      setRunError(null);
+      await execute(text);
+      const state = useSqlStore.getState();
+      setResultIndex(0);
+      const failedStatement = state.lastResult?.find(
+        (result) => result.error !== undefined,
+      );
+      setRunError(failedStatement?.error ?? state.error ?? null);
+      addToHistory(text, failedStatement === undefined);
+    },
+    [execute, clearError, addToHistory],
+  );
+
   const run = useCallback(async () => {
     const text = sql.trim();
     if (text.length === 0) return;
-    clearError();
-    setRunError(null);
-    await execute(text);
-    const state = useSqlStore.getState();
-    setResults(state.lastResult ?? []);
-    setResultIndex(0);
-    const failedStatement = state.lastResult?.find((result) => result.error !== undefined);
-    setRunError(failedStatement?.error ?? state.error ?? null);
-    addToHistory(text, failedStatement === undefined);
-  }, [sql, execute, clearError, addToHistory]);
+    if (/\bDROP\s+(DATABASE|TABLE)\b|\bTRUNCATE\s+(TABLE\s+)?\w/i.test(text)) {
+      setPendingDestructive(text);
+      return;
+    }
+    await runSqlNow(text);
+  }, [sql, runSqlNow]);
 
-  const current = useMemo(() => results[resultIndex] ?? null, [results, resultIndex]);
+  const current = useMemo(
+    () => results[resultIndex] ?? null,
+    [results, resultIndex],
+  );
 
   const tableMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -129,7 +202,8 @@ function PlaygroundInner(): React.ReactElement {
   const download = useCallback(
     async (format: "csv" | "json") => {
       if (!current) return;
-      const content = format === "csv" ? exportToCsv(current) : exportToJson(current);
+      const content =
+        format === "csv" ? exportToCsv(current) : exportToJson(current);
       await saveTextFile(`logixzen-result.${format}`, content, [
         { name: format.toUpperCase(), extensions: [format] },
       ]);
@@ -198,14 +272,23 @@ function PlaygroundInner(): React.ReactElement {
       }
       actions={
         <>
-          <Select value={activeDatasetId ?? ""} onValueChange={(value) => void activateDataset(value)}>
-            <SelectTrigger size="sm" className="w-52" aria-label="Active database">
+          <Select
+            value={activeDatasetId ?? ""}
+            onValueChange={(value) => void activateDataset(value)}
+          >
+            <SelectTrigger
+              size="sm"
+              className="w-52"
+              aria-label="Active database"
+            >
               <SelectValue placeholder="Select database" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {databases.length === 0 ? (
-                  <div className="px-2 py-1.5 text-[11.5px] text-muted-dim">No databases yet</div>
+                  <div className="px-2 py-1.5 text-[11.5px] text-muted-dim">
+                    No databases yet
+                  </div>
                 ) : null}
                 {databases.map((dataset) => (
                   <SelectItem key={dataset.id} value={dataset.id}>
@@ -222,12 +305,17 @@ function PlaygroundInner(): React.ReactElement {
           >
             <DiagramIcon />
           </ToolIconButton>
-          <HistoryDialog onPick={(picked) => {
-            if (activeFile) setContent(activeFile.id, picked);
-          }} />
-          <SnippetsDialog sql={sql} onPick={(picked) => {
-            if (activeFile) setContent(activeFile.id, picked);
-          }} />
+          <HistoryDialog
+            onPick={(picked) => {
+              if (activeFile) setContent(activeFile.id, picked);
+            }}
+          />
+          <SnippetsDialog
+            sql={sql}
+            onPick={(picked) => {
+              if (activeFile) setContent(activeFile.id, picked);
+            }}
+          />
           <CopySqlButton sql={sql} />
           <RunButton onClick={() => void run()} isLoading={isLoading} />
         </>
@@ -235,9 +323,16 @@ function PlaygroundInner(): React.ReactElement {
       bodyClassName="overflow-hidden"
     >
       <div className="flex h-full min-h-0">
-        <Group id="playground-horizontal" defaultLayout={{ editor: 72, schema: 28 }}>
+        <Group
+          id="playground-horizontal"
+          defaultLayout={{ editor: 72, schema: 28 }}
+        >
           <Panel id="editor" defaultSize="72%" minSize="40%">
-            <Group id="playground-vertical" orientation="vertical" defaultLayout={{ query: 45, results: 55 }}>
+            <Group
+              id="playground-vertical"
+              orientation="vertical"
+              defaultLayout={{ query: 45, results: 55 }}
+            >
               <Panel id="query" defaultSize="45%" minSize="15%">
                 <div className="flex h-full min-h-0 flex-col bg-editor">
                   <QueryTabBar
@@ -250,13 +345,17 @@ function PlaygroundInner(): React.ReactElement {
                     onSave={() => void saveSqlFile()}
                     onOpen={() => void openSqlFile()}
                   />
-                  <div ref={editorZoomRef} className="min-h-0 flex-1 overflow-hidden">
+                  <div
+                    ref={editorZoomRef}
+                    className="min-h-0 flex-1 overflow-hidden"
+                  >
                     <SqlCodeEditor
                       value={sql}
                       onChange={(value) => {
                         if (activeFile) setContent(activeFile.id, value);
                       }}
                       onRun={() => void run()}
+                      dialect={activeDialect}
                       fontSize={editorFontSize}
                       tables={tableMap}
                       placeholder="Type a SQL statement…"
@@ -284,7 +383,10 @@ function PlaygroundInner(): React.ReactElement {
                     onExportCsv={() => void download("csv")}
                     onExportJson={() => void download("json")}
                     onCopy={() => {
-                      if (current) void navigator.clipboard.writeText(exportToCsv(current));
+                      if (current)
+                        void navigator.clipboard.writeText(
+                          exportToCsv(current),
+                        );
                     }}
                   />
                 </div>
@@ -300,7 +402,9 @@ function PlaygroundInner(): React.ReactElement {
             collapsedSize="4%"
             panelRef={schemaPanelRef}
             onResize={(size: PanelSize) => {
-              const collapsed = schemaPanelRef.current?.isCollapsed() ?? size.asPercentage <= 4.5;
+              const collapsed =
+                schemaPanelRef.current?.isCollapsed() ??
+                size.asPercentage <= 4.5;
               if (collapsed !== collapsedRef.current) {
                 collapsedRef.current = collapsed;
                 setSchemaCollapsed(collapsed);
@@ -323,14 +427,47 @@ function PlaygroundInner(): React.ReactElement {
         </Group>
       </div>
 
+      <AlertDialog
+        open={pendingDestructive !== null}
+        onOpenChange={(open) => !open && setPendingDestructive(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Run destructive statement?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This script contains DROP or TRUNCATE. Data or structures it
+              targets will be permanently removed from the active database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                const text = pendingDestructive;
+                setPendingDestructive(null);
+                if (text !== null) void runSqlNow(text);
+              }}
+            >
+              Run anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={diagramOpen} onOpenChange={setDiagramOpen}>
-        <DialogContent showCloseButton={false} className="flex h-[88vh] w-[94vw] max-w-[1500px] flex-col gap-0 overflow-hidden p-0">
+        <DialogContent
+          showCloseButton={false}
+          className="flex h-[88vh] w-[94vw] max-w-[1500px] flex-col gap-0 overflow-hidden p-0"
+        >
           <div className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-surface px-4">
             <div className="flex min-w-0 items-baseline gap-2.5">
               <DialogTitle className="truncate text-[13px] font-semibold">
                 {activeDataset?.name ?? "Schema"} — ER diagram
               </DialogTitle>
-              <span className="numeric shrink-0 text-[10.5px] text-muted-dim">{schema.length} tables</span>
+              <span className="numeric shrink-0 text-[10.5px] text-muted-dim">
+                {schema.length} tables
+              </span>
             </div>
             <DialogClose asChild>
               <Button variant="ghost" size="sm">
@@ -338,7 +475,9 @@ function PlaygroundInner(): React.ReactElement {
               </Button>
             </DialogClose>
           </div>
-          <DialogDescription className="sr-only">Entity relationship diagram</DialogDescription>
+          <DialogDescription className="sr-only">
+            Entity relationship diagram
+          </DialogDescription>
           <div className="min-h-0 flex-1">
             <ErDiagram
               tables={schema}
@@ -366,7 +505,13 @@ function ToolIconButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label={label} disabled={disabled} onClick={onClick}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={label}
+          disabled={disabled}
+          onClick={onClick}
+        >
           {children}
         </Button>
       </TooltipTrigger>
@@ -377,10 +522,37 @@ function ToolIconButton({
 
 function DiagramIcon(): React.ReactElement {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="1" y="1.5" width="5" height="11" stroke="currentColor" strokeWidth="1.1" />
-      <rect x="8" y="1.5" width="5" height="5" stroke="currentColor" strokeWidth="1.1" />
-      <rect x="8" y="7.5" width="5" height="5" stroke="currentColor" strokeWidth="1.1" />
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="1"
+        y="1.5"
+        width="5"
+        height="11"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <rect
+        x="8"
+        y="1.5"
+        width="5"
+        height="5"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <rect
+        x="8"
+        y="7.5"
+        width="5"
+        height="5"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
       <path d="M6 4h2M6 10h2" stroke="currentColor" strokeWidth="1.1" />
     </svg>
   );
@@ -423,10 +595,17 @@ function QueryTabBar({
                 onClick={() => onSelect(file.id)}
                 className={cn(
                   "flex h-8 min-w-0 items-center gap-1.5 pl-3 pr-1.5 font-mono text-[11px]",
-                  active ? "text-foreground" : "text-muted-dim hover:text-foreground",
+                  active
+                    ? "text-foreground"
+                    : "text-muted-dim hover:text-foreground",
                 )}
               >
-                {active ? <span className="size-1.5 shrink-0 bg-primary" aria-hidden="true" /> : null}
+                {active ? (
+                  <span
+                    className="size-1.5 shrink-0 bg-primary"
+                    aria-hidden="true"
+                  />
+                ) : null}
                 <span className="max-w-40 truncate">{file.name}</span>
               </button>
               <button
@@ -456,13 +635,17 @@ function QueryTabBar({
           </TooltipTrigger>
           <TooltipContent>
             New query
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">Ctrl+N</kbd>
+            <kbd className="ml-1 font-mono text-[9px] text-background/70">
+              Ctrl+N
+            </kbd>
           </TooltipContent>
         </Tooltip>
       </div>
       <div className="flex shrink-0 items-center gap-0.5 px-1.5">
         {savedNotice !== null ? (
-          <span className="mr-1 font-mono text-[10px] text-success">saved {savedNotice}</span>
+          <span className="mr-1 font-mono text-[10px] text-success">
+            saved {savedNotice}
+          </span>
         ) : null}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -477,7 +660,9 @@ function QueryTabBar({
           </TooltipTrigger>
           <TooltipContent>
             Open .sql file
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">Ctrl+O</kbd>
+            <kbd className="ml-1 font-mono text-[9px] text-background/70">
+              Ctrl+O
+            </kbd>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -493,7 +678,9 @@ function QueryTabBar({
           </TooltipTrigger>
           <TooltipContent>
             Export file to disk
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">Ctrl+S</kbd>
+            <kbd className="ml-1 font-mono text-[9px] text-background/70">
+              Ctrl+S
+            </kbd>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -521,7 +708,9 @@ function ResultTabs({
           onClick={() => onSelect(i)}
           className={cn(
             "flex items-center gap-1.5 border-r border-border px-3 text-[11px] transition-colors",
-            i === index ? "bg-surface text-foreground" : "text-muted-dim hover:text-foreground",
+            i === index
+              ? "bg-surface text-foreground"
+              : "text-muted-dim hover:text-foreground",
           )}
         >
           <span className="font-mono">#{i + 1}</span>
@@ -530,7 +719,9 @@ function ResultTabs({
           ) : result.isSelect ? (
             <span className="numeric text-muted-dim">{result.rows.length}</span>
           ) : (
-            <span className="numeric text-muted-dim">{result.rowsAffected}w</span>
+            <span className="numeric text-muted-dim">
+              {result.rowsAffected}w
+            </span>
           )}
         </button>
       ))}

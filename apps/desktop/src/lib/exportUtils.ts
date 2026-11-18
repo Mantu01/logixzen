@@ -10,7 +10,9 @@ export function exportToCsv(result: SqlResult): string {
   };
   return [
     result.columns.map(escape).join(","),
-    ...result.rows.map((row) => result.columns.map((column) => escape(row[column])).join(",")),
+    ...result.rows.map((row) =>
+      result.columns.map((column) => escape(row[column])).join(","),
+    ),
   ].join("\n");
 }
 

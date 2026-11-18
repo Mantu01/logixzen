@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { Award, Download, Flame, Lock, Target, TrendingUp, Trophy } from "lucide-react";
+import {
+  Award,
+  Download,
+  Flame,
+  Lock,
+  Target,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import {
   AlertDialog,
@@ -33,10 +41,12 @@ export default function ProgressPage(): React.ReactElement {
   const questionTotal = usePackStore((state) => state.questions.length);
 
   const solved = solvedQuestions.size;
-  const completion = questionTotal === 0 ? 0 : Math.round((solved / questionTotal) * 100);
+  const completion =
+    questionTotal === 0 ? 0 : Math.round((solved / questionTotal) * 100);
   const bestTime = useMemo(() => {
     let best = Number.POSITIVE_INFINITY;
-    for (const entry of solvedQuestions.values()) best = Math.min(best, entry.bestTimeMs);
+    for (const entry of solvedQuestions.values())
+      best = Math.min(best, entry.bestTimeMs);
     return Number.isFinite(best) ? best : null;
   }, [solvedQuestions]);
 
@@ -51,9 +61,11 @@ export default function ProgressPage(): React.ReactElement {
   }, [activity]);
 
   const exportFile = async (): Promise<void> => {
-    const saved = await saveTextFile("logixzen-progress.json", exportProgress(), [
-      { name: "JSON", extensions: ["json"] },
-    ]);
+    const saved = await saveTextFile(
+      "logixzen-progress.json",
+      exportProgress(),
+      [{ name: "JSON", extensions: ["json"] }],
+    );
     if (!saved) {
       const blob = new Blob([exportProgress()], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -71,12 +83,21 @@ export default function ProgressPage(): React.ReactElement {
       subtitle={`${solved}/${questionTotal || "—"} solved · ${totalPoints} points`}
       actions={
         <>
-          <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => void exportFile()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => void exportFile()}
+          >
             <Download className="size-3.5" /> Export
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
                 Reset
               </Button>
             </AlertDialogTrigger>
@@ -84,7 +105,8 @@ export default function ProgressPage(): React.ReactElement {
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset all progress?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This permanently deletes solved history, points, streaks and badges on this machine.
+                  This permanently deletes solved history, points, streaks and
+                  badges on this machine.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -106,7 +128,11 @@ export default function ProgressPage(): React.ReactElement {
           <Stat
             label="Completion"
             value={`${completion}%`}
-            hint={questionTotal > 0 ? `of ${questionTotal} questions` : "no pack installed"}
+            hint={
+              questionTotal > 0
+                ? `of ${questionTotal} questions`
+                : "no pack installed"
+            }
             icon={<Target className="size-3.5" />}
             accent
           />
@@ -133,7 +159,9 @@ export default function ProgressPage(): React.ReactElement {
         <div className="border border-border bg-surface px-3 py-2.5">
           <div className="flex items-center justify-between text-[10px] text-muted-dim">
             <span className="section-label">Completion</span>
-            <span className="numeric">{solved}/{questionTotal > 0 ? questionTotal : "—"}</span>
+            <span className="numeric">
+              {solved}/{questionTotal > 0 ? questionTotal : "—"}
+            </span>
           </div>
           <div className="mt-1.5 h-1 w-full bg-surface-alt">
             <div
@@ -147,11 +175,15 @@ export default function ProgressPage(): React.ReactElement {
           <div className="flex h-9 items-center justify-between border-b border-border px-3">
             <span className="section-label">Activity</span>
             <span className="numeric text-[10.5px] text-muted-dim">
-              {activeDays} active days · {streak.longestStreak}d longest · last 12 months
+              {activeDays} active days · {streak.longestStreak}d longest · last
+              12 months
             </span>
           </div>
           <div className="overflow-x-auto p-3">
-            <Heatmap weeks={calendar.weeks} monthLabels={calendar.monthLabels} />
+            <Heatmap
+              weeks={calendar.weeks}
+              monthLabels={calendar.monthLabels}
+            />
           </div>
           <div className="flex items-center justify-end gap-1.5 border-t border-border px-3 py-2 text-[9.5px] text-muted-dim">
             <span>less</span>
@@ -182,7 +214,9 @@ export default function ProgressPage(): React.ReactElement {
                   key={badge.id}
                   className={cn(
                     "flex flex-col items-center gap-1.5 border p-3 text-center transition-colors",
-                    earned ? "border-warning/40 bg-warning/5" : "border-border bg-surface-alt/50",
+                    earned
+                      ? "border-warning/40 bg-warning/5"
+                      : "border-border bg-surface-alt/50",
                   )}
                 >
                   {earned ? (
@@ -190,14 +224,22 @@ export default function ProgressPage(): React.ReactElement {
                   ) : (
                     <Lock className="size-5 text-muted-dim" />
                   )}
-                  <span className="text-[11.5px] font-semibold">{badge.title}</span>
-                  <span className="text-[10px] leading-tight text-muted-dim">{badge.description}</span>
+                  <span className="text-[11.5px] font-semibold">
+                    {badge.title}
+                  </span>
+                  <span className="text-[10px] leading-tight text-muted-dim">
+                    {badge.description}
+                  </span>
                   {earned ? (
                     <span className="numeric text-[9px] text-muted-dim">
-                      {new Date(badges.earned.get(badge.id)?.timestamp ?? 0).toLocaleDateString()}
+                      {new Date(
+                        badges.earned.get(badge.id)?.timestamp ?? 0,
+                      ).toLocaleDateString()}
                     </span>
                   ) : (
-                    <span className="text-[9px] uppercase tracking-wider text-muted-dim">locked</span>
+                    <span className="text-[9px] uppercase tracking-wider text-muted-dim">
+                      locked
+                    </span>
                   )}
                 </div>
               );
@@ -223,13 +265,25 @@ function Stat({
   accent?: boolean;
 }): React.ReactElement {
   return (
-    <div className={cn("relative border bg-surface px-4 py-3", accent ? "border-primary/40" : "border-border")}>
-      {accent ? <span className="absolute left-0 top-0 h-full w-[2px] bg-primary" aria-hidden="true" /> : null}
+    <div
+      className={cn(
+        "relative border bg-surface px-4 py-3",
+        accent ? "border-primary/40" : "border-border",
+      )}
+    >
+      {accent ? (
+        <span
+          className="absolute left-0 top-0 h-full w-[2px] bg-primary"
+          aria-hidden="true"
+        />
+      ) : null}
       <div className="flex items-center gap-1.5 text-muted-dim">
         {icon}
         <span className="section-label">{label}</span>
       </div>
-      <div className="numeric mt-1.5 text-2xl font-semibold leading-none">{value}</div>
+      <div className="numeric mt-1.5 text-2xl font-semibold leading-none">
+        {value}
+      </div>
       <div className="mt-1.5 text-[10px] text-muted-dim">{hint}</div>
     </div>
   );
@@ -257,7 +311,10 @@ function Heatmap({
     <div className="flex min-w-fit gap-[3px]">
       <div className="relative flex flex-col gap-[3px] pt-[14px]">
         {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-          <span key={`${day}-${index}`} className="flex h-[11px] items-center text-[8.5px] text-muted-dim">
+          <span
+            key={`${day}-${index}`}
+            className="flex h-[11px] items-center text-[8.5px] text-muted-dim"
+          >
             {index % 2 === 1 ? day : ""}
           </span>
         ))}
@@ -280,7 +337,11 @@ function Heatmap({
               {week.map((cell) => (
                 <span
                   key={cell.date}
-                  title={cell.date === "" ? undefined : `${cell.date}: ${cell.count} solved`}
+                  title={
+                    cell.date === ""
+                      ? undefined
+                      : `${cell.date}: ${cell.count} solved`
+                  }
                   className={cn(
                     "size-[11px] border",
                     cell.future
@@ -315,7 +376,8 @@ function buildCalendar(activity: Map<string, number>): {
   const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
   start.setDate(start.getDate() - start.getDay());
 
-  const totalDays = Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1;
+  const totalDays =
+    Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1;
   const weekCount = Math.ceil(totalDays / 7);
 
   const weeks: HeatmapCell[][] = [];
@@ -325,18 +387,27 @@ function buildCalendar(activity: Map<string, number>): {
   for (let week = 0; week < weekCount; week += 1) {
     const column: HeatmapCell[] = [];
     for (let day = 0; day < 7; day += 1) {
-      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + week * 7 + day);
+      const date = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate() + week * 7 + day,
+      );
       const future = date.getTime() > today.getTime();
       const key = dateKey(date);
       const count = future ? 0 : (activity.get(key) ?? 0);
-      const level = count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
+      const level =
+        count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
       column.push({ date: future ? "" : key, count, level, future });
     }
-    const month = column[0].date === "" ? -1 : Number(column[0].date.slice(5, 7)) - 1;
+    const month =
+      column[0].date === "" ? -1 : Number(column[0].date.slice(5, 7)) - 1;
     if (column[0].date !== "" && month !== lastMonth) {
       monthLabels.push({
         column: week,
-        label: new Date(`${column[0].date}T00:00:00`).toLocaleString(undefined, { month: "short" }),
+        label: new Date(`${column[0].date}T00:00:00`).toLocaleString(
+          undefined,
+          { month: "short" },
+        ),
       });
       lastMonth = month;
     }

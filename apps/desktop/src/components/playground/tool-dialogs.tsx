@@ -1,10 +1,30 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Check, Copy, History, Loader2, Play, Save, Star, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Copy,
+  History,
+  Loader2,
+  Play,
+  Save,
+  Star,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQueryHistoryStore } from "@/stores/useQueryHistoryStore";
 import { useSnippetsStore } from "@/stores/useSnippetsStore";
 import { cn } from "@/lib/utils";
@@ -17,17 +37,33 @@ interface ToolButtonProps {
   onClick?: () => void;
 }
 
-export function ToolButton({ label, shortcut, children, disabled, onClick }: ToolButtonProps): React.ReactElement {
+export function ToolButton({
+  label,
+  shortcut,
+  children,
+  disabled,
+  onClick,
+}: ToolButtonProps): React.ReactElement {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label={label} disabled={disabled} onClick={onClick}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={label}
+          disabled={disabled}
+          onClick={onClick}
+        >
           {children}
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         {label}
-        {shortcut ? <kbd className="ml-1 font-mono text-[9px] text-background/70">{shortcut}</kbd> : null}
+        {shortcut ? (
+          <kbd className="ml-1 font-mono text-[9px] text-background/70">
+            {shortcut}
+          </kbd>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );
@@ -43,7 +79,11 @@ function DialogCloseButton(): React.ReactElement {
   );
 }
 
-export function HistoryDialog({ onPick }: { onPick: (sql: string) => void }): React.ReactElement {
+export function HistoryDialog({
+  onPick,
+}: {
+  onPick: (sql: string) => void;
+}): React.ReactElement {
   const history = useQueryHistoryStore((state) => state.history);
   const clearHistory = useQueryHistoryStore((state) => state.clearHistory);
 
@@ -51,13 +91,21 @@ export function HistoryDialog({ onPick }: { onPick: (sql: string) => void }): Re
     <Dialog>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label="Query history" disabled={history.length === 0}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Query history"
+            disabled={history.length === 0}
+          >
             <History className="size-3.5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Query history</TooltipContent>
       </Tooltip>
-      <DialogContent className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0" showCloseButton={false}>
+      <DialogContent
+        className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0"
+        showCloseButton={false}
+      >
         <div className="flex shrink-0 items-start justify-between border-b border-border bg-surface-alt px-4 py-3">
           <div>
             <DialogTitle className="text-[13px]">Query history</DialogTitle>
@@ -65,11 +113,15 @@ export function HistoryDialog({ onPick }: { onPick: (sql: string) => void }): Re
               Click an entry to place it in the editor.
             </DialogDescription>
           </div>
-          <span className="numeric text-[10.5px] text-muted-dim">{history.length} entries</span>
+          <span className="numeric text-[10.5px] text-muted-dim">
+            {history.length} entries
+          </span>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {history.length === 0 ? (
-            <p className="px-4 py-10 text-center text-[12px] text-muted-dim">No history yet</p>
+            <p className="px-4 py-10 text-center text-[12px] text-muted-dim">
+              No history yet
+            </p>
           ) : (
             history.map((entry) => (
               <button
@@ -113,7 +165,13 @@ export function HistoryDialog({ onPick }: { onPick: (sql: string) => void }): Re
   );
 }
 
-export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: string) => void }): React.ReactElement {
+export function SnippetsDialog({
+  sql,
+  onPick,
+}: {
+  sql: string;
+  onPick: (sql: string) => void;
+}): React.ReactElement {
   const snippets = useSnippetsStore((state) => state.snippets);
   const addSnippet = useSnippetsStore((state) => state.addSnippet);
   const removeSnippet = useSnippetsStore((state) => state.removeSnippet);
@@ -122,7 +180,11 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
   const save = useCallback(() => {
     const content = sql.trim();
     if (content.length === 0) return;
-    addSnippet({ id: `snippet-${Date.now()}`, title: content.split("\n")[0].slice(0, 60), sql: content });
+    addSnippet({
+      id: `snippet-${Date.now()}`,
+      title: content.split("\n")[0].slice(0, 60),
+      sql: content,
+    });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1200);
   }, [sql, addSnippet]);
@@ -137,7 +199,10 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
         </TooltipTrigger>
         <TooltipContent>Saved snippets</TooltipContent>
       </Tooltip>
-      <DialogContent className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0" showCloseButton={false}>
+      <DialogContent
+        className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0"
+        showCloseButton={false}
+      >
         <div className="flex shrink-0 items-start justify-between border-b border-border bg-surface-alt px-4 py-3">
           <div>
             <DialogTitle className="text-[13px]">Saved snippets</DialogTitle>
@@ -145,7 +210,9 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
               Keep useful queries around and reuse them.
             </DialogDescription>
           </div>
-          <span className="numeric text-[10.5px] text-muted-dim">{snippets.length} saved</span>
+          <span className="numeric text-[10.5px] text-muted-dim">
+            {snippets.length} saved
+          </span>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {snippets.length === 0 ? (
@@ -158,7 +225,11 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
                 key={snippet.id}
                 className="group flex items-start gap-2 border-b border-border/50 px-4 py-2.5 transition-colors last:border-b-0 hover:bg-surface-hover"
               >
-                <button type="button" onClick={() => onPick(snippet.sql)} className="min-w-0 flex-1 text-left">
+                <button
+                  type="button"
+                  onClick={() => onPick(snippet.sql)}
+                  className="min-w-0 flex-1 text-left"
+                >
                   <span className="block truncate text-[12px] font-medium text-foreground/90">
                     {snippet.title}
                   </span>
@@ -186,7 +257,11 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
             disabled={saved || sql.trim().length === 0}
             onClick={save}
           >
-            {saved ? <Check className="size-3.5" /> : <Save className="size-3.5" />}
+            {saved ? (
+              <Check className="size-3.5" />
+            ) : (
+              <Save className="size-3.5" />
+            )}
             {saved ? "Saved" : "Save current SQL"}
           </Button>
           <DialogCloseButton />
@@ -196,18 +271,35 @@ export function SnippetsDialog({ sql, onPick }: { sql: string; onPick: (sql: str
   );
 }
 
-export function RunButton({ onClick, isLoading }: { onClick: () => void; isLoading: boolean }): React.ReactElement {
+export function RunButton({
+  onClick,
+  isLoading,
+}: {
+  onClick: () => void;
+  isLoading: boolean;
+}): React.ReactElement {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button size="sm" onClick={onClick} disabled={isLoading} className="gap-1.5">
-          {isLoading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
+        <Button
+          size="sm"
+          onClick={onClick}
+          disabled={isLoading}
+          className="gap-1.5"
+        >
+          {isLoading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Play className="size-3.5" />
+          )}
           Run
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         Run all statements
-        <kbd className="ml-1 font-mono text-[9px] text-background/70">Ctrl+Enter</kbd>
+        <kbd className="ml-1 font-mono text-[9px] text-background/70">
+          Ctrl+Enter
+        </kbd>
       </TooltipContent>
     </Tooltip>
   );
@@ -225,7 +317,11 @@ export function CopySqlButton({ sql }: { sql: string }): React.ReactElement {
         window.setTimeout(() => setCopied(false), 1200);
       }}
     >
-      {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
+      {copied ? (
+        <Check className="size-3.5 text-success" />
+      ) : (
+        <Copy className="size-3.5" />
+      )}
     </ToolButton>
   );
 }

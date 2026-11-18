@@ -10,7 +10,11 @@ function readAll(): Record<string, string> {
   try {
     const raw = readFileSync(storageFile(), "utf8");
     const parsed: unknown = JSON.parse(raw);
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
       return {};
     }
 
@@ -34,7 +38,9 @@ function writeAll(entries: Record<string, string>): void {
 
 export function getStoredValue(key: string): string | null {
   const entries = readAll();
-  return Object.prototype.hasOwnProperty.call(entries, key) ? entries[key] : null;
+  return Object.prototype.hasOwnProperty.call(entries, key)
+    ? entries[key]
+    : null;
 }
 
 export function setStoredValue(key: string, value: string): void {

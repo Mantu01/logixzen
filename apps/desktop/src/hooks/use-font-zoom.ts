@@ -20,7 +20,10 @@ export function useFontZoom(
       if (!event.ctrlKey) return;
       event.preventDefault();
       const current = latest.current;
-      const next = Math.min(max, Math.max(min, Math.round(current.value + (event.deltaY < 0 ? 1 : -1))));
+      const next = Math.min(
+        max,
+        Math.max(min, Math.round(current.value + (event.deltaY < 0 ? 1 : -1))),
+      );
       if (next !== current.value) current.onChange(next);
     };
     element.addEventListener("wheel", handler, { passive: false });

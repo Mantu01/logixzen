@@ -1,11 +1,14 @@
 import { DatabaseSync } from "node:sqlite";
 import type { SqlRow, SqlResult, TableInfo } from "../../shared/desktop-api";
+import type { DatabaseTarget } from "../../shared/sql";
 import {
+  parseCreateDatabase,
+  parseDropDatabase,
   parseUseStatement,
   splitBatches,
   splitSqlStatements,
-  unquoteIdentifier,
 } from "../../shared/sql";
+import { translateDriverError } from "./drivers/driver";
 
 const MAX_ROWS = 1000;
 
@@ -14,35 +17,19 @@ const FORBIDDEN = [
   { regex: /\bDETACH\s+/i, message: "DETACH DATABASE is not allowed." },
   { regex: /\bLOAD_EXTENSION\b/i, message: "LOAD_EXTENSION is not allowed." },
   { regex: /\bIMPORT\s+/i, message: "IMPORT is not allowed." },
-  { regex: /\bCREATE\s+VIRTUAL\s+TABLE/i, message: "Virtual tables are not allowed." },
+  {
+    regex: /\bCREATE\s+VIRTUAL\s+TABLE/i,
+    message: "Virtual tables are not allowed.",
+  },
 ];
 
-export function checkSafety(sql: string): string | null {
+function checkSafety(sql: string): string | null {
   for (const rule of FORBIDDEN) {
     if (rule.regex.test(sql)) {
       return rule.message;
     }
   }
   return null;
-}
-
-export function translateError(message: string): string {  const lower = message.toLowerCase();
-  if (lower.includes("no such table")) {
-    return "Table not found. Check the spelling or explore the schema.";
-  }
-  if (lower.includes("no such column")) {
-    return "Column not found. Check the spelling or explore the schema.";
-  }
-  if (lower.includes("ambiguous column name")) {
-    return "Multiple tables have this column. Use table.column syntax.";
-  }
-  if (lower.includes("constraint failed")) {
-    return "Data violates a rule (duplicate key or constraint).";
-  }
-  if (lower.includes("syntax error")) {
-    return message;
-  }
-  return message;
 }
 
 function isSelect(sql: string): boolean {
@@ -54,22 +41,6 @@ function isSelect(sql: string): boolean {
     trimmed.startsWith("PRAGMA") ||
     trimmed.startsWith("EXPLAIN")
   );
-}
-
-const CREATE_DATABASE = /^CREATE\s+DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
-const DROP_DATABASE = /^DROP\s+DATABASE\s+(IF\s+EXISTS\s+)?((?:\[[^\]]+\])|(?:"[^"]+")|(?:`[^`]+`)|(?:'[^']+')|[A-Za-z_][\w-]*)\s*;?\s*$/i;
-
-interface DatabaseTarget {
-  name: string;
-  ifClause: boolean;
-}
-
-function parseDatabaseTarget(sql: string, regex: RegExp): DatabaseTarget | null {
-  const match = regex.exec(sql.trim());
-  if (match === null) return null;
-  const name = unquoteIdentifier(match[2] ?? "");
-  if (name.length === 0) return null;
-  return { name, ifClause: (match[1] ?? "").trim().length > 0 };
 }
 
 export class DesktopSqlEngine {
@@ -105,7 +76,9 @@ export class DesktopSqlEngine {
   use(name: string): void {
     const key = name.toLowerCase();
     if (!this.databases.has(key)) {
-      throw new Error(`Database "${name}" is not loaded. Create or import it in Databases first.`);
+      throw new Error(
+        `Database "${name}" is not loaded. Create or import it in Databases first.`,
+      );
     }
     this.currentName = key;
   }
@@ -118,7 +91,9 @@ export class DesktopSqlEngine {
     const key = target.name.toLowerCase();
     if (this.databases.has(key)) {
       if (!target.ifClause) {
-        throw new Error(`Database "${target.name}" already exists. Choose a different name.`);
+        throw new Error(
+          `Database "${target.name}" already exists. Choose a different name.`,
+        );
       }
       this.currentName = key;
       return `Database "${target.name}" already exists.`;
@@ -130,6 +105,11 @@ export class DesktopSqlEngine {
 
   private dropDatabase(target: DatabaseTarget): void {
     const key = target.name.toLowerCase();
+    if (key === "practice") {
+      throw new Error(
+        "The practice database cannot be dropped directly. Use Reset in Settings.",
+      );
+    }
     const existing = this.databases.get(key);
     if (existing === undefined) {
       if (target.ifClause) {
@@ -141,6 +121,36 @@ export class DesktopSqlEngine {
     existing.close();
     this.databases.delete(key);
     if (this.currentName === key) this.currentName = null;
+  }
+
+  openPracticeDatabase(filePath: string): void {
+    const key = "practice";
+    const existing = this.databases.get(key);
+    if (existing !== undefined) {
+      existing.close();
+      this.databases.delete(key);
+    }
+    const db = new DatabaseSync(filePath);
+    db.exec("PRAGMA journal_mode = WAL;");
+    db.exec("PRAGMA foreign_keys = ON;");
+    db.exec("PRAGMA busy_timeout = 5000;");
+    db.exec("PRAGMA synchronous = NORMAL;");
+    this.databases.set(key, db);
+    if (this.currentName === null) {
+      this.currentName = key;
+    }
+  }
+
+  closePracticeDatabase(): void {
+    const key = "practice";
+    const existing = this.databases.get(key);
+    if (existing !== undefined) {
+      existing.close();
+      this.databases.delete(key);
+    }
+    if (this.currentName === key) {
+      this.currentName = null;
+    }
   }
 
   activeName(): string | null {
@@ -157,13 +167,18 @@ export class DesktopSqlEngine {
       statementIndex += 1;
 
       const firstLineEnd = statementSql.indexOf("\n");
-      const firstLine = (firstLineEnd === -1 ? statementSql : statementSql.slice(0, firstLineEnd))
+      const firstLine = (
+        firstLineEnd === -1 ? statementSql : statementSql.slice(0, firstLineEnd)
+      )
         .trim()
         .replace(/;+\s*$/, "");
       const useTarget = parseUseStatement(firstLine);
 
       if (useTarget !== null) {
-        const remainder = firstLineEnd === -1 ? "" : statementSql.slice(firstLineEnd + 1).trim();
+        const remainder =
+          firstLineEnd === -1
+            ? ""
+            : statementSql.slice(firstLineEnd + 1).trim();
         try {
           this.use(useTarget);
         } catch (error: unknown) {
@@ -176,7 +191,7 @@ export class DesktopSqlEngine {
         return;
       }
 
-      const createTarget = parseDatabaseTarget(statementSql, CREATE_DATABASE);
+      const createTarget = parseCreateDatabase(statementSql);
       if (createTarget !== null) {
         try {
           results.push({
@@ -192,7 +207,7 @@ export class DesktopSqlEngine {
         return;
       }
 
-      const dropTarget = parseDatabaseTarget(statementSql, DROP_DATABASE);
+      const dropTarget = parseDropDatabase(statementSql);
       if (dropTarget !== null) {
         try {
           this.dropDatabase(dropTarget);
@@ -212,7 +227,8 @@ export class DesktopSqlEngine {
       if (this.db === null) {
         results.push({
           ...this.emptyResult(index, started),
-          error: "No database is active. Select one with USE <name> or from the Databases page.",
+          error:
+            "No database is active. Select one with USE <name> or from the Databases page.",
         });
         return;
       }
@@ -248,11 +264,14 @@ export class DesktopSqlEngine {
           });
         } else {
           this.db.exec(statementSql);
-          const changes = this.db.prepare("SELECT changes() AS changes").get() as { changes?: number };
+          const changes = this.db
+            .prepare("SELECT changes() AS changes")
+            .get() as { changes?: number };
           results.push({
             columns: [],
             rows: [],
-            rowsAffected: typeof changes?.changes === "number" ? changes.changes : 0,
+            rowsAffected:
+              typeof changes?.changes === "number" ? changes.changes : 0,
             error: undefined,
             statementIndex: index,
             isSelect: false,
@@ -263,7 +282,7 @@ export class DesktopSqlEngine {
         const message = error instanceof Error ? error.message : String(error);
         results.push({
           ...this.emptyResult(index, started),
-          error: translateError(message),
+          error: translateDriverError(message),
         });
       }
     };
@@ -284,7 +303,9 @@ export class DesktopSqlEngine {
     }
 
     const tableRows = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+      )
       .all() as Array<{ name: string }>;
 
     return tableRows.map(({ name }) => {
@@ -314,7 +335,9 @@ export class DesktopSqlEngine {
           to: String(key.to),
         }));
 
-      const primaryKey = columns.filter((column) => column.primaryKey).map((column) => column.name);
+      const primaryKey = columns
+        .filter((column) => column.primaryKey)
+        .map((column) => column.name);
 
       return {
         name,
@@ -359,3 +382,5 @@ export class DesktopSqlEngine {
     };
   }
 }
+
+export const desktopSqlEngine = new DesktopSqlEngine();

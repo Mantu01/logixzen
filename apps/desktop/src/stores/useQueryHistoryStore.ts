@@ -1,17 +1,17 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface QueryHistoryItem {
-  id: string
-  query: string
-  timestamp: number
-  success: boolean
+  id: string;
+  query: string;
+  timestamp: number;
+  success: boolean;
 }
 
 interface QueryHistoryState {
-  history: QueryHistoryItem[]
-  addToHistory: (query: string, success: boolean) => void
-  clearHistory: () => void
+  history: QueryHistoryItem[];
+  addToHistory: (query: string, success: boolean) => void;
+  clearHistory: () => void;
 }
 
 export const useQueryHistoryStore = create<QueryHistoryState>()(
@@ -25,12 +25,14 @@ export const useQueryHistoryStore = create<QueryHistoryState>()(
           query,
           timestamp: Date.now(),
           success,
-        }
-        set((s: QueryHistoryState) => ({ history: [item, ...s.history].slice(0, 50) }))
+        };
+        set((s: QueryHistoryState) => ({
+          history: [item, ...s.history].slice(0, 50),
+        }));
       },
 
       clearHistory: () => set({ history: [] }),
     }),
-    { name: 'logixzen_query_history' }
-  )
-)
+    { name: "logixzen_query_history" },
+  ),
+);

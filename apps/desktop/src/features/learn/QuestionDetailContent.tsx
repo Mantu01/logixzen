@@ -22,7 +22,10 @@ import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
 import { AiActionButtons } from "@/components/learn/AiActionButtons";
 import { Badge } from "@/features/learn/Badge";
-import { useGrading, type GradeResult } from "@/features/learn/hooks/useGrading";
+import {
+  useGrading,
+  type GradeResult,
+} from "@/features/learn/hooks/useGrading";
 import { BADGE_DEFINITIONS } from "@/features/badges/badgeDefinitions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,12 +41,18 @@ interface QuestionDetailProps {
   questionId: string;
 }
 
-export function QuestionDetailContent({ topicId, questionId }: QuestionDetailProps): React.ReactElement {
+export function QuestionDetailContent({
+  topicId,
+  questionId,
+}: QuestionDetailProps): React.ReactElement {
   const questions = usePackStore((state) => state.questions);
   const hydrated = usePackStore((state) => state.hydrated);
 
   const question = useMemo<Question | null>(
-    () => questions.find((item) => item.id === questionId && item.topicId === topicId) ?? null,
+    () =>
+      questions.find(
+        (item) => item.id === questionId && item.topicId === topicId,
+      ) ?? null,
     [questions, questionId, topicId],
   );
 
@@ -68,14 +77,28 @@ export function QuestionDetailContent({ topicId, questionId }: QuestionDetailPro
     );
   }
 
-  return <QuestionWorkspace key={question.id} question={question} topicId={topicId} />;
+  return (
+    <QuestionWorkspace
+      key={question.id}
+      question={question}
+      topicId={topicId}
+    />
+  );
 }
 
-function QuestionWorkspace({ question, topicId }: { question: Question; topicId: string }): React.ReactElement {
+function QuestionWorkspace({
+  question,
+  topicId,
+}: {
+  question: Question;
+  topicId: string;
+}): React.ReactElement {
   const router = useRouter();
   const questions = usePackStore((state) => state.questions);
   const solvedMap = useProgressStore((state) => state.solvedQuestions);
-  const editorFontSize = useProgressStore((state) => state.settings.editorFontSize);
+  const editorFontSize = useProgressStore(
+    (state) => state.settings.editorFontSize,
+  );
 
   const topicQuestions = useMemo(
     () => questions.filter((item) => item.topicId === topicId),
@@ -137,9 +160,15 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
 
     if (window.logixzen !== undefined && firstSolve) {
       if (unlocked[0] !== undefined) {
-        void window.logixzen.notifications.badge("Badge unlocked", unlocked[0].title);
+        void window.logixzen.notifications.badge(
+          "Badge unlocked",
+          unlocked[0].title,
+        );
       } else if (updated.solvedQuestions.size === 1) {
-        void window.logixzen.notifications.badge("First solve", "Welcome to LogixZen");
+        void window.logixzen.notifications.badge(
+          "First solve",
+          "Welcome to LogixZen",
+        );
       }
       if (streak >= 3) {
         void window.logixzen.notifications.streak(streak);
@@ -173,11 +202,32 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
               <CheckCircle2 className="size-3" /> Solved
             </span>
           ) : null}
-          <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => void run()} disabled={isGrading || answer.trim().length === 0 || !isSqlQuestion}>
-            {isGrading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} Run
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => void run()}
+            disabled={isGrading || answer.trim().length === 0 || !isSqlQuestion}
+          >
+            {isGrading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Play className="size-3.5" />
+            )}{" "}
+            Run
           </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => void submit()} disabled={isGrading || answer.trim().length === 0}>
-            {isGrading ? <Loader2 className="size-3.5 animate-spin" /> : <FlaskConical className="size-3.5" />} Submit
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => void submit()}
+            disabled={isGrading || answer.trim().length === 0}
+          >
+            {isGrading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <FlaskConical className="size-3.5" />
+            )}{" "}
+            Submit
           </Button>
         </>
       }
@@ -186,13 +236,23 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
         <section className="space-y-1.5">
           <div className="flex items-center gap-2">
             <Badge
-              variant={question.difficulty === "easy" ? "success" : question.difficulty === "medium" ? "warning" : "error"}
+              variant={
+                question.difficulty === "easy"
+                  ? "success"
+                  : question.difficulty === "medium"
+                    ? "warning"
+                    : "error"
+              }
             >
               {question.difficulty}
             </Badge>
-            <span className="text-[10.5px] text-muted-dim">{question.tags.join(" · ")}</span>
+            <span className="text-[10.5px] text-muted-dim">
+              {question.tags.join(" · ")}
+            </span>
           </div>
-          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-muted">{question.description}</p>
+          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-muted">
+            {question.description}
+          </p>
           {question.type === "debug-query" ? (
             <pre className="border border-error/30 bg-error/5 p-3 font-mono text-[12px] text-foreground">
               {question.brokenQuery}
@@ -201,17 +261,24 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
           {question.type === "dml-check" ? (
             <div className="border border-border bg-surface-alt p-3">
               <div className="section-label mb-1">Statement to write</div>
-              <pre className="font-mono text-[12px]">{question.dmlStatement}</pre>
+              <pre className="font-mono text-[12px]">
+                {question.dmlStatement}
+              </pre>
               <p className="mt-1 text-[11px] text-muted-dim">
-                Expected rows affected: <span className="numeric text-foreground">{question.expectedChanges}</span>
+                Expected rows affected:{" "}
+                <span className="numeric text-foreground">
+                  {question.expectedChanges}
+                </span>
               </p>
             </div>
           ) : null}
-          {question.type === "predict-output" && question.expectedOutput.length > 0 ? (
+          {question.type === "predict-output" &&
+          question.expectedOutput.length > 0 ? (
             <div className="border border-border bg-surface-alt p-3">
               <div className="section-label mb-1">Expected shape</div>
               <p className="font-mono text-[11.5px] text-muted-dim">
-                {Object.keys(question.expectedOutput[0]).join(" · ")} — {question.expectedOutput.length} rows
+                {Object.keys(question.expectedOutput[0]).join(" · ")} —{" "}
+                {question.expectedOutput.length} rows
               </p>
             </div>
           ) : null}
@@ -219,13 +286,16 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
 
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="section-label">{isSqlQuestion ? "Your query" : "Your answer"}</span>
+            <span className="section-label">
+              {isSqlQuestion ? "Your query" : "Your answer"}
+            </span>
             <AiActionButtons
               question={question}
               studentAnswer={answer}
               errorMessage={
                 gradeResult !== null && !gradeResult.passed
-                  ? gradeResult.testCases.find((testCase) => !testCase.passed)?.message ?? "Query failed"
+                  ? (gradeResult.testCases.find((testCase) => !testCase.passed)
+                      ?.message ?? "Query failed")
                   : null
               }
               onHint={setAiOutput}
@@ -246,7 +316,11 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
               />
             </div>
           ) : (
-            <AnswerInputs question={question} answer={answer} onChange={setAnswer} />
+            <AnswerInputs
+              question={question}
+              answer={answer}
+              onChange={setAnswer}
+            />
           )}
         </section>
 
@@ -255,11 +329,18 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
             <div className="mb-1 flex items-center gap-1.5">
               <Sparkles className="size-3 text-primary" />
               <span className="section-label">AI assistant</span>
-              <Button variant="ghost" size="xs" className="ml-auto" onClick={() => setAiOutput(null)}>
+              <Button
+                variant="ghost"
+                size="xs"
+                className="ml-auto"
+                onClick={() => setAiOutput(null)}
+              >
                 Dismiss
               </Button>
             </div>
-            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-muted">{aiOutput}</p>
+            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-muted">
+              {aiOutput}
+            </p>
           </section>
         ) : null}
 
@@ -274,7 +355,9 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
           </section>
         ) : null}
 
-        {gradeResult !== null ? <GradeReport result={gradeResult} points={question.points} /> : null}
+        {gradeResult !== null ? (
+          <GradeReport result={gradeResult} points={question.points} />
+        ) : null}
 
         <HintPanel
           hints={question.hints}
@@ -283,14 +366,29 @@ function QuestionWorkspace({ question, topicId }: { question: Question; topicId:
         />
 
         {gradeResult?.passed === true || showSolution ? (
-          <SolutionPanel question={question} open={showSolution} onOpen={() => setShowSolution(true)} />
+          <SolutionPanel
+            question={question}
+            open={showSolution}
+            onOpen={() => setShowSolution(true)}
+          />
         ) : null}
 
         <div className="flex items-center justify-between border-t border-border pb-2 pt-4">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate(-1)} disabled={index <= 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => navigate(-1)}
+            disabled={index <= 0}
+          >
             <ArrowLeft className="size-3.5" /> Previous
           </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => navigate(1)} disabled={index >= topicQuestions.length - 1}>
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => navigate(1)}
+            disabled={index >= topicQuestions.length - 1}
+          >
             Next <ArrowRight className="size-3.5" />
           </Button>
         </div>
@@ -325,7 +423,9 @@ function AnswerInputs({
                 key={option.id}
                 className={cn(
                   "flex cursor-pointer items-start gap-2.5 border p-3 text-[12.5px] transition-colors",
-                  checked ? "border-primary/50 bg-primary/5" : "border-border hover:bg-surface-hover",
+                  checked
+                    ? "border-primary/50 bg-primary/5"
+                    : "border-border hover:bg-surface-hover",
                 )}
               >
                 <Checkbox
@@ -348,7 +448,9 @@ function AnswerInputs({
                 key={option.id}
                 className={cn(
                   "flex cursor-pointer items-start gap-2.5 border p-3 text-[12.5px] transition-colors",
-                  answer === option.id ? "border-primary/50 bg-primary/5" : "border-border hover:bg-surface-hover",
+                  answer === option.id
+                    ? "border-primary/50 bg-primary/5"
+                    : "border-border hover:bg-surface-hover",
                 )}
               >
                 <RadioGroupItem value={option.id} className="mt-0.5" />
@@ -376,7 +478,9 @@ function AnswerInputs({
                 value={values[partIndex - 1] ?? ""}
                 onChange={(event) => {
                   const next = positions.map((_, position) =>
-                    position === partIndex - 1 ? event.target.value : (values[position] ?? ""),
+                    position === partIndex - 1
+                      ? event.target.value
+                      : (values[position] ?? ""),
                   );
                   onChange(next.join("|"));
                 }}
@@ -394,13 +498,23 @@ function AnswerInputs({
   return <div />;
 }
 
-function GradeReport({ result, points }: { result: GradeResult; points: number }): React.ReactElement {
-  const visible = result.testCases.filter((testCase) => !testCase.hidden || testCase.passed);
+function GradeReport({
+  result,
+  points,
+}: {
+  result: GradeResult;
+  points: number;
+}): React.ReactElement {
+  const visible = result.testCases.filter(
+    (testCase) => !testCase.hidden || testCase.passed,
+  );
   return (
     <section
       className={cn(
         "border",
-        result.passed ? "border-success/40 bg-success/5" : "border-error/40 bg-error/5",
+        result.passed
+          ? "border-success/40 bg-success/5"
+          : "border-error/40 bg-error/5",
       )}
     >
       <div className="flex items-center gap-2 border-b border-inherit px-3 py-2">
@@ -409,8 +523,15 @@ function GradeReport({ result, points }: { result: GradeResult; points: number }
         ) : (
           <XCircle className="size-4 text-error" />
         )}
-        <span className={cn("text-[12.5px] font-semibold", result.passed ? "text-success" : "text-error")}>
-          {result.passed ? `All ${visible.length} test cases passed` : "Test cases failed"}
+        <span
+          className={cn(
+            "text-[12.5px] font-semibold",
+            result.passed ? "text-success" : "text-error",
+          )}
+        >
+          {result.passed
+            ? `All ${visible.length} test cases passed`
+            : "Test cases failed"}
         </span>
         <span className="numeric ml-auto text-[10.5px] text-muted-dim">
           {result.totalTimeMs.toFixed(0)}ms · {points} pts
@@ -427,10 +548,14 @@ function GradeReport({ result, points }: { result: GradeResult; points: number }
             <div className="min-w-0 flex-1">
               <div className="text-[12px] font-medium">{testCase.label}</div>
               {testCase.message ? (
-                <div className="mt-0.5 font-mono text-[11px] text-error/90">{testCase.message}</div>
+                <div className="mt-0.5 font-mono text-[11px] text-error/90">
+                  {testCase.message}
+                </div>
               ) : null}
             </div>
-            <span className="numeric shrink-0 text-[10px] text-muted-dim">{testCase.passed ? "pass" : "fail"}</span>
+            <span className="numeric shrink-0 text-[10px] text-muted-dim">
+              {testCase.passed ? "pass" : "fail"}
+            </span>
           </div>
         ))}
       </div>
@@ -457,7 +582,12 @@ function HintPanel({
           {revealed}/{hints.length}
         </span>
         {revealed < hints.length ? (
-          <Button variant="ghost" size="xs" className="ml-auto" onClick={onReveal}>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="ml-auto"
+            onClick={onReveal}
+          >
             Reveal hint {revealed + 1}
           </Button>
         ) : null}
@@ -465,7 +595,10 @@ function HintPanel({
       {revealed > 0 ? (
         <div className="divide-y divide-border/60">
           {hints.slice(0, revealed).map((hint, hintIndex) => (
-            <p key={hintIndex} className="border-l-2 border-warning/60 bg-surface-alt/50 px-3 py-2 text-[12px] text-muted">
+            <p
+              key={hintIndex}
+              className="border-l-2 border-warning/60 bg-surface-alt/50 px-3 py-2 text-[12px] text-muted"
+            >
               {hint}
             </p>
           ))}
@@ -491,7 +624,12 @@ function SolutionPanel({
         <Eye className="size-3.5 text-info" />
         <span className="section-label">Solution</span>
         {!open ? (
-          <Button variant="ghost" size="xs" className="ml-auto" onClick={onOpen}>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="ml-auto"
+            onClick={onOpen}
+          >
             Show solution
           </Button>
         ) : null}
@@ -503,7 +641,9 @@ function SolutionPanel({
               {solution}
             </pre>
           ) : null}
-          <p className="text-[12px] leading-relaxed text-muted">{question.explanation}</p>
+          <p className="text-[12px] leading-relaxed text-muted">
+            {question.explanation}
+          </p>
         </div>
       ) : null}
     </section>

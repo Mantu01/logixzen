@@ -6,7 +6,29 @@
   "directories": {
     "output": "release"
   },
-  "files": ["dist-electron/**/*", "out/**/*", "package.json", "!node_modules/**/*"],
+  "files": [
+    "dist-electron/**/*",
+    "out/**/*",
+    "package.json",
+    "node_modules/tedious/**/*",
+    "node_modules/pg/**/*",
+    "node_modules/pg-protocol/**/*",
+    "node_modules/pg-types/**/*",
+    "node_modules/pgpass/**/*",
+    "node_modules/postgres-array/**/*",
+    "node_modules/postgres-bytea/**/*",
+    "node_modules/postgres-date/**/*",
+    "node_modules/postgres-interval/**/*",
+    "node_modules/mysql2/**/*",
+    "!**/*.map",
+    "!**/test*/**",
+    "!**/docs/**"
+  ],
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  },
   "win": {
     "icon": "logo.png",
     "target": ["portable", "msi"]
