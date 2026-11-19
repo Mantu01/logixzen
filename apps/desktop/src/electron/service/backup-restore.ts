@@ -10,7 +10,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, join } from "node:path";
 import { backupsDir, sqlitePracticeFile } from "../paths";
 import { PRACTICE_DROP_ORDER, PRACTICE_TABLES } from "../practice/schema";
 import {
@@ -23,29 +23,28 @@ import { DEPT_HEAD_UPDATES } from "../practice/schema";
 import {
   PRACTICE_SCHEMA_VERSION,
   verifyPracticeEnvironment,
-  type PracticeVerificationResult,
 } from "../practice/seeder";
 import type { DatabaseDriver } from "../sql/drivers/driver";
 import { ENGINE_CATALOG } from "../../shared/engine-catalog";
 import type { BackupManifest, EngineOptionId } from "../../shared/engines";
 import { writeLog } from "./logger";
 
-export const MIN_BACKUP_DISK_BYTES = 50 * 1024 * 1024;
-export const DEFAULT_AUTOMATIC_BACKUP_RETENTION = 5;
+const MIN_BACKUP_DISK_BYTES = 50 * 1024 * 1024;
+const DEFAULT_AUTOMATIC_BACKUP_RETENTION = 5;
 
-export interface BackupOptions {
+interface BackupOptions {
   isAutomatic?: boolean;
   destinationPath?: string;
   minDiskBytes?: number;
 }
 
-export interface BackupExecutionResult {
+interface BackupExecutionResult {
   manifest: BackupManifest;
   manifestPath: string;
   artifactPath: string;
 }
 
-export function checkBackupDiskSpace(
+function checkBackupDiskSpace(
   dir: string,
   minBytes = MIN_BACKUP_DISK_BYTES,
 ): void {
@@ -261,118 +260,6 @@ export function listBackups(filterOptionId?: EngineOptionId): BackupManifest[] {
   return manifests.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
-}
-
-export async function restoreBackup(
-  driver: DatabaseDriver,
-  optionId: EngineOptionId,
-  manifestPath: string,
-): Promise<PracticeVerificationResult> {
-  if (!existsSync(manifestPath)) {
-    throw new Error(`Backup manifest not found: ${manifestPath}`);
-  }
-
-  const raw = readFileSync(manifestPath, "utf8");
-  let manifest: BackupManifest;
-  try {
-    manifest = JSON.parse(raw) as BackupManifest;
-  } catch {
-    throw new Error(`Invalid or corrupt backup manifest JSON: ${manifestPath}`);
-  }
-
-  const entry = resolveCatalogEntry(optionId);
-  if (manifest.dialect !== entry.dialect || manifest.engine !== entry.engine) {
-    throw new Error(
-      `Backup mismatch: cannot restore ${manifest.engine} (${manifest.dialect}) backup into ${entry.engine} (${entry.dialect}).`,
-    );
-  }
-
-  const dir = dirname(manifestPath);
-  const artifactPath = join(dir, manifest.artifactFile);
-
-  if (!existsSync(artifactPath)) {
-    throw new Error(`Backup artifact file missing: ${artifactPath}`);
-  }
-
-  const stat = statSync(artifactPath);
-  if (stat.size === 0) {
-    throw new Error(`Backup artifact file is empty: ${artifactPath}`);
-  }
-
-  const actualSha256 = computeFileSha256(artifactPath);
-  if (actualSha256 !== manifest.sha256) {
-    throw new Error(
-      `Backup artifact integrity check failed: SHA-256 checksum mismatch (expected ${manifest.sha256}, got ${actualSha256}).`,
-    );
-  }
-
-  writeLog("info", `Taking pre-restore safety backup for ${optionId}`);
-  const safetyBackup = await createBackup(driver, optionId, {
-    isAutomatic: true,
-  });
-
-  try {
-    if (entry.dialect === "sqlite") {
-      try {
-        await driver.execute("PRAGMA wal_checkpoint(TRUNCATE);");
-      } catch {}
-      const sqliteDest = sqlitePracticeFile();
-      copyFileSync(artifactPath, sqliteDest);
-      await driver.connect();
-    } else {
-      const dumpText = readFileSync(artifactPath, "utf8");
-      const statements = dumpText
-        .split(/;\s*[\r\n]+/)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith("--"));
-
-      for (const sql of statements) {
-        await driver.execute(sql);
-      }
-    }
-
-    const verification = await verifyPracticeEnvironment(driver);
-    if (!verification.ok) {
-      throw new Error(
-        verification.error ?? "Post-restore practice verification failed.",
-      );
-    }
-
-    writeLog(
-      "info",
-      `Restore completed and verified for ${optionId}: ${verification.totalRows} rows.`,
-    );
-    return verification;
-  } catch (restoreErr) {
-    writeLog(
-      "error",
-      `Restore failed: ${restoreErr instanceof Error ? restoreErr.message : String(restoreErr)}; rolling back to safety backup.`,
-    );
-    try {
-      if (entry.dialect === "sqlite") {
-        copyFileSync(safetyBackup.artifactPath, sqlitePracticeFile());
-        await driver.connect();
-      } else {
-        const rollbackDump = readFileSync(safetyBackup.artifactPath, "utf8");
-        const stmts = rollbackDump
-          .split(/;\s*[\r\n]+/)
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0 && !s.startsWith("--"));
-        for (const sql of stmts) {
-          await driver.execute(sql);
-        }
-      }
-      await verifyPracticeEnvironment(driver);
-      writeLog("info", `Rollback to safety backup completed successfully.`);
-    } catch (rollbackErr) {
-      writeLog(
-        "error",
-        `Rollback also failed: ${rollbackErr instanceof Error ? rollbackErr.message : String(rollbackErr)}`,
-      );
-    }
-
-    throw restoreErr;
-  }
 }
 
 export function cleanupBackups(

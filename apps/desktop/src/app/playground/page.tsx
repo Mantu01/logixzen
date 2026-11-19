@@ -66,6 +66,7 @@ import { useQueryFilesStore } from "@/stores/useQueryFilesStore";
 import { useSqlStore } from "@/sql/useSqlStore";
 import { exportToCsv, exportToJson } from "@/lib/exportUtils";
 import { saveTextFile } from "@/lib/save-file";
+import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { useFontZoom } from "@/hooks/use-font-zoom";
 import { ErDiagram } from "@/features/schema/er-diagram";
 import { cn } from "@/lib/utils";
@@ -153,10 +154,7 @@ function PlaygroundInner(): React.ReactElement {
     }
   }, [params, activeFile, setContent]);
 
-  useEffect(() => {
-    if (activeDatasetId !== null || databases.length === 0) return;
-    void activateDataset(databases[0]?.id ?? null);
-  }, [activeDatasetId, databases, activateDataset]);
+  useEnsureActiveDataset();
 
   const runSqlNow = useCallback(
     async (text: string) => {
@@ -615,7 +613,7 @@ function QueryTabBar({
                   event.stopPropagation();
                   onClose(file.id);
                 }}
-                className="flex size-5 items-center justify-center rounded-sm text-muted-dim opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
+                className="flex size-5 items-center justify-center text-muted-dim opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
               >
                 <X className="size-3" />
               </button>

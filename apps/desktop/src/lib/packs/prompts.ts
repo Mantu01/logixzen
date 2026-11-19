@@ -1,4 +1,4 @@
-export const QUESTION_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
+const QUESTION_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
 
 Generate a LogixZen QUESTIONS PACK as a single JSON file. Reply with raw JSON only, no markdown fences.
 
@@ -38,7 +38,7 @@ Rules:
 - Keep every required field present. Do not invent new keys.
 - Make descriptions self-contained and educational.`;
 
-export const DATABASE_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
+const DATABASE_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
 
 Generate a LogixZen DATABASES PACK as a single JSON file. Reply with raw JSON only, no markdown fences.
 
@@ -61,7 +61,7 @@ Rules:
 - Provide 5-25 realistic seed rows per table so queries return meaningful results.
 - Keep table/column metadata in sync with setupSql exactly.`;
 
-export const NOTES_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
+const NOTES_PACK_PROMPT = `You are a content generator for LogixZen, an offline SQL practice desktop app.
 
 Generate a LogixZen NOTES PACK as a single JSON file. Reply with raw JSON only, no markdown fences.
 

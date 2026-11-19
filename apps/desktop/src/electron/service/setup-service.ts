@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { shell } from "electron";
+import { formatBytes } from "../../shared/format";
 import type {
   BackupManifest,
   BridgeResult,
@@ -133,7 +134,7 @@ async function seedPracticeFor(optionId: EngineOptionId): Promise<void> {
   }
 }
 
-export function stagesForKind(kind: JobKind): CreateStageSpec[] {
+function stagesForKind(kind: JobKind): CreateStageSpec[] {
   switch (kind) {
     case "install":
       return [
@@ -284,7 +285,7 @@ export function stagesForKind(kind: JobKind): CreateStageSpec[] {
   }
 }
 
-export class SetupService {
+class SetupService {
   public async getSnapshot(): Promise<BridgeResult<PlatformSnapshot>> {
     try {
       return { ok: true, data: currentSnapshot() };
@@ -1246,12 +1247,6 @@ export class SetupService {
   public async getStorageUsage(): Promise<
     BridgeResult<Record<string, { bytes: number; human: string }>>
   > {
-    const formatBytes = (bytes: number): string => {
-      if (bytes < 1024) return `${bytes} B`;
-      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    };
-
     let backupsBytes = 0;
     const bDir = backupsDir();
     if (existsSync(bDir)) {

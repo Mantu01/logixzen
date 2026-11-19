@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { nativeStorage } from "@/lib/native-storage";
 import { dateKey } from "@/lib/date-key";
 
-export interface QuestionResult {
+interface QuestionResult {
   timestamp: number;
   attempts: number;
   bestTimeMs: number;
@@ -16,16 +16,16 @@ export interface StreakState {
   longestStreak: number;
 }
 
-export interface BadgeState {
+interface BadgeState {
   earned: Map<string, { timestamp: number }>;
 }
 
-export interface EditorSettings {
+interface EditorSettings {
   editorFontSize: number;
   resultFontSize: number;
 }
 
-export interface ProgressExportFile {
+interface ProgressExportFile {
   version: number;
   exportedAt: string;
   solvedQuestions: [string, QuestionResult][];

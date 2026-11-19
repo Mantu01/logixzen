@@ -37,7 +37,7 @@ const X_GAP = 110;
 const Y_GAP = 56;
 const HANDLE_SIZE = 8;
 
-export interface ErDiagramProps {
+interface ErDiagramProps {
   tables: TableInfo[];
   highlightTable?: string | null;
   onTableClick?: (table: string) => void;
@@ -48,6 +48,8 @@ interface ColumnData {
   type: string;
   pk: boolean;
   fk: boolean;
+  source: boolean;
+  target: boolean;
 }
 
 interface TableData extends Record<string, unknown> {
@@ -236,6 +238,21 @@ function ErFlow({
           <Link2 className="size-2.5 text-primary" />
           <span>fk</span>
         </span>
+        <span className="text-border">·</span>
+        <span className="flex items-center gap-1.5" title="one to many">
+          <svg
+            width="30"
+            height="9"
+            viewBox="0 0 30 9"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            aria-hidden="true"
+          >
+            <path d="M1 1.5v6M1 4.5h13M14 4.5l7-3M14 4.5l7 3M14 4.5h7" />
+          </svg>
+          <span>one → many</span>
+        </span>
       </div>
 
       <div className="absolute right-3 top-3 z-10 flex flex-col border border-border bg-surface">
@@ -318,7 +335,7 @@ function RowHandle({
         height: HANDLE_SIZE,
         background: color,
         border: "1.5px solid var(--surface)",
-        borderRadius: 1,
+        borderRadius: 0,
       }}
     />
   );
@@ -360,7 +377,7 @@ function TableCard({
             key={column.name}
             className="relative flex h-[22px] items-center gap-1.5 border-b border-border/30 px-2.5 last:border-b-0 hover:bg-surface-hover"
           >
-            {column.fk ? (
+            {column.source ? (
               <>
                 <RowHandle
                   side="left"
@@ -374,16 +391,20 @@ function TableCard({
                 />
               </>
             ) : null}
-            <RowHandle
-              side="left"
-              id={`l-in-${column.name}`}
-              color="var(--muted-foreground)"
-            />
-            <RowHandle
-              side="right"
-              id={`r-in-${column.name}`}
-              color="var(--muted-foreground)"
-            />
+            {column.target ? (
+              <>
+                <RowHandle
+                  side="left"
+                  id={`l-in-${column.name}`}
+                  color={column.pk ? "var(--warning)" : "var(--muted-foreground)"}
+                />
+                <RowHandle
+                  side="right"
+                  id={`r-in-${column.name}`}
+                  color={column.pk ? "var(--warning)" : "var(--muted-foreground)"}
+                />
+              </>
+            ) : null}
             <span className="flex w-3 shrink-0 justify-center">
               {column.pk ? (
                 <KeyRound className="size-2.5 text-warning" />
@@ -430,8 +451,8 @@ function RelationEdge({
     targetY,
     sourcePosition,
     targetPosition,
-    borderRadius: 8,
-    offset: 28,
+    borderRadius: 0,
+    offset: 24,
   });
   const edgeData = data ?? {
     childColumn: "",
@@ -445,17 +466,16 @@ function RelationEdge({
     ? "var(--primary)"
     : "color-mix(in oklab, var(--primary) 42%, var(--border))";
   const strokeWidth = active ? 1.8 : 1.1;
-  const spread = 4.5;
-  const reach = 8;
+  const spread = 5;
+  const reach = 9;
+  const sourceOut = sourcePosition === Position.Right ? 1 : -1;
+  const targetOut = targetPosition === Position.Left ? -1 : 1;
+  const markerColor = active
+    ? "var(--primary)"
+    : "color-mix(in oklab, var(--muted-foreground) 70%, transparent)";
 
-  const foot =
-    sourcePosition === Position.Right
-      ? `M ${sourceX} ${sourceY - spread} L ${sourceX - reach} ${sourceY} L ${sourceX} ${sourceY + spread}`
-      : `M ${sourceX} ${sourceY - spread} L ${sourceX + reach} ${sourceY} L ${sourceX} ${sourceY + spread}`;
-  const oneBar =
-    targetPosition === Position.Left
-      ? `M ${targetX - reach} ${targetY - spread} L ${targetX - reach} ${targetY + spread}`
-      : `M ${targetX + reach} ${targetY - spread} L ${targetX + reach} ${targetY + spread}`;
+  const foot = `M ${sourceX} ${sourceY - spread} L ${sourceX + sourceOut * reach} ${sourceY} L ${sourceX} ${sourceY + spread}`;
+  const oneBar = `M ${targetX + targetOut * reach} ${targetY - spread} L ${targetX + targetOut * reach} ${targetY + spread}`;
 
   return (
     <>
@@ -479,27 +499,74 @@ function RelationEdge({
         fill="none"
         opacity={opacity}
       />
-      {active ? (
-        <EdgeLabelRenderer>
+      <EdgeLabelRenderer>
+        <Cardinality
+          x={sourceX + sourceOut * (reach + 14)}
+          y={sourceY - 12}
+          label="N"
+          color={markerColor}
+          opacity={opacity}
+        />
+        <Cardinality
+          x={targetX + targetOut * (reach + 14)}
+          y={targetY - 12}
+          label="1"
+          color={markerColor}
+          opacity={opacity}
+        />
+        {active ? (
           <div
-            className="nodrag nopan absolute"
+            className="nodrag nopan absolute whitespace-nowrap"
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: "none",
               fontSize: 9,
+              lineHeight: "12px",
               fontFamily: "var(--font-mono)",
-              color: "var(--muted-foreground)",
+              color: "var(--foreground)",
               background: "var(--surface)",
               border: "1px solid var(--border)",
               padding: "1px 5px",
               opacity: 0.98,
             }}
           >
-            {`${edgeData.childColumn} 1 : N ${edgeData.parentColumn}`}
+            {`${edgeData.childColumn} → ${edgeData.parentColumn}`}
           </div>
-        </EdgeLabelRenderer>
-      ) : null}
+        ) : null}
+      </EdgeLabelRenderer>
     </>
+  );
+}
+
+function Cardinality({
+  x,
+  y,
+  label,
+  color,
+  opacity,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  color: string;
+  opacity: number;
+}): React.ReactElement {
+  return (
+    <div
+      className="nodrag nopan absolute text-center font-semibold"
+      style={{
+        transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+        pointerEvents: "none",
+        width: 14,
+        fontSize: 9,
+        lineHeight: "14px",
+        fontFamily: "var(--font-mono)",
+        color,
+        opacity,
+      }}
+    >
+      {label}
+    </div>
   );
 }
 
@@ -635,6 +702,12 @@ function buildGraph(tables: TableInfo[]): {
   const nodes: TableNode[] = tables.map((table) => {
     const pkColumns = new Set(table.primaryKey ?? []);
     const fkColumns = new Set(table.foreignKeys.map((key) => key.from));
+    const sourceColumns = new Set(
+      relations.filter((relation) => relation.child === table.name).map((relation) => relation.childColumn),
+    );
+    const targetColumns = new Set(
+      relations.filter((relation) => relation.parent === table.name).map((relation) => relation.parentColumn),
+    );
     return {
       id: table.name,
       type: "erTable" as const,
@@ -647,6 +720,8 @@ function buildGraph(tables: TableInfo[]): {
           type: column.type,
           pk: pkColumns.has(column.name),
           fk: fkColumns.has(column.name),
+          source: sourceColumns.has(column.name),
+          target: targetColumns.has(column.name),
         })),
       },
     };

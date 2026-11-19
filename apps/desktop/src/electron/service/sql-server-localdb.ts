@@ -18,7 +18,7 @@ import { writeLog } from "./logger";
 import { runSafeChildProcess } from "./runner";
 import type { StageExecutionContext } from "./jobs";
 
-export const LOCALDB_ELEVATION_SUMMARY = [
+const LOCALDB_ELEVATION_SUMMARY = [
   "SQL Server LocalDB will be installed for user-mode practice database execution.",
   "No Windows background service will be created.",
   `Instance name: ${LOCALDB_INSTANCE}`,
@@ -26,7 +26,7 @@ export const LOCALDB_ELEVATION_SUMMARY = [
   "Administrator elevation is required by Windows Installer to install the LocalDB package.",
 ].join("\n");
 
-export function resolveSqlLocalDbPath(): string {
+function resolveSqlLocalDbPath(): string {
   const programFiles = process.env.ProgramFiles ?? "C:\\Program Files";
   const candidates = [
     join(
@@ -68,7 +68,7 @@ export function resolveSqlLocalDbPath(): string {
   return "sqllocaldb.exe";
 }
 
-export function preflightLocalDb(snapshot: PlatformSnapshot): {
+function preflightLocalDb(snapshot: PlatformSnapshot): {
   ok: boolean;
   failure?: OperationFailure;
 } {
@@ -229,24 +229,7 @@ export async function createLocalDbInstance(
   }
 }
 
-export async function deleteLocalDbInstance(
-  instanceName: string,
-): Promise<boolean> {
-  const exe = resolveSqlLocalDbPath();
-  try {
-    await stopLocalDbInstance(instanceName);
-    const res = await runSafeChildProcess({
-      executable: exe,
-      args: ["delete", instanceName],
-      timeoutMs: 15000,
-    });
-    return res.exitCode === 0;
-  } catch {
-    return false;
-  }
-}
-
-export async function queryLocalDbTsql(
+async function queryLocalDbTsql(
   serverTarget: string,
   sql: string,
 ): Promise<{ ok: boolean; output: string }> {

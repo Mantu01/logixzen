@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Grid2x2,
   Network,
@@ -38,6 +38,7 @@ import {
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
 import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { ErDiagram } from "@/features/schema/er-diagram";
+import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { usePackStore } from "@/stores/usePackStore";
 import { useSqlStore } from "@/sql/useSqlStore";
 import { tablesFromDataset } from "@/lib/dataset-from-sql";
@@ -59,7 +60,6 @@ export default function SchemaPage(): React.ReactElement {
   const activeDatasetId = useSqlStore((state) => state.activeDatasetId);
   const activeEngineName = useSqlStore((state) => state.activeEngineName);
   const activateDataset = useSqlStore((state) => state.activateDataset);
-  const autoConnect = useSqlStore((state) => state.autoConnect);
   const reseed = useSqlStore((state) => state.reseed);
 
   const [view, setView] = useState<ViewMode>("diagram");
@@ -76,14 +76,7 @@ export default function SchemaPage(): React.ReactElement {
     if (activeDataset) return tablesFromDataset(activeDataset);
     return [];
   }, [schema, isInitialized, activeDataset]);
-  useEffect(() => {
-    void autoConnect();
-  }, [autoConnect]);
-
-  useEffect(() => {
-    if (activeDatasetId !== null || databases.length === 0) return;
-    void activateDataset(databases[0]?.id ?? null);
-  }, [activeDatasetId, databases, activateDataset]);
+  useEnsureActiveDataset();
 
   return (
     <PageShell

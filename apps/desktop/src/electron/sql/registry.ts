@@ -12,7 +12,7 @@ import { TdsDriver } from "./drivers/tds-driver";
 
 const IDLE_TIMEOUT_MS = 300000;
 
-export class ConnectionRegistry {
+class ConnectionRegistry {
   private activeOptionId: EngineOptionId = "sqlite";
   private activeDriver: DatabaseDriver | null = null;
   private idleTimer: NodeJS.Timeout | null = null;

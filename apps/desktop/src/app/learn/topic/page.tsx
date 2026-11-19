@@ -14,6 +14,9 @@ export default function TopicPage(): React.ReactElement {
 
 function TopicInner(): React.ReactElement {
   const params = useSearchParams();
-  const topicId = params.get("id") ?? "";
-  return <QuestionListContent topicId={topicId} />;
+  return (
+    <QuestionListContent
+      source={{ kind: "topic", id: params.get("id") ?? "" }}
+    />
+  );
 }

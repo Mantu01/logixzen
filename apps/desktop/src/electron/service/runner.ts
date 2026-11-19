@@ -77,7 +77,7 @@ const ALLOWED_EXTRA_ENV_KEYS = new Set([
 
 const MAX_OUTPUT_BYTES = 1024 * 1024;
 
-export interface RunCommandSpec {
+interface RunCommandSpec {
   executable: string;
   args: string[];
   cwd?: string;
@@ -89,7 +89,7 @@ export interface RunCommandSpec {
   onStdoutChunk?: (chunk: string) => void;
 }
 
-export interface RunCommandResult {
+interface RunCommandResult {
   exitCode: number;
   stdout: string;
   stderr: string;
@@ -132,7 +132,7 @@ function buildSafeEnv(extraEnv?: Record<string, string>): NodeJS.ProcessEnv {
   return safe as NodeJS.ProcessEnv;
 }
 
-export function killProcessTree(pid: number): void {
+function killProcessTree(pid: number): void {
   if (process.platform === "win32") {
     try {
       const killer = spawn(

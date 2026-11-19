@@ -14,7 +14,7 @@ import {
 import type { DatabaseDriver } from "./driver";
 import { translateDriverError } from "./driver";
 
-export interface MysqlConfig {
+interface MysqlConfig {
   host?: string;
   port?: number;
   database?: string;

@@ -37,7 +37,7 @@ interface ToolButtonProps {
   onClick?: () => void;
 }
 
-export function ToolButton({
+function ToolButton({
   label,
   shortcut,
   children,

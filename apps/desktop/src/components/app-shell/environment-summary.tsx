@@ -67,7 +67,7 @@ export function EnvironmentSummary({
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
-                "size-1.5 rounded-full shrink-0",
+                "size-1.5 shrink-0",
                 dockerReady ? "bg-success" : "bg-muted-dim",
               )}
             />
@@ -85,7 +85,7 @@ export function EnvironmentSummary({
           size="sm"
           onClick={handleRefresh}
           disabled={loading || refreshing}
-          className="h-7 text-[11px] gap-1.5 rounded-none border-border"
+          className="h-7 text-[11px] gap-1.5 border-border"
         >
           <RefreshCw
             className={cn("size-3", (loading || refreshing) && "animate-spin")}

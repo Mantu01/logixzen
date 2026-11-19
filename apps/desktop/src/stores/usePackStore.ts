@@ -9,19 +9,41 @@ import type {
   DatabasePack,
   Note,
   NotesPack,
+  PackFile,
   PackIssue,
   PackKind,
   PackSummary,
   QuestionsPack,
 } from "@/lib/packs/types";
+import {
+  ZERO_COUNTS,
+  categorySlug,
+  type CategoryAssignments,
+  type InstallCounts,
+  type QuestionCategory,
+} from "@/lib/categories";
 
-export interface PackImportOutcome {
+export interface InstallOutcome {
   ok: boolean;
-  kind: PackKind;
   issues: PackIssue[];
-  added: number;
-  updated: number;
+  counts: InstallCounts;
 }
+
+interface ContentBundle {
+  databases?: Dataset[];
+  questions?: Question[];
+  topics?: Topic[];
+  notes?: Note[];
+}
+
+type PersistedKey =
+  | "databases"
+  | "questions"
+  | "topics"
+  | "notes"
+  | "categories"
+  | "questionCategory"
+  | "installedResources";
 
 interface PackState {
   hydrated: boolean;
@@ -29,139 +51,165 @@ interface PackState {
   questions: Question[];
   topics: Topic[];
   notes: Note[];
+  categories: QuestionCategory[];
+  questionCategory: CategoryAssignments;
+  installedResources: string[];
 
-  importFile: (text: string) => PackImportOutcome;
+  importFile: (text: string) => InstallOutcome;
+  installContent: (content: ContentBundle) => InstallOutcome;
   addDataset: (dataset: Dataset) => void;
   removeDataset: (datasetId: string) => void;
+  markResourceInstalled: (resourceId: string) => void;
+  createCategory: (name: string) => string | null;
+  renameCategory: (categoryId: string, name: string) => void;
+  removeCategory: (categoryId: string) => void;
+  setQuestionCategory: (questionId: string, categoryId: string | null) => void;
+  setQuestionCategories: (
+    questionIds: string[],
+    categoryId: string | null,
+  ) => void;
+  setNoteCategory: (noteId: string, category: string) => void;
   resetAll: () => void;
 }
 
-interface PersistedPacks {
-  databases: Dataset[];
-  questions: Question[];
-  topics: Topic[];
-  notes: Note[];
-}
-
-const EMPTY: PersistedPacks = {
+const EMPTY: Pick<PackState, PersistedKey> = {
   databases: [],
   questions: [],
   topics: [],
   notes: [],
+  categories: [],
+  questionCategory: {},
+  installedResources: [],
 };
+
+const MAX_ISSUES = 25;
 
 export const usePackStore = create<PackState>()(
   persist(
-    (set, get) => {
-      const outcome = (
-        ok: boolean,
-        kind: PackKind,
-        issues: PackIssue[],
-        added: number,
-        updated: number,
-      ): PackImportOutcome => ({ ok, kind, issues, added, updated });
+    (set, get) => ({
+      hydrated: false,
+      ...EMPTY,
 
-      return {
-        hydrated: false,
-        ...EMPTY,
-
-        importFile: (text) => {
-          const detected = parsePackFile(text);
-          if (detected === null) {
-            return outcome(
-              false,
-              "questions",
-              [{ path: "$", message: "Invalid JSON" }],
-              0,
-              0,
-            );
-          }
-          const { kind, result } = detected;
-          if (!result.ok || result.data === null) {
-            return outcome(false, kind, result.issues, 0, 0);
-          }
-          if (kind === "databases") {
-            return applyDatabases(set, (result.data as DatabasePack).datasets);
-          }
-          if (kind === "questions") {
-            const pack = result.data as QuestionsPack;
-            return applyQuestions(set, pack.questions, pack.topics ?? []);
-          }
-          return applyNotes(set, (result.data as NotesPack).notes);
-        },
-
-        addDataset: (dataset) =>
-          set((state) => ({
-            databases: mergeById(state.databases, [dataset]).list,
-          })),
-
-        removeDataset: (datasetId) =>
-          set((state) => ({
-            databases: state.databases.filter((item) => item.id !== datasetId),
-          })),
-
-        resetAll: () => set({ ...EMPTY }),
-      };
-
-      function applyDatabases(
-        setFn: (partial: Partial<PackState>) => void,
-        incoming: Dataset[],
-      ): PackImportOutcome {
-        if (incoming.length === 0) {
-          return outcome(
-            false,
-            "databases",
-            [{ path: "datasets", message: "No datasets found" }],
-            0,
-            0,
-          );
+      importFile: (text) => {
+        const detected = parsePackFile(text);
+        if (detected === null) {
+          return {
+            ok: false,
+            issues: [{ path: "$", message: "Invalid JSON" }],
+            counts: ZERO_COUNTS,
+          };
         }
-        const { list, added, updated } = mergeById(get().databases, incoming);
-        setFn({ databases: list });
-        return outcome(true, "databases", [], added, updated);
-      }
-
-      function applyQuestions(
-        setFn: (partial: Partial<PackState>) => void,
-        incoming: Question[],
-        incomingTopics: Topic[],
-      ): PackImportOutcome {
-        if (incoming.length === 0) {
-          return outcome(
-            false,
-            "questions",
-            [{ path: "questions", message: "No questions found" }],
-            0,
-            0,
-          );
+        if (!detected.result.ok || detected.result.data === null) {
+          return {
+            ok: false,
+            issues: detected.result.issues,
+            counts: ZERO_COUNTS,
+          };
         }
-        const merged = mergeById(get().questions, incoming);
-        const topics =
-          incomingTopics.length > 0
-            ? mergeById(get().topics, incomingTopics).list
-            : get().topics;
-        setFn({ questions: merged.list, topics });
-        return outcome(true, "questions", [], merged.added, merged.updated);
-      }
+        return get().installContent(bundleOf(detected.kind, detected.result.data));
+      },
 
-      function applyNotes(
-        setFn: (partial: Partial<PackState>) => void,
-        incoming: Note[],
-      ): PackImportOutcome {
-        if (incoming.length === 0) {
-          return outcome(
-            false,
-            "notes",
-            [{ path: "notes", message: "No notes found" }],
-            0,
-            0,
-          );
+      installContent: (content) => {
+        const state = get();
+        const issues = validateBundle(state, content);
+        if (issues.length > 0) {
+          return { ok: false, issues, counts: ZERO_COUNTS };
         }
-        const merged = mergeById(get().notes, incoming);
-        setFn({ notes: merged.list });
-        return outcome(true, "notes", [], merged.added, merged.updated);
-      }
-    },
+        const questions = content.questions ?? [];
+        const topics = deriveTopics(
+          content.topics ? mergeById(state.topics, content.topics) : state.topics,
+          questions,
+        );
+        set({
+          databases: content.databases
+            ? mergeById(state.databases, content.databases)
+            : state.databases,
+          questions: questions.length
+            ? mergeById(state.questions, questions)
+            : state.questions,
+          topics,
+          notes: content.notes
+            ? mergeById(state.notes, content.notes)
+            : state.notes,
+        });
+        return { ok: true, issues: [], counts: countsOf(content) };
+      },
+
+      addDataset: (dataset) =>
+        set((state) => ({ databases: mergeById(state.databases, [dataset]) })),
+
+      removeDataset: (datasetId) =>
+        set((state) => ({
+          databases: state.databases.filter((item) => item.id !== datasetId),
+        })),
+
+      markResourceInstalled: (resourceId) =>
+        set((state) =>
+          state.installedResources.includes(resourceId)
+            ? state
+            : { installedResources: [...state.installedResources, resourceId] },
+        ),
+
+      createCategory: (name) => {
+        const trimmed = name.trim();
+        if (trimmed.length === 0) return null;
+        const categories = get().categories;
+        let id = categorySlug(trimmed);
+        if (categories.some((category) => category.id === id)) {
+          id = `${id}-${categories.length + 1}`;
+        }
+        set({
+          categories: [
+            ...categories,
+            { id, name: trimmed, order: categories.length },
+          ],
+        });
+        return id;
+      },
+
+      renameCategory: (categoryId, name) =>
+        set((state) => ({
+          categories: state.categories.map((category) =>
+            category.id === categoryId && name.trim().length > 0
+              ? { ...category, name: name.trim() }
+              : category,
+          ),
+        })),
+
+      removeCategory: (categoryId) =>
+        set((state) => ({
+          categories: state.categories.filter(
+            (category) => category.id !== categoryId,
+          ),
+          questionCategory: Object.fromEntries(
+            Object.entries(state.questionCategory).filter(
+              ([, assigned]) => assigned !== categoryId,
+            ),
+          ),
+        })),
+
+      setQuestionCategory: (questionId, categoryId) =>
+        get().setQuestionCategories([questionId], categoryId),
+
+      setQuestionCategories: (questionIds, categoryId) =>
+        set((state) => {
+          const next = { ...state.questionCategory };
+          for (const questionId of questionIds) {
+            if (categoryId === null) delete next[questionId];
+            else next[questionId] = categoryId;
+          }
+          return { questionCategory: next };
+        }),
+
+      setNoteCategory: (noteId, category) =>
+        set((state) => ({
+          notes: state.notes.map((note) =>
+            note.id === noteId ? { ...note, category } : note,
+          ),
+        })),
+
+      resetAll: () => set({ ...EMPTY }),
+    }),
     {
       name: "logixzen-packs",
       version: 1,
@@ -171,6 +219,9 @@ export const usePackStore = create<PackState>()(
         questions: state.questions,
         topics: state.topics,
         notes: state.notes,
+        categories: state.categories,
+        questionCategory: state.questionCategory,
+        installedResources: state.installedResources,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
@@ -186,6 +237,7 @@ export function summarizePacks(state: {
   questions: Question[];
   topics: Topic[];
   notes: Note[];
+  categories: QuestionCategory[];
 }): PackSummary {
   return {
     databases: state.databases.length,
@@ -193,11 +245,73 @@ export function summarizePacks(state: {
     topics:
       state.topics.length > 0
         ? state.topics.length
-        : countUniqueTopics(state.questions),
+        : new Set(state.questions.map((question) => question.topicId)).size,
     notes: state.notes.length,
+    categories: state.categories.length,
   };
 }
 
-function countUniqueTopics(questions: Question[]): number {
-  return new Set(questions.map((question) => question.topicId)).size;
+function bundleOf(kind: PackKind, data: PackFile): ContentBundle {
+  if (kind === "databases") {
+    return { databases: (data as DatabasePack).datasets };
+  }
+  if (kind === "questions") {
+    const pack = data as QuestionsPack;
+    return { questions: pack.questions, topics: pack.topics ?? [] };
+  }
+  return { notes: (data as NotesPack).notes };
+}
+
+function countsOf(content: ContentBundle): InstallCounts {
+  return {
+    databases: content.databases?.length ?? 0,
+    questions: content.questions?.length ?? 0,
+    notes: content.notes?.length ?? 0,
+  };
+}
+
+function validateBundle(state: PackState, content: ContentBundle): PackIssue[] {
+  const issues: PackIssue[] = [];
+  const push = (path: string, message: string): void => {
+    if (issues.length < MAX_ISSUES) issues.push({ path, message });
+  };
+
+  for (const key of ["databases", "questions", "notes"] as const) {
+    if (content[key]?.length === 0) push(key, `No ${key} found in this file`);
+  }
+
+  const datasetIds = new Set([
+    ...state.databases.map((dataset) => dataset.id),
+    ...(content.databases ?? []).map((dataset) => dataset.id),
+  ]);
+  for (const question of content.questions ?? []) {
+    if (issues.length >= MAX_ISSUES) break;
+    if (!datasetIds.has(question.datasetId)) {
+      push(
+        `questions.${question.id}.datasetId`,
+        `Unknown dataset "${question.datasetId}" — install the matching database first`,
+      );
+    }
+  }
+
+  if (issues.length === MAX_ISSUES) {
+    issues.push({ path: "questions", message: "Additional issues omitted" });
+  }
+  return issues;
+}
+
+function deriveTopics(existing: Topic[], questions: Question[]): Topic[] {
+  const known = new Set(existing.map((topic) => topic.id));
+  const missing = Array.from(
+    new Set(questions.map((question) => question.topicId)),
+  ).filter((id) => !known.has(id));
+  if (missing.length === 0) return existing;
+  return [
+    ...existing,
+    ...missing.map((id, index) => ({
+      id,
+      title: id.replace(/[-_]+/g, " "),
+      order: existing.length + index,
+    })),
+  ];
 }

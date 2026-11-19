@@ -7,7 +7,7 @@ export interface PrivacySettings {
   sendProgress: boolean;
 }
 
-export interface ProgressDigest {
+interface ProgressDigest {
   solved: number;
   points: number;
   streak: number;

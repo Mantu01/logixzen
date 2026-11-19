@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Import,
   Network,
+  Package,
   PanelLeft,
   Settings2,
   Terminal,
@@ -37,6 +38,7 @@ const GROUPS: NavGroup[] = [
       { href: "/playground", label: "Editor", icon: Terminal },
       { href: "/databases", label: "Databases", icon: Database },
       { href: "/schema", label: "Schema", icon: Network },
+      { href: "/resources", label: "Resources", icon: Package },
       { href: "/import", label: "Data Hub", icon: Import },
     ],
   },
@@ -74,6 +76,8 @@ export function AppSidebar() {
 
   const isActive = (href: string): boolean =>
     pathname === href || pathname.startsWith(`${href}/`);
+
+  if (pathname === "/") return null;
 
   return (
     <aside

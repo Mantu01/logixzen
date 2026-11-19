@@ -71,7 +71,7 @@ function appendLog(filePath: string, line: string): void {
   } catch {}
 }
 
-export type LogLevel = "info" | "warn" | "error" | "debug";
+type LogLevel = "info" | "warn" | "error" | "debug";
 
 export function writeLog(
   level: LogLevel,

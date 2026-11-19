@@ -53,7 +53,7 @@ export function SetupSuccess({
           <Button
             asChild
             size="sm"
-            className="rounded-none h-8.5 text-[12px] font-medium gap-2"
+            className="h-8.5 text-[12px] font-medium gap-2"
           >
             <Link href="/playground">
               <Terminal className="size-3.5" />
@@ -65,7 +65,7 @@ export function SetupSuccess({
             asChild
             variant="outline"
             size="sm"
-            className="rounded-none border-border h-8 text-[11px] gap-2"
+            className="border-border h-8 text-[11px] gap-2"
           >
             <Link href="/databases">
               <Database className="size-3.5" />
@@ -78,7 +78,7 @@ export function SetupSuccess({
             variant="ghost"
             size="sm"
             onClick={onResetSetup}
-            className="rounded-none h-7 text-[11px] text-muted-dim hover:text-foreground gap-1.5"
+            className="h-7 text-[11px] text-muted-dim hover:text-foreground gap-1.5"
           >
             <Plus className="size-3" />
             <span>Set up another engine</span>

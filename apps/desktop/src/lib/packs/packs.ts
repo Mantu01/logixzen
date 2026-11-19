@@ -91,7 +91,7 @@ function validateArray<T>(
   return { data, issues };
 }
 
-export function parseDatabasePack(
+function parseDatabasePack(
   value: Record<string, unknown>,
 ): PackParseResult<DatabasePack> {
   const items = arrayAt(value, "datasets");
@@ -114,7 +114,7 @@ export function parseDatabasePack(
   };
 }
 
-export function parseQuestionsPack(
+function parseQuestionsPack(
   value: Record<string, unknown>,
 ): PackParseResult<QuestionsPack> {
   const items = arrayAt(value, "questions");
@@ -151,7 +151,7 @@ export function parseQuestionsPack(
   };
 }
 
-export function parseNotesPack(
+function parseNotesPack(
   value: Record<string, unknown>,
 ): PackParseResult<NotesPack> {
   const items = arrayAt(value, "notes");
@@ -202,7 +202,7 @@ export function parseNotesPack(
   };
 }
 
-export function detectPackKind(value: unknown): PackKind | null {
+function detectPackKind(value: unknown): PackKind | null {
   if (typeof value !== "object" || value === null) return null;
   const record = value as Record<string, unknown>;
   if (Array.isArray(record.datasets)) return "databases";
@@ -258,17 +258,8 @@ export function serializeNotesPack(notes: Note[]): string {
 export function mergeById<T extends { id: string }>(
   current: T[],
   incoming: T[],
-): { list: T[]; added: number; updated: number } {
+): T[] {
   const map = new Map(current.map((item) => [item.id, item]));
-  let added = 0;
-  let updated = 0;
-  for (const item of incoming) {
-    if (map.has(item.id)) {
-      updated += 1;
-    } else {
-      added += 1;
-    }
-    map.set(item.id, item);
-  }
-  return { list: Array.from(map.values()), added, updated };
+  for (const item of incoming) map.set(item.id, item);
+  return Array.from(map.values());
 }

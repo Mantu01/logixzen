@@ -9,7 +9,7 @@ import {
 import type { DatabaseDriver } from "./driver";
 import { translateDriverError } from "./driver";
 
-export interface TdsConfig {
+interface TdsConfig {
   server?: string;
   port?: number;
   database?: string;

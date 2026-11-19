@@ -139,7 +139,7 @@ export default function SettingsPage(): React.ReactElement {
               asChild
               size="sm"
               variant="outline"
-              className="rounded-none border-border h-8 text-[11.5px]"
+              className="border-border h-8 text-[11.5px]"
             >
               <Link href="/databases">Open Database Manager</Link>
             </Button>

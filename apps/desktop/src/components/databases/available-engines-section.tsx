@@ -5,7 +5,7 @@ import { Plus, Download } from "lucide-react";
 import type { EngineOffer, PlatformSnapshot } from "@/shared/engines";
 import { platformOf } from "@/shared/engine-catalog";
 import { Button } from "@/components/ui/button";
-import { formatBytes } from "@/lib/format";
+import { formatBytes } from "@/shared/format";
 
 interface AvailableEnginesSectionProps {
   availableOffers: EngineOffer[];
@@ -35,7 +35,7 @@ export function AvailableEnginesSection({
         <Button
           asChild
           size="sm"
-          className="rounded-none h-7 text-[11px] gap-1.5"
+          className="h-7 text-[11px] gap-1.5"
         >
           <Link href="/setup">
             <Plus className="size-3" />
@@ -83,7 +83,7 @@ export function AvailableEnginesSection({
                   asChild
                   variant="outline"
                   size="sm"
-                  className="rounded-none border-border h-7 text-[11px] gap-1"
+                  className="border-border h-7 text-[11px] gap-1"
                 >
                   <Link href={`/setup?preselect=${entry.id}`}>
                     <Download className="size-3" />

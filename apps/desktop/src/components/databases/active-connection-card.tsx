@@ -97,7 +97,7 @@ export function ActiveConnectionCard({
           <Button
             asChild
             size="sm"
-            className="rounded-none h-7.5 px-3 text-[11.5px] font-medium gap-1.5"
+            className="h-7.5 px-3 text-[11.5px] font-medium gap-1.5"
           >
             <Link href="/playground">
               <Terminal className="size-3.5" />
@@ -111,7 +111,7 @@ export function ActiveConnectionCard({
             size="sm"
             onClick={handleTest}
             disabled={testing || !activeOptionId}
-            className="rounded-none border-border h-7.5 px-2.5 text-[11px] gap-1.5"
+            className="border-border h-7.5 px-2.5 text-[11px] gap-1.5"
           >
             <RefreshCw className={cn("size-3", testing && "animate-spin")} />
             <span>Test Connection</span>
@@ -200,7 +200,7 @@ export function ActiveConnectionCard({
             size="sm"
             onClick={handleSwitchSubmit}
             disabled={!selectedSwitchOption || isSwitching}
-            className="rounded-none border-border h-7 text-[11px] gap-1.5"
+            className="border-border h-7 text-[11px] gap-1.5"
           >
             <span>Switch Active Engine</span>
           </Button>

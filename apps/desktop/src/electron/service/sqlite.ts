@@ -18,18 +18,6 @@ import {
 import { updateInstallation, updateInstallationStatus } from "../state/store";
 import { writeLog } from "./logger";
 
-export function getBundledSqliteVersion(): string {
-  const db = new DatabaseSync(":memory:");
-  try {
-    const row = db.prepare("SELECT sqlite_version() AS version").get() as {
-      version?: string;
-    };
-    return row?.version ?? "3.45.0";
-  } finally {
-    db.close();
-  }
-}
-
 export function verifySqlitePractice(
   filePath: string,
 ): VerificationResult & { version?: string } {

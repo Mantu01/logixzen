@@ -15,29 +15,26 @@ import { writeLog } from "./logger";
 import { runSafeChildProcess } from "./runner";
 import type { StageExecutionContext } from "./jobs";
 
-export const LINUX_EXPRESS_SERVICE_NAME = "mssql-server";
-export const LINUX_EXPRESS_DEFAULT_PORT = 1433;
-export const LINUX_EXPRESS_SECRET_REF = "mssql-express-linux-password";
-export const LINUX_EXPRESS_INSTANCE_NAME = "MSSQLSERVER";
-export const LINUX_EXPRESS_DATABASE = "LogixZenPractice";
-export const LINUX_EXPRESS_USER = "logixzen_user";
+const LINUX_EXPRESS_SERVICE_NAME = "mssql-server";
+const LINUX_EXPRESS_DEFAULT_PORT = 1433;
+const LINUX_EXPRESS_SECRET_REF = "mssql-express-linux-password";
+const LINUX_EXPRESS_INSTANCE_NAME = "MSSQLSERVER";
+const LINUX_EXPRESS_DATABASE = "LogixZenPractice";
+const LINUX_EXPRESS_USER = "logixzen_user";
 
-export const LINUX_EXPRESS_MIN_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
-export const LINUX_EXPRESS_RECOMMENDED_MEMORY_BYTES = 3.25 * 1024 * 1024 * 1024;
-export const LINUX_EXPRESS_MIN_DISK_BYTES = 6 * 1024 * 1024 * 1024;
+const LINUX_EXPRESS_MIN_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
+const LINUX_EXPRESS_MIN_DISK_BYTES = 6 * 1024 * 1024 * 1024;
 
-export const MICROSOFT_GPG_KEY_URL =
-  "https://packages.microsoft.com/keys/microsoft.asc";
-export const UBUNTU_2204_REPO_URL =
+const UBUNTU_2204_REPO_URL =
   "https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2025.list";
-export const UBUNTU_2404_REPO_URL =
+const UBUNTU_2404_REPO_URL =
   "https://packages.microsoft.com/config/ubuntu/24.04/mssql-server-2025.list";
-export const RHEL_9_REPO_URL =
+const RHEL_9_REPO_URL =
   "https://packages.microsoft.com/config/rhel/9/mssql-server-2025.repo";
-export const RHEL_10_REPO_URL =
+const RHEL_10_REPO_URL =
   "https://packages.microsoft.com/config/rhel/10/mssql-server-2025.repo";
 
-export const LINUX_EXPRESS_ELEVATION_SUMMARY = [
+const LINUX_EXPRESS_ELEVATION_SUMMARY = [
   "SQL Server Express will be installed from Microsoft's official repository as a systemd service.",
   "Service name: mssql-server",
   "Port: 1433",
@@ -51,7 +48,7 @@ export function generateSecurePassword(): string {
   return `Lz!${bytes}9a`;
 }
 
-export function preflightExpressLinux(snapshot: PlatformSnapshot): {
+function preflightExpressLinux(snapshot: PlatformSnapshot): {
   ok: boolean;
   failure?: OperationFailure;
 } {
@@ -155,14 +152,14 @@ export function preflightExpressLinux(snapshot: PlatformSnapshot): {
   return { ok: true };
 }
 
-export function resolveElevationHelper(): "pkexec" | "sudo" {
+function resolveElevationHelper(): "pkexec" | "sudo" {
   if (existsSync("/usr/bin/pkexec") || existsSync("/usr/local/bin/pkexec")) {
     return "pkexec";
   }
   return "sudo";
 }
 
-export function resolveSqlcmdExecutable(): string {
+function resolveSqlcmdExecutable(): string {
   const candidates = [
     "/opt/mssql-tools18/bin/sqlcmd",
     "/opt/mssql-tools/bin/sqlcmd",
@@ -175,7 +172,7 @@ export function resolveSqlcmdExecutable(): string {
   return "sqlcmd";
 }
 
-export function detectExistingLinuxInstallation(): boolean {
+function detectExistingLinuxInstallation(): boolean {
   if (existsSync("/opt/mssql/bin/sqlservr")) return true;
   return false;
 }
@@ -216,7 +213,7 @@ export function waitPortOpen(
   });
 }
 
-export async function queryLinuxExpressTsql(options: {
+async function queryLinuxExpressTsql(options: {
   host?: string;
   port?: number;
   user: string;

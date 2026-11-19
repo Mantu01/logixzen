@@ -83,7 +83,7 @@ export function DeleteDataDialog({
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             placeholder={CONFIRMATION_PHRASE}
-            className="rounded-none border-border font-mono text-[12px] h-8.5"
+            className="border-border font-mono text-[12px] h-8.5"
             autoFocus
           />
         </div>
@@ -95,7 +95,7 @@ export function DeleteDataDialog({
             size="sm"
             onClick={handleClose}
             disabled={isExecuting}
-            className="rounded-none border-border h-8 text-[11.5px]"
+            className="border-border h-8 text-[11.5px]"
           >
             Cancel
           </Button>
@@ -105,7 +105,7 @@ export function DeleteDataDialog({
             size="sm"
             onClick={handleConfirm}
             disabled={!matches || isExecuting}
-            className="rounded-none h-8 text-[11.5px] font-medium"
+            className="h-8 text-[11.5px] font-medium"
           >
             {isExecuting ? "Deleting..." : "Permanently Delete Data"}
           </Button>

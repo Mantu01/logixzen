@@ -1,13 +1,8 @@
-import { CONTAINER_PREFIX } from "../../shared/engine-catalog";
-import type { EngineDialect, EngineOptionId } from "../../shared/engines";
+import type { EngineDialect } from "../../shared/engines";
 
 export const PRACTICE_MARKER_TABLE = "logixzen_meta";
 
 export const PRACTICE_MARKER_VALUE = "logixzen-practice";
-
-export function containerBaseName(optionId: EngineOptionId): string {
-  return `${CONTAINER_PREFIX}${optionId}`;
-}
 
 export function ownedName(base: string, taken: ReadonlySet<string>): string {
   if (!taken.has(base)) return base;

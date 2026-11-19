@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { nativeStorage } from "@/lib/native-storage";
 
-export interface QueryFile {
+interface QueryFile {
   id: string;
   name: string;
   content: string;

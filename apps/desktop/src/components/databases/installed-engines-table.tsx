@@ -18,7 +18,7 @@ import type {
   InstallationRecord,
 } from "@/shared/engines";
 import { Button } from "@/components/ui/button";
-import { formatBytes } from "@/lib/format";
+import { formatBytes } from "@/shared/format";
 import { cn } from "@/lib/utils";
 
 interface InstalledEnginesTableProps {
@@ -76,7 +76,7 @@ export function InstalledEnginesTable({
           size="sm"
           onClick={() => void onRefreshStorage()}
           disabled={isStorageLoading}
-          className="rounded-none border-border h-7 text-[11px] gap-1.5"
+          className="border-border h-7 text-[11px] gap-1.5"
         >
           <HardDrive
             className={cn("size-3", isStorageLoading && "animate-pulse")}
@@ -180,7 +180,7 @@ export function InstalledEnginesTable({
                           size="sm"
                           onClick={() => void onSwitch(record.optionId)}
                           disabled={isActionExecuting}
-                          className="rounded-none border-border h-6.5 px-2 text-[10.5px] gap-1"
+                          className="border-border h-6.5 px-2 text-[10.5px] gap-1"
                         >
                           <ArrowRightLeft className="size-2.5" />
                           <span>Switch</span>
@@ -197,7 +197,7 @@ export function InstalledEnginesTable({
                               void onStartStop(record.optionId, "start")
                             }
                             disabled={isActionExecuting}
-                            className="rounded-none border-border h-6.5 px-2 text-[10.5px] gap-1 text-success hover:text-success"
+                            className="border-border h-6.5 px-2 text-[10.5px] gap-1 text-success hover:text-success"
                           >
                             <Play className="size-2.5" />
                             <span>Start</span>
@@ -211,7 +211,7 @@ export function InstalledEnginesTable({
                               void onStartStop(record.optionId, "stop")
                             }
                             disabled={isActionExecuting}
-                            className="rounded-none border-border h-6.5 px-2 text-[10.5px] gap-1 text-warning hover:text-warning"
+                            className="border-border h-6.5 px-2 text-[10.5px] gap-1 text-warning hover:text-warning"
                           >
                             <Square className="size-2.5" />
                             <span>Stop</span>
@@ -225,7 +225,7 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => void onVerify(record.optionId)}
                         disabled={isActionExecuting}
-                        className="rounded-none border-border h-6.5 px-2 text-[10.5px] gap-1"
+                        className="border-border h-6.5 px-2 text-[10.5px] gap-1"
                       >
                         <RefreshCw className="size-2.5" />
                         <span>Verify</span>
@@ -237,7 +237,7 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => onOpenResetConfirm(record)}
                         disabled={isActionExecuting}
-                        className="rounded-none border-border h-6.5 px-2 text-[10.5px] gap-1"
+                        className="border-border h-6.5 px-2 text-[10.5px] gap-1"
                         title="Reset practice database to canonical 373 records"
                       >
                         <RotateCcw className="size-2.5" />
@@ -249,7 +249,7 @@ export function InstalledEnginesTable({
                         variant="ghost"
                         size="sm"
                         onClick={() => onOpenDetails(record)}
-                        className="rounded-none h-6.5 px-1.5 text-[10.5px] text-muted hover:text-foreground"
+                        className="h-6.5 px-1.5 text-[10.5px] text-muted hover:text-foreground"
                         title="View technical details"
                       >
                         <Info className="size-3" />
@@ -261,7 +261,7 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => onOpenUninstallConfirm(record)}
                         disabled={isActionExecuting}
-                        className="rounded-none h-6.5 px-1.5 text-[10.5px] text-muted-dim hover:text-destructive"
+                        className="h-6.5 px-1.5 text-[10.5px] text-muted-dim hover:text-destructive"
                         title="Uninstall engine (keeps data)"
                       >
                         <Trash2 className="size-3" />
@@ -273,7 +273,7 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => onOpenDeleteDataConfirm(record)}
                         disabled={isActionExecuting}
-                        className="rounded-none h-6.5 px-1.5 text-[10.5px] text-destructive/70 hover:text-destructive"
+                        className="h-6.5 px-1.5 text-[10.5px] text-destructive/70 hover:text-destructive"
                         title="Permanently delete data"
                       >
                         <ShieldAlert className="size-3" />

@@ -316,7 +316,7 @@ export async function loadInstallState(): Promise<InstallStateLoad> {
 
 let tail: Promise<unknown> = Promise.resolve();
 
-export function withInstallLock<T>(task: () => Promise<T> | T): Promise<T> {
+function withInstallLock<T>(task: () => Promise<T> | T): Promise<T> {
   const run = tail.then(task, task);
   tail = run.then(
     () => undefined,
@@ -394,29 +394,4 @@ export async function updateInstallationStatus(
     });
     return { ...state, installations };
   });
-}
-
-export async function resetInstallState(): Promise<InstallStateLoad> {
-  return mutateInstallState(() => emptyState());
-}
-
-export function exportRedactedState(loaded: InstallStateLoad): string {
-  const redacted = {
-    ...loaded,
-    state: {
-      ...loaded.state,
-      installations: loaded.state.installations.map((record) => ({
-        ...record,
-        secretRef: undefined,
-        installLog: undefined,
-        dataLocation:
-          record.dataLocation === undefined ? undefined : "app-data",
-        resources: {
-          container: record.resources.container,
-          volume: record.resources.volume,
-        },
-      })),
-    },
-  };
-  return JSON.stringify(redacted, null, 2);
 }

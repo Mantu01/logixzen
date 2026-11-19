@@ -406,7 +406,7 @@ export default function DatabasesPage(): React.ReactElement {
             size="sm"
             onClick={() => void handleRefreshAll()}
             disabled={loading}
-            className="rounded-none border-border h-7 text-[11px] gap-1.5"
+            className="border-border h-7 text-[11px] gap-1.5"
           >
             <RefreshCw className={loading ? "size-3 animate-spin" : "size-3"} />
             <span>Refresh Status</span>
@@ -415,7 +415,7 @@ export default function DatabasesPage(): React.ReactElement {
           <Button
             asChild
             size="sm"
-            className="rounded-none h-7 text-[11px] gap-1.5"
+            className="h-7 text-[11px] gap-1.5"
           >
             <Link href="/setup">
               <Plus className="size-3" />
@@ -443,7 +443,7 @@ export default function DatabasesPage(): React.ReactElement {
               variant="outline"
               size="sm"
               onClick={() => void loadData()}
-              className="rounded-none border-destructive/40 h-7 text-[11px]"
+              className="border-destructive/40 h-7 text-[11px]"
             >
               Retry
             </Button>
@@ -468,7 +468,7 @@ export default function DatabasesPage(): React.ReactElement {
                   variant="outline"
                   size="sm"
                   onClick={() => void handleJobDismiss()}
-                  className="rounded-none border-border h-6.5 text-[10.5px]"
+                  className="border-border h-6.5 text-[10.5px]"
                 >
                   Dismiss
                 </Button>
@@ -513,9 +513,9 @@ export default function DatabasesPage(): React.ReactElement {
 
         {loading ? (
           <div className="space-y-4">
-            <Skeleton className="h-28 w-full rounded-none" />
-            <Skeleton className="h-44 w-full rounded-none" />
-            <Skeleton className="h-32 w-full rounded-none" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-44 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
         ) : installations.length === 0 ? (
           <div className="border border-border bg-surface p-8 text-center space-y-4">
@@ -536,7 +536,7 @@ export default function DatabasesPage(): React.ReactElement {
               <Button
                 asChild
                 size="sm"
-                className="rounded-none h-8 text-[12px] font-medium gap-2"
+                className="h-8 text-[12px] font-medium gap-2"
               >
                 <Link href="/setup">
                   <Plus className="size-3.5" />

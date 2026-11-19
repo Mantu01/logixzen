@@ -21,14 +21,14 @@ export interface CreateStageSpec {
   weight?: number;
 }
 
-export interface CreateJobOptions {
+interface CreateJobOptions {
   optionId: EngineOptionId;
   engine: EngineId;
   kind: JobKind;
   stages: CreateStageSpec[];
 }
 
-export interface InternalJobRecord {
+interface InternalJobRecord {
   job: Job;
   sequence: number;
   abortController: AbortController;

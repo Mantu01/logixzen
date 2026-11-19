@@ -4,16 +4,11 @@ import { AiClient } from "@/features/ai/AiClient";
 import type {
   ErrorExplanationRequest,
   HintRequest,
+  PrivacySettings,
   QueryExplanationRequest,
 } from "@/features/ai/AiPrompts";
 import type { AiProvider } from "@/shared/desktop-api";
 import { nativeStorage } from "@/lib/native-storage";
-
-interface PrivacySettings {
-  sendSchemaOnly: boolean;
-  sendHistory: boolean;
-  sendProgress: boolean;
-}
 
 interface AiState {
   provider: AiProvider;
@@ -21,12 +16,10 @@ interface AiState {
   apiKey: string | null;
   baseUrl: string | null;
   privacySettings: PrivacySettings;
-  isConnected: boolean;
 
   setProvider: (provider: AiProvider) => void;
   setModel: (model: string) => void;
   setApiKey: (key: string) => Promise<void>;
-  refreshKey: () => Promise<void>;
   setBaseUrl: (url: string) => void;
   setPrivacySettings: (settings: PrivacySettings) => void;
   testConnection: () => Promise<boolean>;
@@ -56,7 +49,6 @@ export const useAiStore = create<AiState>()(
         sendHistory: false,
         sendProgress: false,
       },
-      isConnected: false,
 
       setProvider: (provider) => set({ provider }),
       setModel: (model) => set({ model }),
@@ -69,25 +61,14 @@ export const useAiStore = create<AiState>()(
         set({ apiKey: "stored" });
       },
 
-      refreshKey: async () => {
-        if (window.logixzen === undefined) {
-          return;
-        }
-        const stored = await window.logixzen.secrets.retrieve("ai_api_key");
-        set({ apiKey: stored === null ? null : "stored" });
-      },
-
       setBaseUrl: (baseUrl) =>
         set({ baseUrl: baseUrl.trim() === "" ? null : baseUrl }),
       setPrivacySettings: (privacySettings) => set({ privacySettings }),
 
       testConnection: async () => {
         try {
-          const result = await client(get()).testConnection();
-          set({ isConnected: result });
-          return result;
+          return await client(get()).testConnection();
         } catch {
-          set({ isConnected: false });
           return false;
         }
       },
@@ -98,7 +79,7 @@ export const useAiStore = create<AiState>()(
 
       clearApiKey: async () => {
         await window.logixzen?.secrets.delete("ai_api_key");
-        set({ apiKey: null, isConnected: false });
+        set({ apiKey: null });
       },
     }),
     {

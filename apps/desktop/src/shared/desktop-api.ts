@@ -52,7 +52,7 @@ export interface SqlResult {
   executionTimeMs: number;
 }
 
-export interface ForeignKeyInfo {
+interface ForeignKeyInfo {
   from: string;
   table: string;
   to: string;
@@ -85,7 +85,7 @@ export interface AiCompletionRequest {
   maxTokens?: number;
 }
 
-export interface SetupApi {
+interface SetupApi {
   snapshot: () => Promise<BridgeResult<PlatformSnapshot>>;
   catalog: () => Promise<BridgeResult<EngineCatalogEntry[]>>;
   compatibility: () => Promise<BridgeResult<EngineOffer[]>>;

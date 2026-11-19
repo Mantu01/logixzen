@@ -30,7 +30,7 @@ export type LifecycleStatus =
   | "uninstalling"
   | "failed";
 
-export type JobState =
+type JobState =
   | "queued"
   | "running"
   | "waiting-for-user"
@@ -80,7 +80,7 @@ export type RecoveryActionId =
   | "repair-connection"
   | "open-logs";
 
-export interface RuntimeVersions {
+interface RuntimeVersions {
   electron: string;
   node: string;
   chrome: string;
@@ -91,7 +91,7 @@ export interface DiskSpace {
   totalBytes: number;
 }
 
-export type ServiceManager = "systemd" | "unknown";
+type ServiceManager = "systemd" | "unknown";
 
 export type PackageManager = "apt" | "dnf" | "zypper" | "unknown";
 
@@ -177,7 +177,7 @@ export interface ContainerRuntimeReadiness {
   guidance?: ContainerReadinessGuidance;
 }
 
-export interface DockerGuidanceStep {
+interface DockerGuidanceStep {
   title: string;
   detail: string;
   command?: string;
@@ -287,7 +287,7 @@ export interface BackupManifest {
   rowCount: number;
 }
 
-export interface OwnedResources {
+interface OwnedResources {
   service?: string;
   instance?: string;
   container?: string;
@@ -365,7 +365,7 @@ export interface InstallStateLoad {
   repairs: Array<{ optionId: EngineOptionId; reason: RepairReason }>;
 }
 
-export type JobStageStatus =
+type JobStageStatus =
   "pending" | "running" | "succeeded" | "failed" | "skipped" | "cancelled";
 
 export interface JobStage {
@@ -385,7 +385,7 @@ export type ProgressMeasure =
       percent: number;
     };
 
-export interface JobMeasurements {
+interface JobMeasurements {
   download?: ProgressMeasure;
   diskBytes?: number;
 }
@@ -498,9 +498,6 @@ export interface ProgressEvent {
 export type BridgeResult<T> =
   { ok: true; data: T } | { ok: false; failure: OperationFailure };
 
-export type ConnectionEndpoint =
-  { kind: "file"; path: string } | { kind: "host"; host: string; port: number };
-
 export type EngineOptionId =
   | "sqlite"
   | "mssql-express-windows"
@@ -518,12 +515,12 @@ export type CatalogPlatform =
   | "linux-x64"
   | "linux-arm64";
 
-export interface PackageSize {
+interface PackageSize {
   downloadBytes: number;
   installedBytes?: number;
 }
 
-export interface EngineCapabilities {
+interface EngineCapabilities {
   startStop: boolean;
   backup: boolean;
   portConfig: boolean;
@@ -531,16 +528,16 @@ export interface EngineCapabilities {
   multipleInstances: boolean;
 }
 
-export type ElevationNeed = "never" | "required";
+type ElevationNeed = "never" | "required";
 
-export type RestartNeed = "never" | "may-be-required";
+type RestartNeed = "never" | "may-be-required";
 
-export interface ContainerEnvVar {
+interface ContainerEnvVar {
   name: string;
   value?: string;
 }
 
-export interface ContainerSpec {
+interface ContainerSpec {
   image: string;
   tag: string;
   digest?: string;
@@ -551,27 +548,6 @@ export interface ContainerSpec {
   minDaemonVersion: string;
   supportedArchitectures?: CpuArch[];
   edition?: string;
-}
-
-export interface ContainerImageDetails {
-  optionId: EngineOptionId;
-  displayName: string;
-  beginnerLabel: string;
-  imageReference: string;
-  pinnedTag: string;
-  digest?: string;
-  downloadBytes?: number;
-  minMemoryBytes: number;
-  minDiskBytes: number;
-  defaultPort: number;
-  volumePath: string;
-  env: ContainerEnvVar[];
-  healthCheck: string;
-  licenseNote: string;
-  edition: string;
-  supportedArchitectures: CpuArch[];
-  alreadyPulled: boolean;
-  existingContainerName?: string;
 }
 
 export interface EngineCatalogEntry {
@@ -609,7 +585,7 @@ export type RequirementKind =
   | "disk"
   | "container-runtime";
 
-export type RequirementStatus = "met" | "warn" | "unmet" | "unknown";
+type RequirementStatus = "met" | "warn" | "unmet" | "unknown";
 
 export interface RequirementCheck {
   kind: RequirementKind;
@@ -620,15 +596,6 @@ export interface EngineOffer {
   entry: EngineCatalogEntry;
   visible: boolean;
   checks: RequirementCheck[];
-}
-
-export interface ConnectionDescriptor {
-  engine: EngineId;
-  dialect: EngineDialect;
-  database: string;
-  endpoint: ConnectionEndpoint;
-  user?: string;
-  secretRef?: string;
 }
 
 export interface DoctorCheckResult {

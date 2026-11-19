@@ -23,14 +23,14 @@ import {
 
 export const PRACTICE_SCHEMA_VERSION = "1";
 
-export interface PracticeInitResult {
+interface PracticeInitResult {
   status: "initialized" | "kept";
   tablesCreated: number;
   rowsInserted: number;
   message: string;
 }
 
-export interface PracticeResetResult {
+interface PracticeResetResult {
   status: "reset";
   tablesCreated: number;
   rowsInserted: number;
@@ -38,7 +38,7 @@ export interface PracticeResetResult {
   message: string;
 }
 
-export interface PracticeVerificationResult {
+interface PracticeVerificationResult {
   ok: boolean;
   tableCount: number;
   practiceTableCount: number;
@@ -112,7 +112,7 @@ async function listDriverTables(driver: DatabaseDriver): Promise<string[]> {
   return schema.map((t) => t.name);
 }
 
-export async function detectLearnerData(
+async function detectLearnerData(
   driver: DatabaseDriver,
 ): Promise<boolean> {
   const tables = await listDriverTables(driver);
@@ -213,7 +213,7 @@ export async function initializePracticeEnvironment(
   };
 }
 
-export async function createPracticeBackup(
+async function createPracticeBackup(
   driver: DatabaseDriver,
 ): Promise<string> {
   const dir = backupsDir();

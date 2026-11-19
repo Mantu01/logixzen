@@ -8,14 +8,22 @@ import { Input } from "@/components/ui/input";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { cn } from "@/lib/utils";
-import type { Question } from "@logixzen/shared/content";
+import { UNCATEGORIZED, questionsInCategory } from "@/lib/categories";
+import type { Question, Topic } from "@logixzen/shared/content";
+
+type ListSource =
+  | { kind: "topic"; id: string }
+  | { kind: "category"; id: string };
 
 export function QuestionListContent({
-  topicId,
+  source,
 }: {
-  topicId: string;
+  source: ListSource;
 }): React.ReactElement {
   const questions = usePackStore((state) => state.questions);
+  const topics = usePackStore((state) => state.topics);
+  const categories = usePackStore((state) => state.categories);
+  const assignments = usePackStore((state) => state.questionCategory);
   const hydrated = usePackStore((state) => state.hydrated);
   const solved = useProgressStore((state) => state.solvedQuestions);
   const [search, setSearch] = useState("");
@@ -23,14 +31,17 @@ export function QuestionListContent({
     "all" | "easy" | "medium" | "hard"
   >("all");
 
-  const topicQuestions = useMemo(
-    () => questions.filter((question) => question.topicId === topicId),
-    [questions, topicId],
+  const sourceQuestions = useMemo(
+    () =>
+      source.kind === "topic"
+        ? questions.filter((question) => question.topicId === source.id)
+        : questionsInCategory(questions, assignments, source.id),
+    [questions, source, assignments],
   );
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return topicQuestions.filter((question) => {
+    return sourceQuestions.filter((question) => {
       if (difficulty !== "all" && question.difficulty !== difficulty)
         return false;
       if (term === "") return true;
@@ -40,24 +51,30 @@ export function QuestionListContent({
         question.tags.some((tag) => tag.toLowerCase().includes(term))
       );
     });
-  }, [topicQuestions, search, difficulty]);
+  }, [sourceQuestions, search, difficulty]);
 
-  const solvedCount = topicQuestions.filter((question) =>
+  const solvedCount = sourceQuestions.filter((question) =>
     solved.has(question.id),
   ).length;
 
+  const title =
+    source.kind === "topic"
+      ? topicTitle(topics, source.id)
+      : categoryTitle(categories, source.id);
+
   return (
     <PageShell
-      title={topicId.replace(/[-_]/g, " ")}
+      title={title}
       subtitle={
-        hydrated ? `${solvedCount}/${topicQuestions.length} solved` : undefined
+        hydrated ? `${solvedCount}/${sourceQuestions.length} solved` : undefined
       }
       actions={
         <Link
           href="/learn"
           className="flex items-center gap-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
         >
-          <ChevronLeft className="size-3.5" /> All topics
+          <ChevronLeft className="size-3.5" />{" "}
+          {source.kind === "topic" ? "All topics" : "All categories"}
         </Link>
       }
     >
@@ -91,10 +108,13 @@ export function QuestionListContent({
           </div>
         </div>
 
-        {topicQuestions.length === 0 && hydrated ? (
+        {sourceQuestions.length === 0 && hydrated ? (
           <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
-            No questions in this topic. Import the questions pack from the Data
-            Hub.
+            No questions here yet.{" "}
+            <Link href="/resources" className="text-primary hover:underline">
+              Install a resource
+            </Link>{" "}
+            or pick different questions for this category.
           </p>
         ) : null}
 
@@ -111,6 +131,18 @@ export function QuestionListContent({
       </div>
     </PageShell>
   );
+}
+
+function topicTitle(topics: Topic[], id: string): string {
+  return topics.find((topic) => topic.id === id)?.title ?? id.replace(/[-_]+/g, " ");
+}
+
+function categoryTitle(
+  categories: Array<{ id: string; name: string }>,
+  id: string,
+): string {
+  if (id === UNCATEGORIZED) return "Uncategorised";
+  return categories.find((category) => category.id === id)?.name ?? "Category";
 }
 
 function QuestionRow({
@@ -158,7 +190,7 @@ function QuestionRow({
       <span className="numeric w-10 shrink-0 text-right text-[10.5px] text-muted-dim">
         {question.points} pts
       </span>
-      {!solved ? <X className="invisible size-3" /> : null}
+      <X className="invisible size-3" />
     </Link>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from "@/shared/sql";
 import { usePackStore } from "@/stores/usePackStore";
 import { tablesToDatasetTables, slugify } from "@/lib/dataset-from-sql";
-export type ConnectionState =
+type ConnectionState =
   "connecting" | "ready" | "failed" | "needs-repair";
 
 interface SqlStoreState {

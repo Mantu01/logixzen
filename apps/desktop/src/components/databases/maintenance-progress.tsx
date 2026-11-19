@@ -166,7 +166,7 @@ export function MaintenanceProgress({
                 type="button"
                 size="sm"
                 onClick={onCheckWaiting}
-                className="rounded-none h-7 text-[11px]"
+                className="h-7 text-[11px]"
               >
                 Check Again & Resume
               </Button>
@@ -197,7 +197,7 @@ export function MaintenanceProgress({
                 type="button"
                 size="sm"
                 onClick={onRetry}
-                className="rounded-none h-7 text-[11px]"
+                className="h-7 text-[11px]"
               >
                 Retry Operation
               </Button>
@@ -208,7 +208,7 @@ export function MaintenanceProgress({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowTechnicalDetails((prev) => !prev)}
-                className="rounded-none border-destructive/40 h-7 text-[11px]"
+                className="border-destructive/40 h-7 text-[11px]"
               >
                 {showTechnicalDetails
                   ? "Hide Technical Details"
@@ -220,7 +220,7 @@ export function MaintenanceProgress({
               variant="outline"
               size="sm"
               onClick={() => void onDismiss()}
-              className="rounded-none border-border h-7 text-[11px]"
+              className="border-border h-7 text-[11px]"
             >
               Dismiss
             </Button>
@@ -243,7 +243,7 @@ export function MaintenanceProgress({
                   if (onConfirmIrreversible) onConfirmIrreversible(false);
                   void handleCancelClick();
                 }}
-                className="rounded-none h-6.5 px-2 text-[10.5px]"
+                className="h-6.5 px-2 text-[10.5px]"
               >
                 Yes, Stop
               </Button>
@@ -252,7 +252,7 @@ export function MaintenanceProgress({
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmingCancel(false)}
-                className="rounded-none border-border h-6.5 px-2 text-[10.5px]"
+                className="border-border h-6.5 px-2 text-[10.5px]"
               >
                 Continue
               </Button>
@@ -264,7 +264,7 @@ export function MaintenanceProgress({
             variant="outline"
             size="sm"
             onClick={() => void handleCancelClick()}
-            className="rounded-none border-border h-7 text-[11px] text-muted hover:text-foreground"
+            className="border-border h-7 text-[11px] text-muted hover:text-foreground"
           >
             Cancel Job
           </Button>
@@ -274,7 +274,7 @@ export function MaintenanceProgress({
             variant="outline"
             size="sm"
             onClick={() => void onDismiss()}
-            className="rounded-none border-border h-7 text-[11px]"
+            className="border-border h-7 text-[11px]"
           >
             Close Progress
           </Button>

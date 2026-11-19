@@ -170,7 +170,7 @@ export function generateTableDdl(
   return `CREATE TABLE IF NOT EXISTS ${qTable} (\n    ${allElements}\n);`;
 }
 
-export function formatSqlValue(value: unknown): string {
+function formatSqlValue(value: unknown): string {
   if (value === null || value === undefined) {
     return "NULL";
   }

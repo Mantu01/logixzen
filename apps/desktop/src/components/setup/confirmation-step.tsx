@@ -147,7 +147,7 @@ export function ConfirmationStep({
           size="sm"
           onClick={onBack}
           disabled={isExecuting}
-          className="rounded-none border-border h-8 text-[11px]"
+          className="border-border h-8 text-[11px]"
         >
           Back to Selection
         </Button>
@@ -157,7 +157,7 @@ export function ConfirmationStep({
           size="sm"
           onClick={onConfirm}
           disabled={isExecuting || selectedOffers.length === 0}
-          className="rounded-none h-8 text-[11.5px] px-4 font-medium"
+          className="h-8 text-[11.5px] px-4 font-medium"
         >
           {isExecuting ? "Preparing..." : "Confirm & Install"}
         </Button>

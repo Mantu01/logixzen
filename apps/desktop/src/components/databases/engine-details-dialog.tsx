@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import type { EngineCatalogEntry, InstallationRecord } from "@/shared/engines";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@/shared/format";
 
 interface EngineDetailsDialogProps {
   record: InstallationRecord | null;

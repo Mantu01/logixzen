@@ -43,7 +43,7 @@ const STALL_TIMEOUT_MS = 20000;
 const MAX_RETRIES = 3;
 const TEMP_HEADROOM_BYTES = 100 * 1024 * 1024;
 
-export interface DownloadPackageSpec {
+interface DownloadPackageSpec {
   optionId: EngineOptionId;
   filename: string;
   url: string;
@@ -52,7 +52,7 @@ export interface DownloadPackageSpec {
   expectedSize: number;
 }
 
-export interface DownloadOptions {
+interface DownloadOptions {
   signal?: AbortSignal;
   onProgress?: (measure: ProgressMeasure, activity: string) => void;
   jobId?: string;
@@ -92,7 +92,7 @@ export const PACKAGE_MANIFESTS: Partial<
   },
 };
 
-export function isAllowedDownloadUrl(candidate: string): boolean {
+function isAllowedDownloadUrl(candidate: string): boolean {
   try {
     const parsed = new URL(candidate);
     if (parsed.protocol !== "https:") return false;
@@ -105,7 +105,7 @@ export function isAllowedDownloadUrl(candidate: string): boolean {
   }
 }
 
-export async function preflightDownload(
+async function preflightDownload(
   spec: DownloadPackageSpec,
   jobId?: string,
 ): Promise<BridgeResult<void>> {
@@ -256,7 +256,7 @@ async function verifyAuthenticodeSignature(
   }
 }
 
-export async function verifyPackage(
+async function verifyPackage(
   partPath: string,
   spec: DownloadPackageSpec,
   jobId?: string,

@@ -1,6 +1,5 @@
 import type {
   CatalogPlatform,
-  ContainerImageDetails,
   EngineCatalogEntry,
   EngineOffer,
   EngineOptionId,
@@ -540,65 +539,6 @@ function runtimeCheck(
   if (measured.length < ready.length)
     return { kind: "container-runtime", status: "unknown" };
   return { kind: "container-runtime", status: "unmet" };
-}
-
-export function getContainerImageDetails(
-  entry: EngineCatalogEntry,
-  snapshot?: PlatformSnapshot,
-): ContainerImageDetails | null {
-  if (entry.method !== "container" || !entry.container) return null;
-
-  const platform = snapshot ? platformOf(snapshot) : null;
-  const downloadBytes = platform
-    ? entry.sizes[platform]?.downloadBytes
-    : undefined;
-
-  let alreadyPulled = false;
-  let existingContainerName: string | undefined;
-
-  if (snapshot?.existing) {
-    const existing = snapshot.existing.find(
-      (inst) => inst.engine === entry.engine,
-    );
-    if (existing && "images" in existing) {
-      const fullRef = `${entry.container.image}:${entry.container.tag}`;
-      alreadyPulled = existing.images.some(
-        (img) =>
-          img === fullRef || img.startsWith(`${entry.container?.image}:`),
-      );
-      existingContainerName = existing.containers[0];
-    }
-  }
-
-  const beginnerLabels: Record<string, string> = {
-    "mssql-container":
-      "Microsoft SQL Server Express running in an isolated container",
-    "postgres-container":
-      "PostgreSQL 17 open-source database in an isolated container",
-    "mysql-container": "MySQL 8.4 Community Server in an isolated container",
-  };
-
-  return {
-    optionId: entry.id,
-    displayName: entry.displayName,
-    beginnerLabel:
-      beginnerLabels[entry.id] ?? `${entry.displayName} in a container`,
-    imageReference: entry.container.image,
-    pinnedTag: entry.container.tag,
-    digest: entry.container.digest,
-    downloadBytes,
-    minMemoryBytes: entry.minMemoryBytes ?? 0,
-    minDiskBytes: entry.minDiskBytes ?? 0,
-    defaultPort: entry.container.port,
-    volumePath: entry.container.volumePath,
-    env: entry.container.env,
-    healthCheck: entry.container.healthCheck,
-    licenseNote: entry.license,
-    edition: entry.container.edition ?? "Community",
-    supportedArchitectures: entry.container.supportedArchitectures ?? ["x64"],
-    alreadyPulled,
-    existingContainerName,
-  };
 }
 
 const CHECK_ORDER: RequirementKind[] = [

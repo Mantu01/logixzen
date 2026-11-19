@@ -17,9 +17,9 @@ import type {
 } from "../../shared/engines";
 import { CONTAINER_PREFIX, versionAtLeast } from "../../shared/engine-catalog";
 
-export const DOCKER_MIN_DAEMON_VERSION = "1.8.0";
-export const DOCKER_MIN_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
-export const DOCKER_MIN_DISK_BYTES = 6 * 1024 * 1024 * 1024;
+const DOCKER_MIN_DAEMON_VERSION = "1.8.0";
+const DOCKER_MIN_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
+const DOCKER_MIN_DISK_BYTES = 6 * 1024 * 1024 * 1024;
 const PROBE_TIMEOUT_MS = 2000;
 const CACHE_TTL_MS = 10000;
 
@@ -58,7 +58,7 @@ function runCommand(
   };
 }
 
-export function resolveClientExecutablePath(
+function resolveClientExecutablePath(
   runtime: ContainerRuntimeId,
 ): string | undefined {
   if (process.platform === "win32") {
@@ -83,7 +83,7 @@ export function resolveClientExecutablePath(
   return undefined;
 }
 
-export function probeClient(runtime: ContainerRuntimeId): ContainerClientInfo {
+function probeClient(runtime: ContainerRuntimeId): ContainerClientInfo {
   const versionProbe = runCommand(runtime, ["--version"]);
   if (versionProbe.missing || !versionProbe.ok) {
     return { found: false };
@@ -99,7 +99,7 @@ export function probeClient(runtime: ContainerRuntimeId): ContainerClientInfo {
   };
 }
 
-export function resolveRuntimeEndpoint(
+function resolveRuntimeEndpoint(
   runtime: ContainerRuntimeId,
 ): string | undefined {
   if (process.platform === "win32") {
@@ -125,7 +125,7 @@ export function resolveRuntimeEndpoint(
   return standard;
 }
 
-export function checkLinuxSocketAccess(socketPath: string): {
+function checkLinuxSocketAccess(socketPath: string): {
   accessible: boolean;
   inGroup: boolean;
 } {
@@ -154,7 +154,7 @@ export function checkLinuxSocketAccess(socketPath: string): {
   return { accessible, inGroup };
 }
 
-export function normalizeArch(raw?: string): string | undefined {
+function normalizeArch(raw?: string): string | undefined {
   if (!raw) return undefined;
   const lower = raw.toLowerCase();
   if (lower === "x86_64" || lower === "amd64" || lower === "x64") return "x64";
@@ -170,7 +170,7 @@ interface RawDaemonJson {
   MemTotal?: number;
 }
 
-export function probeDaemonInfo(runtime: ContainerRuntimeId): {
+function probeDaemonInfo(runtime: ContainerRuntimeId): {
   reachability: boolean;
   daemon: ContainerDaemonInfo;
   permissionDenied?: boolean;
@@ -394,14 +394,7 @@ export function probeContainerReadinessSync(
   return readiness;
 }
 
-export async function probeContainerReadiness(
-  runtime: ContainerRuntimeId = "docker",
-  snapshot?: Partial<PlatformSnapshot>,
-): Promise<ContainerRuntimeReadiness> {
-  return probeContainerReadinessSync(runtime, snapshot);
-}
-
-export const OFFICIAL_DOMAINS: readonly string[] = [
+const OFFICIAL_DOMAINS: readonly string[] = [
   "docs.docker.com",
   "desktop.docker.com",
   "hub.docker.com",
@@ -711,7 +704,7 @@ export function getDockerInstallationGuidance(
   };
 }
 
-export interface PulledImageSummary {
+interface PulledImageSummary {
   repository: string;
   tag: string;
   digest?: string;
@@ -719,7 +712,7 @@ export interface PulledImageSummary {
   size?: string;
 }
 
-export function detectPulledImages(
+function detectPulledImages(
   runtime: ContainerRuntimeId = "docker",
 ): PulledImageSummary[] {
   const result = runCommand(runtime, [
@@ -754,7 +747,7 @@ export function isImagePulled(
   });
 }
 
-export interface AppContainerSummary {
+interface AppContainerSummary {
   id: string;
   name: string;
   image: string;

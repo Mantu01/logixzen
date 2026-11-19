@@ -292,6 +292,7 @@ function QuestionWorkspace({
             <AiActionButtons
               question={question}
               studentAnswer={answer}
+              hintsRevealed={hintsRevealed}
               errorMessage={
                 gradeResult !== null && !gradeResult.passed
                   ? (gradeResult.testCases.find((testCase) => !testCase.passed)

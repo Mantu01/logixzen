@@ -93,7 +93,7 @@ export function isValidOptionId(value: unknown): value is EngineOptionId {
   );
 }
 
-export function isValidJobKind(value: unknown): value is JobKind {
+function isValidJobKind(value: unknown): value is JobKind {
   return typeof value === "string" && VALID_JOB_KINDS.has(value as JobKind);
 }
 

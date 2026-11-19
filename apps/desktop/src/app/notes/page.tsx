@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   BookOpen,
   Check,
@@ -10,6 +11,17 @@ import {
   Search,
 } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { usePackStore } from "@/stores/usePackStore";
 import type { Note } from "@/lib/packs/types";
 import { cn } from "@/lib/utils";
@@ -75,8 +87,10 @@ export default function NotesPage(): React.ReactElement {
           <BookOpen className="size-8 text-muted-dim" />
           <p className="text-[13px] font-medium">No notes yet</p>
           <p className="max-w-sm text-[11.5px] text-muted-dim">
-            Import the notes pack from the Data Hub, or generate one with the
-            notes AI prompt.
+            Notes arrive with a resource install, grouped by category.{" "}
+            <Link href="/resources" className="text-primary hover:underline">
+              Install a resource
+            </Link>
           </p>
         </div>
       </PageShell>
@@ -147,9 +161,11 @@ export default function NotesPage(): React.ReactElement {
             <article className="mx-auto min-h-full max-w-3xl border-x border-border bg-surface px-10 py-8">
               <header className="border-b border-border pb-5">
                 <div className="flex items-center gap-2">
-                  <span className="bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
-                    {selected.category}
-                  </span>
+                  <CategoryEditor
+                    key={selected.id}
+                    note={selected}
+                    categories={categories.map(([name]) => name)}
+                  />
                   <span className="numeric text-[10.5px] text-muted-dim">
                     {selected.tags.length} tags
                   </span>
@@ -289,9 +305,91 @@ function CategoryChip({
   );
 }
 
+function CategoryEditor({
+  note,
+  categories,
+}: {
+  note: Note;
+  categories: string[];
+}): React.ReactElement {
+  const setNoteCategory = usePackStore((state) => state.setNoteCategory);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(note.category);
+
+  const submit = (): void => {
+    const trimmed = draft.trim();
+    if (trimmed.length > 0) setNoteCategory(note.id, trimmed);
+    setOpen(false);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(note.category);
+        setOpen(next);
+      }}
+    >
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Category: ${note.category}. Change it`}
+          className="bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary transition-colors hover:bg-primary/20"
+        >
+          {note.category}
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm p-0">
+        <DialogHeader className="border-b border-border bg-surface-alt px-4 py-3">
+          <DialogTitle className="text-[13px]">Note category</DialogTitle>
+          <DialogDescription className="text-[11px]">
+            Pick an existing category or type a new one — it is created on
+            save.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 px-4 py-4">
+          <Input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") submit();
+            }}
+            aria-label="Category name"
+            autoFocus
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setDraft(category)}
+                className={cn(
+                  "border px-2 py-1 text-[10.5px] transition-colors",
+                  category === draft
+                    ? "border-primary/50 bg-primary/10 text-foreground"
+                    : "border-border text-muted-dim hover:bg-surface-hover hover:text-foreground",
+                )}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+        <DialogFooter className="border-t border-border px-4 py-2.5">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button size="sm" disabled={draft.trim().length === 0} onClick={submit}>
+            Assign
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type Block =
-  | { kind: "heading"; level: 1 | 2 | 3; text: string }
-  | { kind: "code"; lang: string; text: string }
+  | { kind: "heading"; level: 1 | 2 | 3; text: string }  | { kind: "code"; lang: string; text: string }
   | { kind: "table"; header: string[]; rows: string[][] }
   | { kind: "list"; ordered: boolean; items: string[] }
   | { kind: "rule" }

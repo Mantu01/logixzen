@@ -44,4 +44,5 @@ export interface PackSummary {
   questions: number;
   topics: number;
   notes: number;
+  categories: number;
 }

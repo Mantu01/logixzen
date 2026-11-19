@@ -69,7 +69,7 @@ export function ConfirmActionDialog({
             size="sm"
             onClick={onCancel}
             disabled={isExecuting}
-            className="rounded-none border-border h-8 text-[11.5px]"
+            className="border-border h-8 text-[11.5px]"
           >
             Cancel
           </Button>
@@ -79,7 +79,7 @@ export function ConfirmActionDialog({
             size="sm"
             onClick={() => void onConfirm()}
             disabled={isExecuting}
-            className="rounded-none h-8 text-[11.5px] font-medium"
+            className="h-8 text-[11.5px] font-medium"
           >
             {isExecuting ? "Processing..." : confirmLabel}
           </Button>

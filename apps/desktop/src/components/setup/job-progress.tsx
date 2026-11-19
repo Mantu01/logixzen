@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EngineOptionId, Job, ProgressEvent } from "@/shared/engines";
+import { formatBytes } from "@/shared/format";
 import { cn } from "@/lib/utils";
 
 interface JobProgressProps {
@@ -33,13 +34,6 @@ export function JobProgress({
   const [isCancelled, setIsCancelled] = useState(false);
 
   const activeOptionId = optionIds[currentOptionIndex];
-
-  const formatBytes = (bytes: number): string => {
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-    if (bytes < 1024 * 1024 * 1024)
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-  };
 
   useEffect(() => {
     const bridge = window.logixzen?.setup;
@@ -248,7 +242,7 @@ export function JobProgress({
                 variant="destructive"
                 size="sm"
                 onClick={handleCancel}
-                className="rounded-none h-7 text-[11px]"
+                className="h-7 text-[11px]"
               >
                 Yes, Stop Installation
               </Button>
@@ -256,7 +250,7 @@ export function JobProgress({
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmingIrreversible(false)}
-                className="rounded-none h-7 text-[11px] border-border"
+                className="h-7 text-[11px] border-border"
               >
                 Continue Setup
               </Button>
@@ -279,7 +273,7 @@ export function JobProgress({
                 variant="outline"
                 size="sm"
                 onClick={handleManualRecheck}
-                className="rounded-none h-7 text-[11px] border-primary/50 text-foreground"
+                className="h-7 text-[11px] border-primary/50 text-foreground"
               >
                 <RotateCw className="size-3 mr-1.5" />
                 Re-check Readiness
@@ -307,7 +301,7 @@ export function JobProgress({
               <Button
                 size="sm"
                 onClick={handleRetry}
-                className="rounded-none h-7 text-[11px]"
+                className="h-7 text-[11px]"
               >
                 <RotateCw className="size-3 mr-1.5" />
                 Retry Setup
@@ -316,7 +310,7 @@ export function JobProgress({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowLogTail((prev) => !prev)}
-                className="rounded-none h-7 text-[11px] border-border"
+                className="h-7 text-[11px] border-border"
               >
                 {showLogTail ? "Hide Details" : "View Technical Details"}
               </Button>
@@ -324,7 +318,7 @@ export function JobProgress({
                 variant="ghost"
                 size="sm"
                 onClick={onCancelAll}
-                className="rounded-none h-7 text-[11px] text-muted-dim"
+                className="h-7 text-[11px] text-muted-dim"
               >
                 Cancel
               </Button>
@@ -381,7 +375,7 @@ export function JobProgress({
                     ) : (
                       <div
                         className={cn(
-                          "size-2 rounded-full shrink-0",
+                          "size-2 shrink-0",
                           isActive ? "bg-primary animate-ping" : "bg-border",
                         )}
                       />
@@ -412,7 +406,7 @@ export function JobProgress({
             variant="outline"
             size="sm"
             onClick={handleCancel}
-            className="rounded-none border-border h-8 text-[11px] text-muted-dim hover:text-destructive"
+            className="border-border h-8 text-[11px] text-muted-dim hover:text-destructive"
           >
             Cancel Setup
           </Button>

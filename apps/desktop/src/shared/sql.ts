@@ -117,7 +117,7 @@ export function splitSqlStatements(sql: string): Statement[] {
   return statements;
 }
 
-export function unquoteIdentifier(name: string): string {
+function unquoteIdentifier(name: string): string {
   let value = name.trim();
   if (value.length >= 2) {
     const first = value.charAt(0);

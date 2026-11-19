@@ -1,4 +1,4 @@
-export interface BadgeDefinition {
+interface BadgeDefinition {
   id: string;
   title: string;
   description: string;
@@ -6,7 +6,7 @@ export interface BadgeDefinition {
   condition: (state: ProgressStateSnapshot) => boolean;
 }
 
-export interface ProgressStateSnapshot {
+interface ProgressStateSnapshot {
   solvedQuestions: number;
   streak: { currentStreak: number };
   totalPoints: number;

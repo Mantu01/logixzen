@@ -349,7 +349,7 @@ export default function SetupPage(): React.ReactElement {
                 size="sm"
                 onClick={() => handleStepChange("confirm")}
                 disabled={selectedIds.length === 0}
-                className="rounded-none h-8 text-[11.5px] px-4 font-medium gap-1.5"
+                className="h-8 text-[11.5px] px-4 font-medium gap-1.5"
               >
                 <span>Continue</span>
                 <ArrowRight className="size-3.5" />

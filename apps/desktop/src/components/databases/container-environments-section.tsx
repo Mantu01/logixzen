@@ -137,7 +137,7 @@ export function ContainerEnvironmentsSection({
                       size="sm"
                       onClick={() => void onLifecycle(entry.id, "start")}
                       disabled={isActionExecuting}
-                      className="rounded-none border-border h-7 text-[11px] gap-1 text-success hover:text-success"
+                      className="border-border h-7 text-[11px] gap-1 text-success hover:text-success"
                     >
                       <Play className="size-3" />
                       <span>Start</span>
@@ -149,7 +149,7 @@ export function ContainerEnvironmentsSection({
                       size="sm"
                       onClick={() => void onLifecycle(entry.id, "stop")}
                       disabled={isActionExecuting}
-                      className="rounded-none border-border h-7 text-[11px] gap-1 text-warning hover:text-warning"
+                      className="border-border h-7 text-[11px] gap-1 text-warning hover:text-warning"
                     >
                       <Square className="size-3" />
                       <span>Stop</span>
@@ -162,7 +162,7 @@ export function ContainerEnvironmentsSection({
                     size="sm"
                     onClick={() => void onRestart(entry.id)}
                     disabled={isActionExecuting}
-                    className="rounded-none border-border h-7 text-[11px] gap-1"
+                    className="border-border h-7 text-[11px] gap-1"
                   >
                     <RefreshCw className="size-3" />
                     <span>Restart</span>
@@ -173,7 +173,7 @@ export function ContainerEnvironmentsSection({
                     variant="outline"
                     size="sm"
                     onClick={() => onViewLogs(entry.id)}
-                    className="rounded-none border-border h-7 text-[11px] gap-1"
+                    className="border-border h-7 text-[11px] gap-1"
                   >
                     <Terminal className="size-3" />
                     <span>Logs</span>
@@ -185,7 +185,7 @@ export function ContainerEnvironmentsSection({
                     size="sm"
                     onClick={() => void onUpdateImage(entry.id)}
                     disabled={isActionExecuting}
-                    className="rounded-none h-7 text-[11px] text-muted-dim hover:text-foreground"
+                    className="h-7 text-[11px] text-muted-dim hover:text-foreground"
                     title="Pull latest image and recreate container"
                   >
                     <span>Update Image</span>

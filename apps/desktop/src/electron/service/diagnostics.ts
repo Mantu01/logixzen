@@ -7,8 +7,6 @@ import type {
   DoctorCheckResult,
   EngineDoctorReport,
   EngineOptionId,
-  FailureCode,
-  RecoveryActionId,
   SupportBundleSummary,
 } from "../../shared/engines";
 import {
@@ -24,110 +22,6 @@ import { loadInstallState, updateInstallationStatus } from "../state/store";
 import { inspectContainer, startAppContainer } from "./container-provisioner";
 import { listLogFiles, redactText, tailLogFile } from "./logger";
 import { getLocalDbInfo, startLocalDbInstance } from "./sql-server-localdb";
-
-export interface ErrorClassification {
-  code: FailureCode;
-  message: string;
-  actionableHelp: string;
-  recovery: RecoveryActionId[];
-}
-
-export function classifyError(err: unknown): ErrorClassification {
-  const rawMsg = err instanceof Error ? err.message : String(err);
-  const msg = redactText(rawMsg);
-  const lower = msg.toLowerCase();
-
-  if (
-    lower.includes("enotfound") ||
-    lower.includes("eai_again") ||
-    lower.includes("getaddrinfo")
-  ) {
-    return {
-      code: "network",
-      message: "DNS lookup failed for host.",
-      actionableHelp:
-        "Check your internet connection or verify custom DNS settings. Installed database engines continue operating offline.",
-      recovery: ["retry", "open-logs"],
-    };
-  }
-
-  if (
-    lower.includes("cert_") ||
-    lower.includes("leaf_signature") ||
-    lower.includes("tls") ||
-    lower.includes("self_signed")
-  ) {
-    return {
-      code: "network",
-      message: "Secure TLS connection could not be established.",
-      actionableHelp:
-        "Verify your system date/time and check whether a corporate firewall or proxy is intercepting certificates.",
-      recovery: ["retry", "open-logs"],
-    };
-  }
-
-  if (
-    lower.includes("etimedout") ||
-    lower.includes("esockettimedout") ||
-    lower.includes("timeout") ||
-    lower.includes("stall timeout")
-  ) {
-    return {
-      code: "network",
-      message: "Network connection timed out.",
-      actionableHelp:
-        "Connection timed out during transfer. Check network bandwidth or retry after reconnection.",
-      recovery: ["retry", "open-logs"],
-    };
-  }
-
-  if (lower.includes("econnrefused")) {
-    return {
-      code: "network",
-      message: "Connection refused by host.",
-      actionableHelp:
-        "The destination port or host refused the connection. The service may not be running or is unreachable.",
-      recovery: ["repair-connection", "retry", "open-logs"],
-    };
-  }
-
-  if (
-    lower.includes("enospc") ||
-    lower.includes("disk space") ||
-    lower.includes("insufficient disk")
-  ) {
-    return {
-      code: "resources",
-      message: "Disk space exhausted.",
-      actionableHelp:
-        "Insufficient free disk space available. Free up at least 5 GB on your system drive before retrying.",
-      recovery: ["free-resources", "retry"],
-    };
-  }
-
-  if (
-    lower.includes("eacces") ||
-    lower.includes("eperm") ||
-    lower.includes("access denied") ||
-    lower.includes("permission denied")
-  ) {
-    return {
-      code: "permission",
-      message: "Permission denied accessing system resources.",
-      actionableHelp:
-        "Administrative privileges are required for this action. Run LogixZen as administrator or grant directory access.",
-      recovery: ["grant-permission", "retry"],
-    };
-  }
-
-  return {
-    code: "runtime",
-    message: msg,
-    actionableHelp:
-      "An unexpected error occurred. Review the application logs for full diagnostic details.",
-    recovery: ["retry", "open-logs"],
-  };
-}
 
 export async function runEngineDoctor(
   optionId: EngineOptionId,
@@ -314,7 +208,7 @@ export async function applyDoctorRepair(
   return { ok: true, data: undefined };
 }
 
-export function sanitizePath(input: string): string {
+function sanitizePath(input: string): string {
   const home = os.homedir();
   return input.replaceAll(home, "[USER_HOME]").replaceAll("\\", "/");
 }

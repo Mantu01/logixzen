@@ -8,7 +8,7 @@ import {
 import type { DatabaseDriver } from "./driver";
 import { translateDriverError } from "./driver";
 
-export interface PostgresConfig {
+interface PostgresConfig {
   host?: string;
   port?: number;
   database?: string;

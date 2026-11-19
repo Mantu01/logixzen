@@ -96,7 +96,7 @@ export function ContainerLogsDialog({
               variant="outline"
               size="sm"
               onClick={handleCopy}
-              className="rounded-none border-border h-7 text-[11px] gap-1"
+              className="border-border h-7 text-[11px] gap-1"
             >
               {copied ? (
                 <Check className="size-3 text-success" />
@@ -111,7 +111,7 @@ export function ContainerLogsDialog({
               size="sm"
               onClick={() => void fetchLogs()}
               disabled={loading}
-              className="rounded-none border-border h-7 text-[11px] gap-1"
+              className="border-border h-7 text-[11px] gap-1"
             >
               <RefreshCw
                 className={loading ? "size-3 animate-spin" : "size-3"}
@@ -146,7 +146,7 @@ export function ContainerLogsDialog({
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="rounded-none border-border h-7 text-[11px]"
+            className="border-border h-7 text-[11px]"
           >
             Close
           </Button>

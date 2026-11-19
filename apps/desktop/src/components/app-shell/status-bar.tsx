@@ -55,7 +55,7 @@ export function StatusBar(): React.ReactElement {
         <span className="flex items-center gap-1.5 font-sans">
           <span
             className={cn(
-              "size-1.5 shrink-0 rounded-full",
+              "size-1.5 shrink-0",
               isReady
                 ? "bg-success"
                 : isConnecting

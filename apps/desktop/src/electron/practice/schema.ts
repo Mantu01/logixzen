@@ -1,9 +1,9 @@
 import practiceDataRaw from "./practice-data.json";
 
-export type LogicalColumnType =
+type LogicalColumnType =
   "integer" | "text" | "real" | "boolean" | "datetime";
 
-export interface ForeignKeySpec {
+interface ForeignKeySpec {
   table: string;
   column: string;
   onDelete?: string;

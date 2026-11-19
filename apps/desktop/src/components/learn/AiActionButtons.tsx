@@ -20,6 +20,7 @@ interface AiActionButtonsProps {
   question: Question;
   studentAnswer: string;
   errorMessage: string | null;
+  hintsRevealed: number;
   onHint: (hint: string) => void;
   onExplainError: (explanation: string) => void;
   onExplainQuery: (explanation: string) => void;
@@ -29,6 +30,7 @@ export function AiActionButtons({
   question,
   studentAnswer,
   errorMessage,
+  hintsRevealed,
   onHint,
   onExplainError,
   onExplainQuery,
@@ -44,6 +46,10 @@ export function AiActionButtons({
   const totalPoints = useProgressStore((state) => state.totalPoints);
   const streak = useProgressStore((state) => state.streak.currentStreak);
   const [loading, setLoading] = useState<string | null>(null);
+  const [aiHints, setAiHints] = useState(0);
+
+  const attemptCount =
+    solvedQuestions.get(question.id)?.attempts ?? 0;
 
   const context = useCallback(() => {
     const dataset = datasets.find((item) => item.id === question.datasetId);
@@ -106,10 +112,13 @@ export function AiActionButtons({
             () =>
               generateHint({
                 ...context(),
-                currentHintIndex: question.hints.length,
-                studentAttemptCount: 0,
+                currentHintIndex: hintsRevealed + aiHints,
+                studentAttemptCount: attemptCount,
               }),
-            onHint,
+            (text) => {
+              setAiHints((count) => count + 1);
+              onHint(text);
+            },
           )
         }
       >

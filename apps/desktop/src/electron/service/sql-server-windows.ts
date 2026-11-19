@@ -18,12 +18,12 @@ import { writeLog } from "./logger";
 import { runSafeChildProcess } from "./runner";
 import type { StageExecutionContext } from "./jobs";
 
-export const EXPRESS_INSTANCE_NAME = "LogixZenPractice";
-export const EXPRESS_SERVICE_NAME = `MSSQL$${EXPRESS_INSTANCE_NAME}`;
-export const EXPRESS_DEFAULT_PORT = 1433;
-export const EXPRESS_SECRET_REF = "mssql-express-password";
+const EXPRESS_INSTANCE_NAME = "LogixZenPractice";
+const EXPRESS_SERVICE_NAME = `MSSQL$${EXPRESS_INSTANCE_NAME}`;
+const EXPRESS_DEFAULT_PORT = 1433;
+const EXPRESS_SECRET_REF = "mssql-express-password";
 
-export const EXPRESS_ELEVATION_SUMMARY = [
+const EXPRESS_ELEVATION_SUMMARY = [
   "SQL Server Express will be installed as a local Windows service.",
   `Service name: ${EXPRESS_SERVICE_NAME}`,
   `Instance name: ${EXPRESS_INSTANCE_NAME}`,
@@ -38,11 +38,11 @@ export function generateSecurePassword(): string {
   return `Lz!${bytes}9a`;
 }
 
-export function expressDataDir(): string {
+function expressDataDir(): string {
   return join(practiceDir(), "mssql-express");
 }
 
-export function buildUnattendedConfig(options: {
+function buildUnattendedConfig(options: {
   instanceName: string;
   saPassword: string;
   dataDir: string;
@@ -68,7 +68,7 @@ export function buildUnattendedConfig(options: {
   ].join("\r\n");
 }
 
-export function preflightExpressWindows(snapshot: PlatformSnapshot): {
+function preflightExpressWindows(snapshot: PlatformSnapshot): {
   ok: boolean;
   failure?: OperationFailure;
 } {
@@ -171,7 +171,7 @@ export async function waitPortOpen(
   return false;
 }
 
-export async function queryExpressTsql(
+async function queryExpressTsql(
   connectionString: string,
   sql: string,
 ): Promise<{ ok: boolean; output: string }> {

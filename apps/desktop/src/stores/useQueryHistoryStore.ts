@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export interface QueryHistoryItem {
+interface QueryHistoryItem {
   id: string;
   query: string;
   timestamp: number;

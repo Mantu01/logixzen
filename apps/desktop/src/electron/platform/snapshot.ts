@@ -492,7 +492,7 @@ function detectExisting(family: OsFamily): DetectedInstallation[] {
   return found.sort((left, right) => left.engine.localeCompare(right.engine));
 }
 
-export function buildPlatformSnapshot(): PlatformSnapshot {
+function buildPlatformSnapshot(): PlatformSnapshot {
   const family = osFamily();
   const linuxProbe: Probe<LinuxEnvironment> =
     family === "linux" ? linuxEnvironment() : { known: false };

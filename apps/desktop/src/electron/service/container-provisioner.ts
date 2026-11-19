@@ -9,7 +9,6 @@ import {
   defaultVolumeName,
 } from "../../shared/engine-catalog";
 import type {
-  ContainerStats,
   ContainerTechnicalDetails,
   EngineOptionId,
   InstallationRecord,
@@ -34,7 +33,7 @@ import type { StageExecutionContext } from "./jobs";
 import { redactText, writeLog } from "./logger";
 import { runSafeChildProcess } from "./runner";
 
-export async function findFreeLoopbackPort(
+async function findFreeLoopbackPort(
   startPort: number,
   host = "127.0.0.1",
 ): Promise<number> {
@@ -54,7 +53,7 @@ export async function findFreeLoopbackPort(
   );
 }
 
-export function generateStrongCredential(length = 28): string {
+function generateStrongCredential(length = 28): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghijkmnopqrstuvwxyz";
   const digits = "23456789";
@@ -83,7 +82,7 @@ export function generateStrongCredential(length = 28): string {
   return chars.join("");
 }
 
-export interface ContainerInspectResult {
+interface ContainerInspectResult {
   exists: boolean;
   running: boolean;
   status: string;
@@ -178,7 +177,7 @@ export async function pullImageWithProgress(
   }
 }
 
-export async function createVolumeIfMissing(
+async function createVolumeIfMissing(
   volumeName: string,
   ctx: StageExecutionContext,
 ): Promise<void> {
@@ -208,7 +207,7 @@ export async function createVolumeIfMissing(
   await ctx.recordResource("volume", volumeName);
 }
 
-export async function waitForContainerReady(
+async function waitForContainerReady(
   port: number,
   timeoutMs = 60000,
   signal?: AbortSignal,
@@ -241,7 +240,7 @@ export async function waitForContainerReady(
   return false;
 }
 
-export async function getContainerLogTail(
+async function getContainerLogTail(
   containerName: string,
   lines = 50,
 ): Promise<string> {
@@ -290,70 +289,6 @@ export async function stopAppContainer(
       timeoutMs: 10000,
     });
   }
-}
-
-export async function getContainerLiveStats(
-  containerName: string,
-): Promise<ContainerStats> {
-  const inspect = await inspectContainer(containerName);
-  if (!inspect.exists || !inspect.running) {
-    return {
-      cpuPercent: 0,
-      memoryUsageBytes: 0,
-      memoryLimitBytes: 0,
-      running: false,
-    };
-  }
-
-  const res = await runSafeChildProcess({
-    executable: "docker",
-    args: [
-      "stats",
-      "--no-stream",
-      "--format",
-      "{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}",
-      containerName,
-    ],
-    timeoutMs: 5000,
-  });
-
-  if (res.exitCode !== 0 || res.cancelled) {
-    return {
-      cpuPercent: 0,
-      memoryUsageBytes: 0,
-      memoryLimitBytes: 0,
-      running: inspect.running,
-    };
-  }
-
-  const parts = res.stdout.trim().split("\t");
-  const cpuStr = parts[0]?.replace("%", "").trim() ?? "0";
-  const cpuPercent = parseFloat(cpuStr) || 0;
-
-  const memStr = parts[1] ?? "";
-  const [usedStr = "", limitStr = ""] = memStr.split("/").map((s) => s.trim());
-
-  function parseBytes(str: string): number {
-    const match = /^([\d.]+)\s*([A-Za-z]+)$/.exec(str);
-    if (!match) return 0;
-    const val = parseFloat(match[1]);
-    const unit = match[2].toLowerCase();
-    if (unit.startsWith("k")) return Math.round(val * 1024);
-    if (unit.startsWith("m")) return Math.round(val * 1024 * 1024);
-    if (unit.startsWith("g")) return Math.round(val * 1024 * 1024 * 1024);
-    if (unit.startsWith("t"))
-      return Math.round(val * 1024 * 1024 * 1024 * 1024);
-    return Math.round(val);
-  }
-
-  return {
-    cpuPercent,
-    memoryUsageBytes: parseBytes(usedStr),
-    memoryLimitBytes: parseBytes(limitStr),
-    running: true,
-    networkIo: parts[2]?.trim(),
-    blockIo: parts[3]?.trim(),
-  };
 }
 
 export async function inspectContainerTechnicalDetails(
