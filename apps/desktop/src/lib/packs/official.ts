@@ -14,7 +14,7 @@ export interface OfficialResource {
 const PACK_BASE_URL =
   "https://raw.githubusercontent.com/Mantu01/logixzen/main/docs/desktop/data";
 
-const RESOURCE_FILES: Record<PackKind, string> = {
+const RESOURCE_FILES: Record<Exclude<PackKind, "bundle">, string> = {
   databases: "sample-databases.sql",
   questions: "sample-questions.json",
   notes: "sample-notes.json",
@@ -93,8 +93,22 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
   },
 ];
 
-export async function fetchResourceFile(kind: PackKind): Promise<string> {
-  const response = await fetch(`${PACK_BASE_URL}/${RESOURCE_FILES[kind]}`, {
+export async function fetchResourceFile(
+  kind: Exclude<PackKind, "bundle">,
+): Promise<string> {
+  const fileName = RESOURCE_FILES[kind];
+  try {
+    const local = await fetch(`/data/${fileName}`, { cache: "no-store" });
+    if (local.ok) {
+      const text = await local.text();
+      if (!text.trimStart().startsWith("<!DOCTYPE")) {
+        return text;
+      }
+    }
+  } catch {
+  }
+
+  const response = await fetch(`${PACK_BASE_URL}/${fileName}`, {
     cache: "no-store",
   });
   if (!response.ok) {

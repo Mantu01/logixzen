@@ -32,7 +32,7 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
         {
           label: "Our Resources…",
           accelerator: "CmdOrCtrl+Shift+I",
-          click: () => navigate("/resources"),
+          click: () => navigate("/import/resources"),
         },
         {
           label: "Settings",

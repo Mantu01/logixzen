@@ -143,7 +143,7 @@ export default function LearnPage(): React.ReactElement {
                   <>
                     {" "}
                     <Link
-                      href="/resources"
+                      href="/import/resources"
                       className="text-primary hover:underline"
                     >
                       Install a resource

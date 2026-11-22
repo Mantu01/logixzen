@@ -5,6 +5,7 @@ import {
 } from "@logixzen/shared/content";
 import type { Dataset, Question, Topic } from "@logixzen/shared/content";
 import type {
+  BundlePack,
   DatabasePack,
   Note,
   NotesPack,
@@ -202,12 +203,82 @@ function parseNotesPack(
   };
 }
 
+function parseBundlePack(
+  value: Record<string, unknown>,
+): PackParseResult<BundlePack> {
+  const issues: PackIssue[] = [];
+  let datasets: Dataset[] | undefined;
+  let questions: Question[] | undefined;
+  let topics: Topic[] | undefined;
+  let notes: Note[] | undefined;
+
+  const datasetItems = arrayAt(value, "datasets");
+  if (datasetItems !== null) {
+    const res = validateArray<Dataset>(datasetItems, DatasetSchema, "datasets");
+    datasets = res.data;
+    issues.push(...res.issues);
+  }
+
+  const questionItems = arrayAt(value, "questions");
+  if (questionItems !== null) {
+    const res = validateArray<Question>(questionItems, QuestionSchema, "questions");
+    questions = res.data;
+    issues.push(...res.issues);
+  }
+
+  const topicItems = arrayAt(value, "topics");
+  if (topicItems !== null) {
+    const res = validateArray<Topic>(topicItems, TopicSchema, "topics");
+    topics = res.data;
+    issues.push(...res.issues);
+  }
+
+  const noteItems = arrayAt(value, "notes");
+  if (noteItems !== null) {
+    const noteSchema = {
+      safeParse: (val: unknown) => {
+        if (typeof val !== "object" || val === null) return { success: false as const };
+        const n = val as Record<string, unknown>;
+        if (typeof n.id !== "string" || typeof n.title !== "string" || typeof n.content !== "string") {
+          return { success: false as const };
+        }
+        return {
+          success: true as const,
+          data: {
+            id: n.id,
+            title: n.title,
+            category: typeof n.category === "string" ? n.category : "General",
+            content: n.content,
+            tags: Array.isArray(n.tags) ? n.tags.filter((t): t is string => typeof t === "string") : [],
+          } satisfies Note,
+        };
+      },
+    };
+    const res = validateArray<Note>(noteItems, noteSchema, "notes");
+    notes = res.data;
+    issues.push(...res.issues);
+  }
+
+  const hasAny = (datasets?.length ?? 0) > 0 || (questions?.length ?? 0) > 0 || (notes?.length ?? 0) > 0;
+  return {
+    ok: issues.length === 0 && hasAny,
+    data: issues.length === 0 ? { version: 2, datasets, questions, topics, notes } : null,
+    issues,
+  };
+}
+
 function detectPackKind(value: unknown): PackKind | null {
   if (typeof value !== "object" || value === null) return null;
   const record = value as Record<string, unknown>;
-  if (Array.isArray(record.datasets)) return "databases";
-  if (Array.isArray(record.questions)) return "questions";
-  if (Array.isArray(record.notes)) return "notes";
+  const hasDatasets = Array.isArray(record.datasets);
+  const hasQuestions = Array.isArray(record.questions);
+  const hasNotes = Array.isArray(record.notes);
+  if ((hasDatasets && hasQuestions) || (hasDatasets && hasNotes) || (hasQuestions && hasNotes)) {
+    return "bundle";
+  }
+  if (hasDatasets) return "databases";
+  if (hasQuestions) return "questions";
+  if (hasNotes) return "notes";
   return null;
 }
 
@@ -237,6 +308,8 @@ export function parsePackFile(
       },
     };
   }
+  if (kind === "bundle")
+    return { kind, result: parseBundlePack(probe.value) };
   if (kind === "databases")
     return { kind, result: parseDatabasePack(probe.value) };
   if (kind === "questions")

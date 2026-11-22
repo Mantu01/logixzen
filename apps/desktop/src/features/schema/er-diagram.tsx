@@ -17,7 +17,6 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 import {
   KeyRound,
   Link2,
@@ -61,7 +60,9 @@ interface TableData extends Record<string, unknown> {
 type TableNode = Node<TableData, "erTable">;
 
 interface RelationData extends Record<string, unknown> {
+  childTable: string;
   childColumn: string;
+  parentTable: string;
   parentColumn: string;
   active: boolean;
   dimmed: boolean;
@@ -167,7 +168,9 @@ function ErFlow({
         return {
           ...edge,
           data: {
+            childTable: edge.data?.childTable ?? "",
             childColumn: edge.data?.childColumn ?? "",
+            parentTable: edge.data?.parentTable ?? "",
             parentColumn: edge.data?.parentColumn ?? "",
             active,
             dimmed,
@@ -253,6 +256,14 @@ function ErFlow({
           </svg>
           <span>one → many</span>
         </span>
+        <span className="text-border">·</span>
+        <span
+          className="flex items-center gap-1.5 font-mono"
+          title="foreign key connection string"
+        >
+          <span className="text-muted-dim">a.id → b.a_id</span>
+          <span>connection</span>
+        </span>
       </div>
 
       <div className="absolute right-3 top-3 z-10 flex flex-col border border-border bg-surface">
@@ -323,7 +334,7 @@ function RowHandle({
 }): React.ReactElement {
   return (
     <Handle
-      type={id.endsWith("-in") ? "target" : "source"}
+      type={id.includes("-in-") ? "target" : "source"}
       id={id}
       position={side === "left" ? Position.Left : Position.Right}
       isConnectable={false}
@@ -455,7 +466,9 @@ function RelationEdge({
     offset: 24,
   });
   const edgeData = data ?? {
+    childTable: "",
     childColumn: "",
+    parentTable: "",
     parentColumn: "",
     active: false,
     dimmed: false,
@@ -514,25 +527,23 @@ function RelationEdge({
           color={markerColor}
           opacity={opacity}
         />
-        {active ? (
-          <div
-            className="nodrag nopan absolute whitespace-nowrap"
-            style={{
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              pointerEvents: "none",
-              fontSize: 9,
-              lineHeight: "12px",
-              fontFamily: "var(--font-mono)",
-              color: "var(--foreground)",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              padding: "1px 5px",
-              opacity: 0.98,
-            }}
-          >
-            {`${edgeData.childColumn} → ${edgeData.parentColumn}`}
-          </div>
-        ) : null}
+        <div
+          className="nodrag nopan absolute whitespace-nowrap"
+          style={{
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            pointerEvents: "none",
+            fontSize: 9,
+            lineHeight: "12px",
+            fontFamily: "var(--font-mono)",
+            color: active ? "var(--foreground)" : "var(--muted)",
+            background: active ? "var(--surface)" : "var(--background)",
+            border: `1px solid ${active ? "var(--primary)" : "var(--border)"}`,
+            padding: "1px 5px",
+            opacity,
+          }}
+        >
+          {`${edgeData.childTable}.${edgeData.childColumn} → ${edgeData.parentTable}.${edgeData.parentColumn}`}
+        </div>
       </EdgeLabelRenderer>
     </>
   );
@@ -601,6 +612,28 @@ function buildGraph(tables: TableInfo[]): {
         childColumn: key.from,
         parent: parent.name,
         parentColumn: key.to,
+      });
+    }
+    for (const column of table.columns) {
+      if (!column.name.endsWith("_id")) continue;
+      const targetBase = column.name.slice(0, -3).toLowerCase();
+      const parent =
+        byName.get(targetBase) ??
+        byName.get(`${targetBase}s`) ??
+        byName.get(`${targetBase}es`);
+      if (parent === undefined || parent.name === table.name) continue;
+      const pkCol =
+        parent.primaryKey?.[0] ??
+        parent.columns.find((c) => c.primaryKey || c.name === "id")?.name;
+      if (!pkCol) continue;
+      const dedupe = `${table.name}.${column.name}>${parent.name}.${pkCol}`;
+      if (seen.has(dedupe)) continue;
+      seen.add(dedupe);
+      relations.push({
+        child: table.name,
+        childColumn: column.name,
+        parent: parent.name,
+        parentColumn: pkCol,
       });
     }
   }
@@ -739,7 +772,9 @@ function buildGraph(tables: TableInfo[]): {
       targetHandle: `${childLeft ? "r" : "l"}-in-${relation.parentColumn}`,
       type: "relation" as const,
       data: {
+        childTable: relation.child,
         childColumn: relation.childColumn,
+        parentTable: relation.parent,
         parentColumn: relation.parentColumn,
         active: false,
         dimmed: false,

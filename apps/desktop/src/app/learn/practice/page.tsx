@@ -16,5 +16,12 @@ function PracticeInner(): React.ReactElement {
   const params = useSearchParams();
   const topicId = params.get("topic") ?? "";
   const questionId = params.get("q") ?? "";
-  return <QuestionDetailContent topicId={topicId} questionId={questionId} />;
+  const categoryId = params.get("category") ?? undefined;
+  return (
+    <QuestionDetailContent
+      topicId={topicId}
+      questionId={questionId}
+      categoryId={categoryId}
+    />
+  );
 }

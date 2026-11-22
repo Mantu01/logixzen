@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
 import { ThemeApplier } from "@/components/theme-applier";
 import { TitleBar } from "@/components/title-bar";
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
@@ -10,9 +9,6 @@ import { SetupGate } from "@/components/setup/setup-gate";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
-
 export const metadata: Metadata = {
   title: "LogixZen",
   description: "Practice environments that run entirely on your machine.",
@@ -22,11 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={cn(
-        "dark h-full font-sans antialiased",
-        geist.variable,
-        mono.variable,
-      )}
+      className={cn("dark h-full font-sans antialiased")}
       data-theme="dark"
       suppressHydrationWarning
     >

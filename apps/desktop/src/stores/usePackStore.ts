@@ -6,6 +6,7 @@ import type { Dataset, Question, Topic } from "@logixzen/shared/content";
 import { nativeStorage } from "@/lib/native-storage";
 import { mergeById, parsePackFile } from "@/lib/packs/packs";
 import type {
+  BundlePack,
   DatabasePack,
   Note,
   NotesPack,
@@ -68,7 +69,11 @@ interface PackState {
     questionIds: string[],
     categoryId: string | null,
   ) => void;
+  addQuestion: (question: Question, categoryId?: string | null) => void;
+  removeQuestion: (questionId: string) => void;
   setNoteCategory: (noteId: string, category: string) => void;
+  addNote: (note: Note) => void;
+  removeNote: (noteId: string) => void;
   resetAll: () => void;
 }
 
@@ -201,11 +206,42 @@ export const usePackStore = create<PackState>()(
           return { questionCategory: next };
         }),
 
+      addQuestion: (question, categoryId) =>
+        set((state) => {
+          const nextQuestions = mergeById(state.questions, [question]);
+          const nextCategories = { ...state.questionCategory };
+          if (categoryId) nextCategories[question.id] = categoryId;
+          return {
+            questions: nextQuestions,
+            questionCategory: nextCategories,
+          };
+        }),
+
+      removeQuestion: (questionId) =>
+        set((state) => {
+          const nextCategories = { ...state.questionCategory };
+          delete nextCategories[questionId];
+          return {
+            questions: state.questions.filter((item) => item.id !== questionId),
+            questionCategory: nextCategories,
+          };
+        }),
+
       setNoteCategory: (noteId, category) =>
         set((state) => ({
           notes: state.notes.map((note) =>
             note.id === noteId ? { ...note, category } : note,
           ),
+        })),
+
+      addNote: (note) =>
+        set((state) => ({
+          notes: mergeById(state.notes, [note]),
+        })),
+
+      removeNote: (noteId) =>
+        set((state) => ({
+          notes: state.notes.filter((item) => item.id !== noteId),
         })),
 
       resetAll: () => set({ ...EMPTY }),
@@ -258,6 +294,15 @@ function bundleOf(kind: PackKind, data: PackFile): ContentBundle {
   if (kind === "questions") {
     const pack = data as QuestionsPack;
     return { questions: pack.questions, topics: pack.topics ?? [] };
+  }
+  if (kind === "bundle") {
+    const pack = data as BundlePack;
+    return {
+      databases: pack.datasets,
+      questions: pack.questions,
+      topics: pack.topics ?? [],
+      notes: pack.notes,
+    };
   }
   return { notes: (data as NotesPack).notes };
 }

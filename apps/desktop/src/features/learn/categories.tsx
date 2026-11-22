@@ -72,7 +72,7 @@ export function CategoriesSection(): React.ReactElement {
     return (
       <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
         No questions installed yet.{" "}
-        <Link href="/resources" className="text-primary hover:underline">
+        <Link href="/import/resources" className="text-primary hover:underline">
           Install a resource
         </Link>{" "}
         to start grouping them.

@@ -40,8 +40,8 @@ import { InstallReport } from "@/components/packs/install-report";
 import type { InstallStatus } from "@/components/packs/install-report";
 import { summarizePacks, usePackStore } from "@/stores/usePackStore";
 import { useSqlStore } from "@/sql/useSqlStore";
-import { PACK_PROMPTS } from "@/lib/packs/prompts";
 import { serializeNotesPack, serializeQuestionsPack } from "@/lib/packs/packs";
+import { PACK_PROMPTS } from "@/lib/packs/prompts";
 import { OFFICIAL_RESOURCES } from "@/lib/packs/official";
 import { buildDatasetFromSql, dbNameFromSql } from "@/lib/dataset-from-sql";
 import { saveTextFile } from "@/lib/save-file";
@@ -66,6 +66,8 @@ export default function ImportPage(): React.ReactElement {
     >
       <div className="mx-auto max-w-4xl space-y-6 px-5 py-6">
         <ResourceCta installed={packState.installedResources.length} />
+        <PromptSection />
+        <ImportSection />
         <InstalledPanel
           summary={summary}
           missing={missingDatasets}
@@ -87,7 +89,6 @@ export default function ImportPage(): React.ReactElement {
           }
         />
         <ImportSection />
-        <PromptSection />
       </div>
     </PageShell>
   );
@@ -132,7 +133,7 @@ function ResourceCta({ installed }: { installed: number }): React.ReactElement {
           {installed} of {OFFICIAL_RESOURCES.length} resources installed
         </p>
       </div>
-      <LinkButton href="/resources" label="Browse resources" />
+      <LinkButton href="/import/resources" label="Browse resources" />
     </div>
   );
 }
@@ -345,7 +346,7 @@ function ImportSection(): React.ReactElement {
   return (
     <Section
       title="Bring your own content"
-      description={`Drop a ${activeSubject.scriptExtension} database or a pack .json — the type is detected, then validated against everything already installed.`}
+      description={`One drop handles everything. A ${activeSubject.scriptExtension} script seeds a database, a .json pack brings questions or notes — both are executed and validated against the live engine before anything is stored.`}
     >
       <div
         role="button"
@@ -385,7 +386,8 @@ function ImportSection(): React.ReactElement {
             : "Drop a content file here"}
         </span>
         <span className="text-[10.5px] text-muted-dim">
-          or click to browse · {ACCEPT}
+          or click to browse · {ACCEPT} · {activeSubject.label} engine runs the
+          script first
         </span>
       </div>
       <input
@@ -461,9 +463,9 @@ function PromptSection(): React.ReactElement {
   return (
     <Section
       title="Generate with AI"
-      description="Copy a prompt into any AI assistant and import the file it produces."
+      description="Copy a system prompt into any AI assistant and import the validated file it produces."
     >
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2.5">
         {(Object.keys(PACK_PROMPTS) as Array<keyof typeof PACK_PROMPTS>).map(
           (kind) => (
             <PromptCard key={kind} kind={kind} />
@@ -485,8 +487,9 @@ function PromptCard({
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }, [kind]);
+
   return (
-    <div className="flex flex-col border border-border bg-surface p-3">
+    <div className="flex flex-col border border-border bg-surface p-3 transition-colors hover:border-foreground/30">
       <div className="flex items-center gap-2">
         <FilePlus2 className="size-3.5 text-primary" />
         <span className="text-[12.5px] font-semibold capitalize">
@@ -494,15 +497,15 @@ function PromptCard({
         </span>
       </div>
       <p className="mt-1 flex-1 text-[11px] leading-relaxed text-muted">
-        Paste this into any AI assistant to get a validated {kind} pack.
+        Paste into Claude, ChatGPT, or Gemini to get a compliant schema-validated {kind} pack.
       </p>
       <Button
         size="xs"
         variant="outline"
-        className="mt-2 gap-1.5"
+        className="mt-2.5 gap-1.5"
         onClick={() => void copy()}
       >
-        {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+        {copied ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
         {copied ? "Prompt copied" : "Copy prompt"}
       </Button>
     </div>

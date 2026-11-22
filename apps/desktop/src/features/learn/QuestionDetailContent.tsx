@@ -34,16 +34,20 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
+import { useSqlStore } from "@/sql/useSqlStore";
+import { dialectLabel, tableMapFrom } from "@/lib/sql-editor";
 import { cn } from "@/lib/utils";
 
 interface QuestionDetailProps {
   topicId: string;
   questionId: string;
+  categoryId?: string;
 }
 
 export function QuestionDetailContent({
   topicId,
   questionId,
+  categoryId,
 }: QuestionDetailProps): React.ReactElement {
   const questions = usePackStore((state) => state.questions);
   const hydrated = usePackStore((state) => state.hydrated);
@@ -51,7 +55,7 @@ export function QuestionDetailContent({
   const question = useMemo<Question | null>(
     () =>
       questions.find(
-        (item) => item.id === questionId && item.topicId === topicId,
+        (item) => item.id === questionId && (item.topicId === topicId || topicId === ""),
       ) ?? null,
     [questions, questionId, topicId],
   );
@@ -68,9 +72,9 @@ export function QuestionDetailContent({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
         <p className="text-[13px] text-muted">Question not found</p>
-        <Link href={`/learn/topic?id=${topicId}`}>
+        <Link href={categoryId ? `/learn/category?id=${categoryId}` : `/learn/topic?id=${topicId}`}>
           <Button variant="outline" size="sm">
-            <ArrowLeft className="size-3.5" /> Back to topic
+            <ArrowLeft className="size-3.5" /> Back to list
           </Button>
         </Link>
       </div>
@@ -81,7 +85,8 @@ export function QuestionDetailContent({
     <QuestionWorkspace
       key={question.id}
       question={question}
-      topicId={topicId}
+      topicId={topicId || question.topicId}
+      categoryId={categoryId}
     />
   );
 }
@@ -89,21 +94,33 @@ export function QuestionDetailContent({
 function QuestionWorkspace({
   question,
   topicId,
+  categoryId,
 }: {
   question: Question;
   topicId: string;
+  categoryId?: string;
 }): React.ReactElement {
   const router = useRouter();
   const questions = usePackStore((state) => state.questions);
+  const categories = usePackStore((state) => state.categories);
+  const assignments = usePackStore((state) => state.questionCategory);
   const solvedMap = useProgressStore((state) => state.solvedQuestions);
+  const schema = useSqlStore((state) => state.schema);
+  const dialect = useSqlStore((state) => state.activeDialect);
   const editorFontSize = useProgressStore(
     (state) => state.settings.editorFontSize,
   );
+
+  const activeCategoryId = categoryId ?? assignments[question.id];
+  const activeCategory = categories.find((c) => c.id === activeCategoryId);
+  const activeCategoryName = activeCategory?.name ?? "Categories";
 
   const topicQuestions = useMemo(
     () => questions.filter((item) => item.topicId === topicId),
     [questions, topicId],
   );
+
+  const tableMap = useMemo(() => tableMapFrom(schema), [schema]);
 
   const index = topicQuestions.findIndex((item) => item.id === question.id);
   const { grade, isGrading, runAnswer } = useGrading(question);
@@ -197,6 +214,16 @@ function QuestionWorkspace({
       subtitle={`${index + 1}/${topicQuestions.length} · ${question.points} pts · ${question.datasetId}`}
       actions={
         <>
+          <Link
+            href="/databases"
+            title={`Active SQL dialect: ${dialectLabel(dialect)}. Switch in Databases`}
+            className="flex h-7 items-center gap-1.5 border border-border bg-surface px-2.5 text-[11px] text-muted transition-colors hover:border-primary/50 hover:text-foreground"
+          >
+            <span className="size-1.5 bg-primary" />
+            <span className="font-mono font-medium uppercase text-foreground">
+              {dialectLabel(dialect)}
+            </span>
+          </Link>
           {alreadySolved ? (
             <span className="flex items-center gap-1 bg-success/10 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-success">
               <CheckCircle2 className="size-3" /> Solved
@@ -233,6 +260,28 @@ function QuestionWorkspace({
       }
     >
       <div className="mx-auto max-w-4xl space-y-5 px-5 py-5">
+        <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-dim">
+          <Link href="/" className="hover:text-foreground">
+            Workspace
+          </Link>
+          <span>/</span>
+          <Link href="/learn" className="hover:text-foreground">
+            Categories
+          </Link>
+          <span>/</span>
+          <Link
+            href={
+              activeCategoryId
+                ? `/learn/category?id=${activeCategoryId}`
+                : `/learn/topic?id=${topicId}`
+            }
+            className="hover:text-foreground"
+          >
+            {activeCategoryName}
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-foreground">{question.title}</span>
+        </div>
         <section className="space-y-1.5">
           <div className="flex items-center gap-2">
             <Badge
@@ -286,8 +335,18 @@ function QuestionWorkspace({
 
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="section-label">
-              {isSqlQuestion ? "Your query" : "Your answer"}
+            <span className="flex items-center gap-2">
+              <span className="section-label">
+                {isSqlQuestion ? "Your query" : "Your answer"}
+              </span>
+              {isSqlQuestion ? (
+                <span
+                  title={`${dialectLabel(dialect)} syntax`}
+                  className="border border-border px-1.5 font-mono text-[9px] uppercase tracking-wider text-muted-dim"
+                >
+                  {dialectLabel(dialect)}
+                </span>
+              ) : null}
             </span>
             <AiActionButtons
               question={question}
@@ -312,6 +371,8 @@ function QuestionWorkspace({
                 onRun={() => void run()}
                 onSubmit={() => void submit()}
                 fontSize={editorFontSize}
+                dialect={dialect}
+                tables={tableMap}
                 placeholder="Write your statement…"
                 minHeight="100%"
               />

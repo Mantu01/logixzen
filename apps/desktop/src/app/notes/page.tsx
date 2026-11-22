@@ -8,11 +8,15 @@ import {
   ChevronRight,
   Copy,
   FileText,
+  Plus,
   Search,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +26,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { InstallReport } from "@/components/packs/install-report";
+import type { InstallStatus } from "@/components/packs/install-report";
 import { usePackStore } from "@/stores/usePackStore";
+import { parsePackFile } from "@/lib/packs/packs";
 import type { Note } from "@/lib/packs/types";
-import { cn } from "@/lib/utils";
+import { cn, errorMessage } from "@/lib/utils";
 
 export default function NotesPage(): React.ReactElement {
   const notes = usePackStore((state) => state.notes);
   const hydrated = usePackStore((state) => state.hydrated);
+  const addNote = usePackStore((state) => state.addNote);
+  const removeNote = usePackStore((state) => state.removeNote);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -82,15 +91,25 @@ export default function NotesPage(): React.ReactElement {
 
   if (hydrated && notes.length === 0) {
     return (
-      <PageShell title="Notes" subtitle="Study notes from your imported packs">
+      <PageShell
+        title="Notes"
+        subtitle="Study notes from your imported packs"
+        actions={
+          <div className="flex items-center gap-2">
+            <NewNoteDialog categories={[]} onAdd={addNote} />
+            <ImportNotesButton />
+          </div>
+        }
+      >
         <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
           <BookOpen className="size-8 text-muted-dim" />
           <p className="text-[13px] font-medium">No notes yet</p>
           <p className="max-w-sm text-[11.5px] text-muted-dim">
             Notes arrive with a resource install, grouped by category.{" "}
-            <Link href="/resources" className="text-primary hover:underline">
+            <Link href="/import/resources" className="text-primary hover:underline">
               Install a resource
-            </Link>
+            </Link>{" "}
+            or import a notes .json file.
           </p>
         </div>
       </PageShell>
@@ -104,6 +123,15 @@ export default function NotesPage(): React.ReactElement {
         hydrated
           ? `${notes.length} notes · ${categories.length} categories`
           : undefined
+      }
+      actions={
+        <div className="flex items-center gap-2">
+          <NewNoteDialog
+            categories={categories.map(([name]) => name)}
+            onAdd={addNote}
+          />
+          <ImportNotesButton />
+        </div>
       }
       toolbar={
         <>
@@ -160,15 +188,29 @@ export default function NotesPage(): React.ReactElement {
           {selected ? (
             <article className="mx-auto min-h-full max-w-3xl border-x border-border bg-surface px-10 py-8">
               <header className="border-b border-border pb-5">
-                <div className="flex items-center gap-2">
-                  <CategoryEditor
-                    key={selected.id}
-                    note={selected}
-                    categories={categories.map(([name]) => name)}
-                  />
-                  <span className="numeric text-[10.5px] text-muted-dim">
-                    {selected.tags.length} tags
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CategoryEditor
+                      key={selected.id}
+                      note={selected}
+                      categories={categories.map(([name]) => name)}
+                    />
+                    <span className="numeric text-[10.5px] text-muted-dim">
+                      {selected.tags.length} tags
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label="Delete note"
+                    className="text-muted-dim hover:text-error"
+                    onClick={() => {
+                      removeNote(selected.id);
+                      setSelectedId(null);
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
                 </div>
                 <h1 className="mt-3 text-[20px] font-semibold leading-snug tracking-[-0.01em]">
                   {selected.title}
@@ -210,6 +252,228 @@ export default function NotesPage(): React.ReactElement {
         </div>
       </div>
     </PageShell>
+  );
+}
+
+function ImportNotesButton(): React.ReactElement {
+  const [status, setStatus] = useState<InstallStatus | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const readFile = async (file: File): Promise<void> => {
+    try {
+      const text = await file.text();
+      const detected = parsePackFile(text);
+      const parsed = detected?.result ?? null;
+      if (
+        detected === null ||
+        parsed === null ||
+        !parsed.ok ||
+        parsed.data === null
+      ) {
+        setStatus({
+          ok: false,
+          issues: parsed?.issues ?? [{ path: "$", message: "Invalid JSON" }],
+        });
+        setMessage(null);
+      } else if (detected.kind !== "notes") {
+        setStatus({
+          ok: false,
+          issues: [
+            {
+              path: "file",
+              message: `This is a ${detected.kind} file — pick a notes .json file`,
+            },
+          ],
+        });
+        setMessage(null);
+      } else {
+        const outcome = usePackStore.getState().importFile(text);
+        setStatus({ ok: outcome.ok, issues: outcome.issues });
+        setMessage(
+          outcome.ok ? `${outcome.counts.notes} notes imported` : null,
+        );
+      }
+    } catch (error: unknown) {
+      setStatus({ ok: false, issues: [{ path: "file", message: errorMessage(error) }] });
+      setMessage(null);
+    }
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1.5"
+        onClick={() => inputRef.current?.click()}
+      >
+        <Upload className="size-3.5" /> Import notes
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        aria-label="Notes JSON file"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void readFile(file);
+          event.target.value = "";
+        }}
+      />
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) {
+            setStatus(null);
+            setMessage(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md p-0">
+          <DialogHeader className="border-b border-border bg-surface-alt px-4 py-3">
+            <DialogTitle className="text-[13px]">Import notes</DialogTitle>
+            <DialogDescription className="text-[11px]">
+              The file is parsed and validated before anything is stored.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-4 pb-4">
+            <InstallReport status={status} message={message} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function NewNoteDialog({
+  categories,
+  onAdd,
+}: {
+  categories: string[];
+  onAdd: (note: Note) => void;
+}): React.ReactElement {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState(categories[0] ?? "SQL Basics");
+  const [newCat, setNewCat] = useState("");
+  const [tags, setTags] = useState("");
+  const [content, setContent] = useState("");
+
+  const save = (): void => {
+    if (title.trim().length === 0 || content.trim().length === 0) return;
+    const finalCategory = newCat.trim().length > 0 ? newCat.trim() : category;
+    const splitTags = tags
+      .split(/[,·]+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+    onAdd({
+      id: `note-${Date.now()}`,
+      title: title.trim(),
+      category: finalCategory,
+      tags: splitTags,
+      content: content.trim(),
+    });
+    setOpen(false);
+    setTitle("");
+    setContent("");
+    setTags("");
+    setNewCat("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-1.5">
+          <Plus className="size-3.5" /> New note
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg p-0">
+        <DialogHeader className="border-b border-border bg-surface-alt px-4 py-3">
+          <DialogTitle className="text-[13px]">Create Note</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 p-4">
+          <div>
+            <label className="section-label mb-1 block">Title</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Window Functions Cheat Sheet"
+              className="h-8"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="section-label mb-1 block">Category</label>
+              {categories.length > 0 ? (
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="h-8 w-full border border-border bg-surface px-2 text-[12px] outline-none"
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="Category..."
+                  className="h-8"
+                />
+              )}
+            </div>
+            <div>
+              <label className="section-label mb-1 block">Or new category</label>
+              <Input
+                value={newCat}
+                onChange={(e) => setNewCat(e.target.value)}
+                placeholder="New category..."
+                className="h-8"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="section-label mb-1 block">Tags (comma-separated)</label>
+            <Input
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="window, over, partition"
+              className="h-8"
+            />
+          </div>
+          <div>
+            <label className="section-label mb-1 block">Content (Markdown)</label>
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="# Header&#10;&#10;Explanation and code:&#10;&#10;```sql&#10;SELECT ROW_NUMBER() OVER ();&#10;```"
+              rows={6}
+              className="font-mono text-[11.5px]"
+            />
+          </div>
+        </div>
+        <DialogFooter className="border-t border-border px-4 py-2.5">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            disabled={title.trim().length === 0 || content.trim().length === 0}
+            onClick={save}
+          >
+            Save note
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

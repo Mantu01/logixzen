@@ -16,7 +16,6 @@ import {
   Layers,
   Loader2,
   Network,
-  Package,
   Settings2,
   Terminal,
 } from "lucide-react";
@@ -44,7 +43,6 @@ const WORKSPACE: Array<{
   { href: "/playground", label: "Editor", icon: Terminal },
   { href: "/databases", label: "Databases", icon: Database },
   { href: "/schema", label: "Schema", icon: Network },
-  { href: "/resources", label: "Resources", icon: Package },
   { href: "/import", label: "Data Hub", icon: Import },
   { href: "/learn", label: "Practice", icon: GraduationCap },
   { href: "/notes", label: "Notes", icon: BookOpen },
@@ -161,7 +159,7 @@ export default function HomePage(): React.ReactElement {
             title="Workspace"
             note="Everything else lives one click away"
           />
-          <div className="mt-2.5 grid grid-cols-3 gap-2">
+          <div className="mt-2.5 grid grid-cols-4 gap-2">
             {WORKSPACE.map((entry) => {
               const Icon = entry.icon;
               return (
@@ -211,7 +209,7 @@ function ServiceCard({
   const available = service.state === "available";
   const href = available
     ? empty
-      ? "/resources"
+      ? "/import/resources"
       : (service.href ?? "/learn")
     : null;
 
@@ -287,7 +285,7 @@ function GetStarted(): React.ReactElement {
           before anything is stored.
         </p>
       </div>
-      <Link href="/resources">
+      <Link href="/import/resources">
         <Button className="gap-1.5">
           Browse resources <ArrowRight className="size-3.5" />
         </Button>

@@ -54,17 +54,19 @@ export class DesktopSqlEngine {
 
   private load(name: string, setupSql?: string): void {
     const key = name.toLowerCase();
-    const existing = this.databases.get(key);
-    if (existing !== undefined) {
-      existing.close();
-      this.databases.delete(key);
-    }
     const db = new DatabaseSync(":memory:");
-    db.exec("PRAGMA foreign_keys = ON;");
-    if (setupSql !== undefined && setupSql.trim().length > 0) {
-      db.exec(setupSql);
+    try {
+      db.exec("PRAGMA foreign_keys = ON;");
+      if (setupSql !== undefined && setupSql.trim().length > 0) {
+        db.exec(setupSql);
+      }
+    } catch (error: unknown) {
+      db.close();
+      throw error;
     }
+    const existing = this.databases.get(key);
     this.databases.set(key, db);
+    existing?.close();
   }
 
   initialize(setupSql?: string, name?: string): void {

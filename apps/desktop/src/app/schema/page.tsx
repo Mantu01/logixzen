@@ -42,10 +42,11 @@ import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { usePackStore } from "@/stores/usePackStore";
 import { useSqlStore } from "@/sql/useSqlStore";
 import { tablesFromDataset } from "@/lib/dataset-from-sql";
-import { activeSubject } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "diagram" | "tables";
+
+const EMPTY_TABLES: Record<string, string[]> = {};
 
 export default function SchemaPage(): React.ReactElement {
   const databases = usePackStore((state) => state.databases);
@@ -80,7 +81,7 @@ export default function SchemaPage(): React.ReactElement {
 
   return (
     <PageShell
-      title={activeSubject.dataLabel}
+      title="Schema"
       subtitle={
         activeDataset
           ? `${activeDataset.name} · ${displayTables.length} tables`
@@ -450,6 +451,7 @@ function NewDatabaseDialog({
   const [sql, setSql] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialect = useSqlStore((state) => state.activeDialect);
 
   const derivedName = useMemo(() => {
     for (const statement of splitSqlStatements(sql)) {
@@ -547,9 +549,9 @@ function NewDatabaseDialog({
             <SqlCodeEditor
               value={sql}
               onChange={setSql}
-              dialect={useSqlStore.getState().activeDialect}
+              dialect={dialect}
               fontSize={12}
-              tables={{}}
+              tables={EMPTY_TABLES}
               placeholder={
                 "CREATE DATABASE crm;\nGO\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
               }

@@ -1,6 +1,6 @@
 import type { Dataset, Question, Topic } from "@logixzen/shared/content";
 
-export type PackKind = "databases" | "questions" | "notes";
+export type PackKind = "databases" | "questions" | "notes" | "bundle";
 
 export interface DatabasePack {
   version: number;
@@ -26,7 +26,15 @@ export interface NotesPack {
   notes: Note[];
 }
 
-export type PackFile = DatabasePack | QuestionsPack | NotesPack;
+export interface BundlePack {
+  version: number;
+  datasets?: Dataset[];
+  questions?: Question[];
+  topics?: Topic[];
+  notes?: Note[];
+}
+
+export type PackFile = DatabasePack | QuestionsPack | NotesPack | BundlePack;
 
 export interface PackIssue {
   path: string;

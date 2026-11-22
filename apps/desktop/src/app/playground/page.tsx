@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Group,
   Panel,
@@ -16,7 +17,7 @@ import {
   usePanelRef,
   type PanelSize,
 } from "react-resizable-panels";
-import { FolderOpen, Plus, Save, X } from "lucide-react";
+import { FolderOpen, Loader2, Plus, Save, X } from "lucide-react";
 import type { SqlResult } from "@/shared/desktop-api";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
@@ -70,7 +71,7 @@ import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { useFontZoom } from "@/hooks/use-font-zoom";
 import { ErDiagram } from "@/features/schema/er-diagram";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { DIALECTS, dialectLabel, tableMapFrom } from "@/lib/sql-editor";
 
 export default function PlaygroundPage(): React.ReactElement {
   return (
@@ -187,13 +188,7 @@ function PlaygroundInner(): React.ReactElement {
     [results, resultIndex],
   );
 
-  const tableMap = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const table of schema) {
-      map[table.name] = table.columns.map((column) => column.name);
-    }
-    return map;
-  }, [schema]);
+  const tableMap = useMemo(() => tableMapFrom(schema), [schema]);
 
   const activeDataset = databases.find((item) => item.id === activeDatasetId);
 
@@ -263,9 +258,9 @@ function PlaygroundInner(): React.ReactElement {
       title="Editor"
       subtitle={
         activeDataset
-          ? `${activeDataset.name} · ${schema.length} tables`
+          ? `${activeDataset.name} · ${dialectLabel(activeDialect)} · ${schema.length} tables`
           : hydrated
-            ? "No database selected"
+            ? `${dialectLabel(activeDialect)} · No database selected`
             : undefined
       }
       actions={
@@ -639,7 +634,9 @@ function QueryTabBar({
           </TooltipContent>
         </Tooltip>
       </div>
-      <div className="flex shrink-0 items-center gap-0.5 px-1.5">
+      <div className="flex shrink-0 items-center gap-1.5 px-1.5">
+        <DialectBar />
+        <div className="flex items-center gap-0.5">
         {savedNotice !== null ? (
           <span className="mr-1 font-mono text-[10px] text-success">
             saved {savedNotice}
@@ -681,8 +678,43 @@ function QueryTabBar({
             </kbd>
           </TooltipContent>
         </Tooltip>
+        </div>
       </div>
     </div>
+  );
+}
+
+function DialectBar(): React.ReactElement {
+  const dialect = useSqlStore((state) => state.activeDialect);
+  const engine = useSqlStore((state) => state.activeEngineName);
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link
+          href="/databases"
+          aria-label={`Active SQL dialect: ${dialect}. Change the engine in Databases`}
+          className="flex h-6 items-stretch border border-border transition-colors hover:border-primary/40"
+        >
+          {DIALECTS.map((entry) => (
+            <span
+              key={entry.id}
+              className={cn(
+                "border-r border-border px-1.5 font-mono text-[9px] uppercase leading-6 tracking-wider last:border-r-0",
+                entry.id === dialect
+                  ? "bg-primary/12 text-primary"
+                  : "text-muted-dim",
+              )}
+            >
+              {entry.label}
+            </span>
+          ))}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent>
+        {engine} runs {dialectLabel(dialect)} syntax — switch engine in
+        Databases
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
