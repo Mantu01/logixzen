@@ -71,7 +71,23 @@ import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { useFontZoom } from "@/hooks/use-font-zoom";
 import { ErDiagram } from "@/features/schema/er-diagram";
 import { cn } from "@/lib/utils";
-import { DIALECTS, dialectLabel, tableMapFrom } from "@/lib/sql-editor";
+import { dialectLabel, tableMapFrom } from "@/lib/sql-editor";
+import { ENGINE_CATALOG } from "@/shared/engine-catalog";
+import type { EngineOptionId, InstallationRecord } from "@/shared/engines";
+import { errorMessage, waitForJob } from "@/lib/engine-jobs";
+
+function toEngineChoices(
+  records: InstallationRecord[],
+): Array<{ id: EngineOptionId; name: string }> {
+  return records
+    .filter((record) => record.status === "ready" || record.status === "stopped")
+    .map((record) => ({
+      id: record.optionId,
+      name:
+        ENGINE_CATALOG.find((entry) => entry.id === record.optionId)
+          ?.displayName ?? record.optionId,
+    }));
+}
 
 export default function PlaygroundPage(): React.ReactElement {
   return (
@@ -101,6 +117,7 @@ function PlaygroundInner(): React.ReactElement {
   const clearError = useSqlStore((state) => state.clearError);
   const activeDialect = useSqlStore((state) => state.activeDialect);
   const lastResult = useSqlStore((state) => state.lastResult);
+  const resultVersion = useSqlStore((state) => state.resultVersion);
   const addToHistory = useQueryHistoryStore((state) => state.addToHistory);
   const editorFontSize = useProgressStore(
     (state) => state.settings.editorFontSize,
@@ -136,6 +153,51 @@ function PlaygroundInner(): React.ReactElement {
   const [schemaCollapsed, setSchemaCollapsed] = useState(false);
   const collapsedRef = useRef(false);
 
+  const activeOptionId = useSqlStore((state) => state.activeOptionId);
+  const autoConnect = useSqlStore((state) => state.autoConnect);
+  const [readyEngines, setReadyEngines] = useState<
+    Array<{ id: EngineOptionId; name: string }>
+  >([]);
+  const [isSwitchingEngine, setIsSwitchingEngine] = useState(false);
+
+  const loadReadyEngines = useCallback(async (): Promise<void> => {
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
+    const res = await bridge.installations();
+    if (res.ok) setReadyEngines(toEngineChoices(res.data));
+  }, []);
+
+  useEffect(() => {
+    window.logixzen?.setup.installations().then((res) => {
+      if (res.ok) setReadyEngines(toEngineChoices(res.data));
+    });
+  }, [activeOptionId]);
+
+  const handleSwitchEngine = async (optionId: EngineOptionId) => {
+    const bridge = window.logixzen?.setup;
+    if (!bridge || optionId === activeOptionId) return;
+    setIsSwitchingEngine(true);
+    setRunError(null);
+    try {
+      const started = await bridge.switch(optionId);
+      if (!started.ok) {
+        setRunError(started.failure.cause);
+        return;
+      }
+      const finished = await waitForJob(started.data.id);
+      if (finished?.state !== "succeeded") {
+        setRunError(finished?.failure?.cause ?? "Engine switch did not complete.");
+        return;
+      }
+      await autoConnect();
+      await loadReadyEngines();
+    } catch (error) {
+      setRunError(errorMessage(error));
+    } finally {
+      setIsSwitchingEngine(false);
+    }
+  };
+
   const activeFile = useMemo(
     () => files.find((file) => file.id === activeId) ?? files[0] ?? null,
     [files, activeId],
@@ -167,8 +229,9 @@ function PlaygroundInner(): React.ReactElement {
       const failedStatement = state.lastResult?.find(
         (result) => result.error !== undefined,
       );
-      setRunError(failedStatement?.error ?? state.error ?? null);
-      addToHistory(text, failedStatement === undefined);
+      const failure = failedStatement?.error ?? state.error ?? null;
+      setRunError(failure);
+      addToHistory(text, failure === null);
     },
     [execute, clearError, addToHistory],
   );
@@ -265,6 +328,45 @@ function PlaygroundInner(): React.ReactElement {
       }
       actions={
         <>
+          {readyEngines.length > 0 ? (
+            <Select
+              value={activeOptionId ?? ""}
+              onValueChange={(val) =>
+                void handleSwitchEngine(val as EngineOptionId)
+              }
+              disabled={isSwitchingEngine}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-36 border-border text-[11px]"
+                aria-label="Active engine"
+              >
+                <SelectValue placeholder="Engine" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {readyEngines.map((eng) => (
+                    <SelectItem
+                      key={eng.id}
+                      value={eng.id}
+                      className="text-[11px]"
+                    >
+                      {eng.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px] text-destructive border-destructive/40"
+            >
+              <Link href="/setup">Install Engine</Link>
+            </Button>
+          )}
           <Select
             value={activeDatasetId ?? ""}
             onValueChange={(value) => void activateDataset(value)}
@@ -272,7 +374,7 @@ function PlaygroundInner(): React.ReactElement {
             <SelectTrigger
               size="sm"
               className="w-52"
-              aria-label="Active database"
+              aria-label="Active learning database"
             >
               <SelectValue placeholder="Select database" />
             </SelectTrigger>
@@ -365,12 +467,15 @@ function PlaygroundInner(): React.ReactElement {
                       results={results}
                       index={resultIndex}
                       onSelect={setResultIndex}
-                      error={runError}
                     />
                   ) : null}
                   <PlaygroundResultPanel
+                    key={`${resultVersion}:${resultIndex}`}
                     result={current}
-                    error={runError ?? undefined}
+                    error={
+                      current?.error ??
+                      (results.length === 0 ? (runError ?? undefined) : undefined)
+                    }
                     isLoading={isLoading}
                     fontSize={resultFontSize}
                     onExportCsv={() => void download("csv")}
@@ -635,7 +740,6 @@ function QueryTabBar({
         </Tooltip>
       </div>
       <div className="flex shrink-0 items-center gap-1.5 px-1.5">
-        <DialectBar />
         <div className="flex items-center gap-0.5">
         {savedNotice !== null ? (
           <span className="mr-1 font-mono text-[10px] text-success">
@@ -684,50 +788,14 @@ function QueryTabBar({
   );
 }
 
-function DialectBar(): React.ReactElement {
-  const dialect = useSqlStore((state) => state.activeDialect);
-  const engine = useSqlStore((state) => state.activeEngineName);
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          href="/databases"
-          aria-label={`Active SQL dialect: ${dialect}. Change the engine in Databases`}
-          className="flex h-6 items-stretch border border-border transition-colors hover:border-primary/40"
-        >
-          {DIALECTS.map((entry) => (
-            <span
-              key={entry.id}
-              className={cn(
-                "border-r border-border px-1.5 font-mono text-[9px] uppercase leading-6 tracking-wider last:border-r-0",
-                entry.id === dialect
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-dim",
-              )}
-            >
-              {entry.label}
-            </span>
-          ))}
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent>
-        {engine} runs {dialectLabel(dialect)} syntax — switch engine in
-        Databases
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 function ResultTabs({
   results,
   index,
   onSelect,
-  error,
 }: {
   results: SqlResult[];
   index: number;
   onSelect: (index: number) => void;
-  error: string | null;
 }): React.ReactElement {
   return (
     <div className="flex h-7 shrink-0 items-stretch overflow-x-auto border-b border-border bg-surface-alt">
@@ -744,8 +812,8 @@ function ResultTabs({
           )}
         >
           <span className="font-mono">#{i + 1}</span>
-          {result.error !== undefined || (error !== null && i === index) ? (
-            <span className="size-1.5 bg-error" />
+          {result.error !== undefined ? (
+            <span className="size-1.5 bg-destructive" />
           ) : result.isSelect ? (
             <span className="numeric text-muted-dim">{result.rows.length}</span>
           ) : (

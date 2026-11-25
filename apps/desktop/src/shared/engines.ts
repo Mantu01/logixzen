@@ -1,15 +1,25 @@
 export type EngineId =
   | "sqlite"
-  | "mssql-express"
-  | "mssql-localdb"
+  | "postgres"
+  | "mysql"
+  | "sqlserver"
   | "mssql-container"
   | "postgres-container"
   | "mysql-container";
 
 export type InstallMethod =
-  "bundled" | "native-windows" | "native-linux" | "container";
+  | "bundled"
+  | "native"
+  | "native-windows"
+  | "native-linux"
+  | "native-macos"
+  | "container";
 
-export type EngineDialect = "sqlite" | "tsql" | "postgres" | "mysql";
+export type EngineDialect =
+  | "sqlite"
+  | "postgres"
+  | "mysql"
+  | "tsql";
 
 export type OsFamily = "windows" | "macos" | "linux" | "other";
 
@@ -226,7 +236,10 @@ export type DetectedInstallation =
       packages: string[];
     }
   | {
-      engine: "mssql-container" | "postgres-container" | "mysql-container";
+      engine:
+        | "mssql-container"
+        | "postgres-container"
+        | "mysql-container";
       containers: string[];
       images: string[];
     };
@@ -500,9 +513,9 @@ export type BridgeResult<T> =
 
 export type EngineOptionId =
   | "sqlite"
-  | "mssql-express-windows"
-  | "mssql-localdb"
-  | "mssql-express-linux"
+  | "postgres"
+  | "mysql"
+  | "sqlserver"
   | "mssql-container"
   | "postgres-container"
   | "mysql-container";

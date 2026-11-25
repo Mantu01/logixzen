@@ -1,6 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DatabaseDriver } from "../sql/drivers/driver";
+import type { EngineDialect } from "../../shared/engines";
+import type {
+  SqlResult,
+  TableInfo,
+} from "../../shared/desktop-api";
 import { backupsDir } from "../paths";
 import {
   markerStatement,
@@ -19,9 +23,16 @@ import {
   generateDropTableSql,
   generateInsertStatements,
   generateTableDdl,
+  quoteIdentifier,
 } from "./ddl-generator";
 
 export const PRACTICE_SCHEMA_VERSION = "1";
+
+interface PracticeDriver {
+  dialect: EngineDialect;
+  execute: (sql: string) => Promise<SqlResult[]>;
+  getSchema: () => Promise<TableInfo[]>;
+}
 
 interface PracticeInitResult {
   status: "initialized" | "kept";
@@ -48,13 +59,13 @@ interface PracticeVerificationResult {
   error?: string;
 }
 
-async function ensureMarkerTable(driver: DatabaseDriver): Promise<void> {
+async function ensureMarkerTable(driver: PracticeDriver): Promise<void> {
   const ddl = markerStatement(driver.dialect);
   await driver.execute(ddl);
 }
 
 async function setMarkerValue(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
   key: string,
   value: string,
 ): Promise<void> {
@@ -89,7 +100,7 @@ async function setMarkerValue(
 }
 
 async function getMarkerValues(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   try {
@@ -107,13 +118,13 @@ async function getMarkerValues(
   return map;
 }
 
-async function listDriverTables(driver: DatabaseDriver): Promise<string[]> {
+async function listDriverTables(driver: PracticeDriver): Promise<string[]> {
   const schema = await driver.getSchema();
   return schema.map((t) => t.name);
 }
 
 async function detectLearnerData(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
 ): Promise<boolean> {
   const tables = await listDriverTables(driver);
   const lowerTables = tables.map((t) => t.toLowerCase());
@@ -137,7 +148,7 @@ async function detectLearnerData(
 }
 
 export async function initializePracticeEnvironment(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
 ): Promise<PracticeInitResult> {
   await ensureMarkerTable(driver);
   const markers = await getMarkerValues(driver);
@@ -185,6 +196,7 @@ export async function initializePracticeEnvironment(
           table,
           raw.rows,
           driver.dialect,
+          50,
         );
         for (const sql of inserts) {
           await driver.execute(sql);
@@ -214,7 +226,7 @@ export async function initializePracticeEnvironment(
 }
 
 async function createPracticeBackup(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
 ): Promise<string> {
   const dir = backupsDir();
   if (!existsSync(dir)) {
@@ -230,7 +242,7 @@ async function createPracticeBackup(
   for (const table of tables) {
     try {
       const res = await driver.execute(
-        `SELECT * FROM ${driver.dialect === "tsql" ? `[${table}]` : `"${table}"`};`,
+        `SELECT * FROM ${quoteIdentifier(table, driver.dialect)};`,
       );
       dump[table] = res[0]?.rows ?? [];
     } catch {
@@ -249,7 +261,7 @@ async function createPracticeBackup(
 }
 
 export async function resetPracticeEnvironment(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
   options: { confirmed: boolean },
 ): Promise<PracticeResetResult> {
   if (!options.confirmed) {
@@ -273,7 +285,12 @@ export async function resetPracticeEnvironment(
 
     const raw = PRACTICE_SEED_DATA[table.name];
     if (raw && raw.rows.length > 0) {
-      const inserts = generateInsertStatements(table, raw.rows, driver.dialect);
+      const inserts = generateInsertStatements(
+        table,
+        raw.rows,
+        driver.dialect,
+        50,
+      );
       for (const sql of inserts) {
         await driver.execute(sql);
       }
@@ -301,7 +318,7 @@ export async function resetPracticeEnvironment(
 }
 
 export async function verifyPracticeEnvironment(
-  driver: DatabaseDriver,
+  driver: PracticeDriver,
 ): Promise<PracticeVerificationResult> {
   const tables = await listDriverTables(driver);
   const lowerTables = tables.map((t) => t.toLowerCase());
@@ -321,8 +338,9 @@ export async function verifyPracticeEnvironment(
         error: `Practice table "${name}" is missing.`,
       };
     }
-    const qTable = driver.dialect === "tsql" ? `[${name}]` : `"${name}"`;
-    const res = await driver.execute(`SELECT COUNT(*) AS c FROM ${qTable};`);
+    const res = await driver.execute(
+      `SELECT COUNT(*) AS c FROM ${quoteIdentifier(name, driver.dialect)};`,
+    );
     const c = Number(res[0]?.rows?.[0]?.c ?? res[0]?.rows?.[0]?.C ?? 0);
     rowCounts[name] = c;
     totalRows += c;

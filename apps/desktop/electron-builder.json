@@ -2,6 +2,10 @@
   "appId": "com.mantu.desktop-app",
   "productName": "LogixZen",
   "asar": true,
+  "asarUnpack": [
+    "**/*.node",
+    "node_modules/msnodesqlv8/**/*"
+  ],
   "npmRebuild": false,
   "directories": {
     "output": "release"
@@ -10,6 +14,7 @@
     "dist-electron/**/*",
     "out/**/*",
     "package.json",
+    "node_modules/msnodesqlv8/**/*",
     "node_modules/tedious/**/*",
     "node_modules/pg/**/*",
     "node_modules/pg-protocol/**/*",

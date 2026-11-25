@@ -11,6 +11,8 @@ import {
 import { join } from "node:path";
 import { shell } from "electron";
 import { logsDir } from "../paths";
+import { getInstanceLogsDir } from "../engine/paths";
+import type { EngineOptionId } from "../../shared/engines";
 import { currentSnapshot } from "../platform/snapshot";
 import { loadInstallState } from "../state/store";
 import type { DiagnosticsSummary, LogFileSummary } from "../../shared/engines";
@@ -38,6 +40,10 @@ const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
     replacement: "$1[REDACTED]$3",
   },
 ];
+
+export function logPathFor(engineId: EngineOptionId): string {
+  return join(getInstanceLogsDir(engineId), "engine.log");
+}
 
 export function redactText(text: string): string {
   let result = text;

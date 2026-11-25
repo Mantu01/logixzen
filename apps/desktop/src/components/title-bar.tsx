@@ -86,7 +86,7 @@ export function TitleBar() {
           <span
             className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
           />
-          {connected ? "Engine connected" : "Browser preview"}
+          {connected ? "Desktop" : "Browser preview"}
         </div>
         {connected ? (
           <>

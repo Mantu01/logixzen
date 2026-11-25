@@ -90,7 +90,7 @@ export default function LearnPage(): React.ReactElement {
         </div>
       }
     >
-      <div className="mx-auto max-w-4xl px-5 py-6">
+      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-4">
         {view === "categories" ? (
           <CategoriesSection />
         ) : (

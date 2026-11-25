@@ -2,23 +2,28 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  ArrowRightLeft,
-  Database,
-  RefreshCw,
-  ShieldCheck,
-  Terminal,
-} from "lucide-react";
+import { ArrowRightLeft, RefreshCw, ShieldCheck, Terminal } from "lucide-react";
 import type {
   EngineCatalogEntry,
   EngineOptionId,
   InstallationRecord,
 } from "@/shared/engines";
 import { Button } from "@/components/ui/button";
+import { Panel } from "@/components/app-shell/panel";
+import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { statusLabel } from "@/lib/engine-status";
 import { cn } from "@/lib/utils";
 
 interface ActiveConnectionCardProps {
   activeOptionId: EngineOptionId | null;
+  activeDatabase: string | null;
   activeEntry: EngineCatalogEntry | null;
   activeRecord: InstallationRecord | null;
   installedRecords: InstallationRecord[];
@@ -28,8 +33,15 @@ interface ActiveConnectionCardProps {
   isSwitching?: boolean;
 }
 
+function statusTone(status: InstallationRecord["status"]): StatusTone {
+  if (status === "ready") return "success";
+  if (status === "needs-repair" || status === "failed") return "warning";
+  return "neutral";
+}
+
 export function ActiveConnectionCard({
   activeOptionId,
+  activeDatabase,
   activeEntry,
   activeRecord,
   installedRecords,
@@ -40,17 +52,18 @@ export function ActiveConnectionCard({
 }: ActiveConnectionCardProps): React.ReactElement {
   const [selectedSwitchOption, setSelectedSwitchOption] = useState<
     EngineOptionId | ""
-  >(
-    () =>
-      installedRecords.find(
-        (r) => r.optionId !== activeOptionId && r.status === "ready",
-      )?.optionId ?? "",
-  );
+  >("");
   const [testing, setTesting] = useState(false);
 
   const status = activeRecord?.status ?? "not-installed";
-  const isReady = status === "ready";
-  const isNeedsRepair = status === "needs-repair";
+  const readyAlternates = installedRecords.filter(
+    (record) => record.optionId !== activeOptionId && record.status === "ready",
+  );
+  const switchOption: EngineOptionId | "" =
+    readyAlternates.find((record) => record.optionId === selectedSwitchOption)
+      ?.optionId ??
+    readyAlternates[0]?.optionId ??
+    "";
 
   const handleTest = async (): Promise<void> => {
     if (!activeOptionId) return;
@@ -62,150 +75,138 @@ export function ActiveConnectionCard({
     }
   };
 
-  const handleSwitchSubmit = async (): Promise<void> => {
-    if (!selectedSwitchOption) return;
-    await onSwitch(selectedSwitchOption);
-  };
-
-  const readyAlternates = installedRecords.filter(
-    (rec) => rec.optionId !== activeOptionId && rec.status === "ready",
-  );
-
   return (
-    <div className="border border-border bg-surface p-4 text-[12px]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-        <div className="flex items-center gap-2">
-          <Database className="size-4 text-primary shrink-0" />
-          <h2 className="text-[13px] font-semibold text-foreground">
-            Active Connection
-          </h2>
-          <span
-            className={cn(
-              "border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider font-mono",
-              isReady
-                ? "border-success/30 bg-success/10 text-success"
-                : isNeedsRepair
-                  ? "border-warning/30 bg-warning/10 text-warning"
-                  : "border-border bg-surface-alt text-muted",
-            )}
-          >
-            {status}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            asChild
-            size="sm"
-            className="h-7.5 px-3 text-[11.5px] font-medium gap-1.5"
-          >
-            <Link href="/playground">
-              <Terminal className="size-3.5" />
-              <span>Open in SQL Editor</span>
-            </Link>
-          </Button>
-
+    <Panel
+      title="Active connection"
+      description="Queries in the editor run on this engine and database."
+      actions={
+        <>
+          <StatusChip tone={statusTone(status)}>{statusLabel(status)}</StatusChip>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={handleTest}
+            onClick={() => void handleTest()}
             disabled={testing || !activeOptionId}
-            className="border-border h-7.5 px-2.5 text-[11px] gap-1.5"
+            className="h-7 gap-1.5 border-border px-2 text-[11px]"
           >
             <RefreshCw className={cn("size-3", testing && "animate-spin")} />
-            <span>Test Connection</span>
+            Test
           </Button>
-        </div>
-      </div>
+          <Button asChild size="sm" className="h-7 gap-1.5 px-2.5 text-[11px]">
+            <Link href="/playground">
+              <Terminal className="size-3" />
+              Open editor
+            </Link>
+          </Button>
+        </>
+      }
+    >
+      <dl className="grid grid-cols-2 divide-border border-b border-border sm:grid-cols-4 sm:divide-x">
+        <Meta label="Engine">
+          {activeEntry?.displayName ?? activeOptionId ?? "None"}
+        </Meta>
+        <Meta label="Database" mono>
+          {activeDatabase ?? "practice"}
+        </Meta>
+        <Meta label="Target" mono>
+          {activeRecord?.dataLocation ??
+            (activeRecord?.port ? `127.0.0.1:${activeRecord.port}` : "—")}
+        </Meta>
+        <Meta label="Dialect" mono>
+          {activeEntry?.dialect ?? "—"}
+        </Meta>
+      </dl>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 border-b border-border text-[11.5px]">
-        <div>
-          <span className="text-[10px] uppercase font-mono text-muted-dim block">
-            Engine
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
+        {activeRecord?.lastVerification ? (
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted">
+            <ShieldCheck className="size-3.5 shrink-0 text-success" />
+            <span className="truncate">
+              Verified{" "}
+              {new Date(
+                activeRecord.lastVerification.checkedAt,
+              ).toLocaleTimeString()}
+              {" · "}
+              {activeRecord.lastVerification.detail ?? "Connected"}
+            </span>
           </span>
-          <span className="font-medium text-foreground">
-            {activeEntry?.displayName ?? activeOptionId ?? "None"}
+        ) : (
+          <span className="text-[11px] text-muted-dim">
+            Connection has not been verified yet.
           </span>
-        </div>
+        )}
 
-        <div>
-          <span className="text-[10px] uppercase font-mono text-muted-dim block">
-            Database
-          </span>
-          <span className="font-mono text-foreground">LogixZenPractice</span>
-        </div>
-
-        <div>
-          <span className="text-[10px] uppercase font-mono text-muted-dim block">
-            Target
-          </span>
-          <span className="font-mono text-foreground truncate block">
-            {activeRecord?.dataLocation ??
-              (activeRecord?.port
-                ? `127.0.0.1:${activeRecord.port}`
-                : "practice.db")}
-          </span>
-        </div>
-
-        <div>
-          <span className="text-[10px] uppercase font-mono text-muted-dim block">
-            Dialect
-          </span>
-          <span className="font-mono uppercase text-foreground">
-            {activeEntry?.dialect ?? "sqlite"}
-          </span>
-        </div>
-      </div>
-
-      {activeRecord?.lastVerification ? (
-        <div className="flex items-center gap-2 pt-2 text-[11px] text-muted font-mono">
-          <ShieldCheck className="size-3.5 text-success shrink-0" />
-          <span>
-            Verified{" "}
-            {new Date(
-              activeRecord.lastVerification.checkedAt,
-            ).toLocaleTimeString()}
-            : {activeRecord.lastVerification.detail ?? "Connected successfully"}
-          </span>
-        </div>
-      ) : null}
-
-      {readyAlternates.length > 0 ? (
-        <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center justify-between gap-3 bg-surface-alt/40 p-2.5">
-          <div className="flex items-center gap-2">
-            <ArrowRightLeft className="size-3.5 text-muted-dim shrink-0" />
-            <span className="text-[11.5px] text-muted">Switch engine:</span>
-            <select
-              value={selectedSwitchOption}
-              onChange={(e) =>
-                setSelectedSwitchOption(e.target.value as EngineOptionId)
+        {readyAlternates.length > 0 ? (
+          <div className="flex items-center gap-1.5">
+            <ArrowRightLeft className="size-3.5 shrink-0 text-muted-dim" />
+            <Select
+              value={switchOption}
+              onValueChange={(value) =>
+                setSelectedSwitchOption(value as EngineOptionId)
               }
-              className="bg-surface border border-border px-2 py-1 text-[11.5px] font-mono text-foreground focus:outline-none focus:border-ring"
             >
-              {readyAlternates.map((alt) => {
-                const altEntry = catalog.find((c) => c.id === alt.optionId);
-                return (
-                  <option key={alt.optionId} value={alt.optionId}>
-                    {altEntry?.displayName ?? alt.optionId}
-                  </option>
-                );
-              })}
-            </select>
+              <SelectTrigger
+                size="sm"
+                className="h-7 w-44 border-border text-[11px]"
+                aria-label="Engine to switch to"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {readyAlternates.map((alternate) => (
+                  <SelectItem
+                    key={alternate.optionId}
+                    value={alternate.optionId}
+                    className="text-[11.5px]"
+                  >
+                    {catalog.find((entry) => entry.id === alternate.optionId)
+                      ?.displayName ?? alternate.optionId}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (switchOption) void onSwitch(switchOption);
+              }}
+              disabled={!switchOption || isSwitching}
+              className="h-7 border-border px-2 text-[11px]"
+            >
+              Switch
+            </Button>
           </div>
+        ) : null}
+      </div>
+    </Panel>
+  );
+}
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleSwitchSubmit}
-            disabled={!selectedSwitchOption || isSwitching}
-            className="border-border h-7 text-[11px] gap-1.5"
-          >
-            <span>Switch Active Engine</span>
-          </Button>
-        </div>
-      ) : null}
+function Meta({
+  label,
+  mono = false,
+  children,
+}: {
+  label: string;
+  mono?: boolean;
+  children: React.ReactNode;
+}): React.ReactElement {
+  return (
+    <div className="min-w-0 px-3 py-2">
+      <dt className="text-[9.5px] font-medium uppercase tracking-wider text-muted-dim">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "mt-0.5 truncate text-[11.5px] text-foreground",
+          mono && "font-mono",
+        )}
+      >
+        {children}
+      </dd>
     </div>
   );
 }

@@ -11,16 +11,11 @@ import type {
   RecoveryActionId,
   StartJobRequest,
 } from "../../shared/engines";
+import { ENGINE_CATALOG } from "../../shared/engine-catalog";
 
-const VALID_OPTION_IDS: ReadonlySet<EngineOptionId> = new Set([
-  "sqlite",
-  "mssql-express-windows",
-  "mssql-localdb",
-  "mssql-express-linux",
-  "mssql-container",
-  "postgres-container",
-  "mysql-container",
-]);
+const VALID_OPTION_IDS: ReadonlySet<string> = new Set(
+  ENGINE_CATALOG.map((entry) => entry.id),
+);
 
 const VALID_JOB_KINDS: ReadonlySet<JobKind> = new Set([
   "install",

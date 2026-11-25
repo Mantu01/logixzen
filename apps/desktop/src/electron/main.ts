@@ -6,7 +6,7 @@ import { registerIpcHandlers } from "./ipc";
 import { buildApplicationMenu } from "./menu";
 import { prepareInstallState } from "./state/startup";
 import { createTray, destroyTray } from "./tray";
-import { connectionRegistry } from "./sql/registry";
+import { engineService } from "./engine/service";
 
 const DEV_SERVER_URL = "http://localhost:3000";
 const APP_SCHEME = "logixzen";
@@ -169,6 +169,7 @@ if (!instanceLock) {
     registerAppProtocol();
     registerIpcHandlers(ipcMain);
     buildApplicationMenu(navigate);
+    await engineService.initialize();
     await prepareInstallState();
     createWindow();
     createTray(
@@ -189,9 +190,18 @@ if (!instanceLock) {
   });
 }
 
-app.on("before-quit", () => {
+let shuttingDown = false;
+
+app.on("before-quit", (event) => {
+  if (shuttingDown) return;
+  event.preventDefault();
+  shuttingDown = true;
   destroyTray();
-  void connectionRegistry.disposeAll();
+  const shutdown = engineService.stop().catch(() => undefined);
+  const timeout = new Promise<void>((resolve) => {
+    setTimeout(resolve, 15000);
+  });
+  void Promise.race([shutdown, timeout]).finally(() => app.exit(0));
 });
 
 app.on("window-all-closed", () => {

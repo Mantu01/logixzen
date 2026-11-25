@@ -28,7 +28,7 @@ interface CreateJobOptions {
   stages: CreateStageSpec[];
 }
 
-interface InternalJobRecord {
+export interface JobRecord {
   job: Job;
   sequence: number;
   abortController: AbortController;
@@ -50,7 +50,7 @@ export interface StageExecutionContext {
 }
 
 class OperationOrchestrator {
-  private jobs = new Map<string, InternalJobRecord>();
+  private jobs = new Map<string, JobRecord>();
   private engineQueues = new Map<EngineOptionId, Promise<void>>();
   private subscribers = new Set<WebContents>();
   private latestJobId: string | null = null;
@@ -72,7 +72,7 @@ class OperationOrchestrator {
     return this.jobs.get(jobId)?.job ?? null;
   }
 
-  public getLatestJob(): InternalJobRecord | null {
+  public getLatestJob(): JobRecord | null {
     if (this.latestJobId === null) return null;
     return this.jobs.get(this.latestJobId) ?? null;
   }
@@ -91,7 +91,7 @@ class OperationOrchestrator {
     return false;
   }
 
-  public createJob(options: CreateJobOptions): InternalJobRecord {
+  public createJob(options: CreateJobOptions): JobRecord {
     const id = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const now = new Date().toISOString();
     const stages: JobStage[] = options.stages.map((stage) => ({
@@ -118,7 +118,7 @@ class OperationOrchestrator {
       rollbackResources: {},
     };
 
-    const record: InternalJobRecord = {
+    const record: JobRecord = {
       job,
       sequence: 1,
       abortController: new AbortController(),
@@ -139,7 +139,7 @@ class OperationOrchestrator {
   public initializeFromJournal(
     journal: InstallJournalEntry,
     engine: EngineId,
-  ): InternalJobRecord {
+  ): JobRecord {
     const stages: JobStage[] = [
       {
         id: "interrupted",
@@ -165,7 +165,7 @@ class OperationOrchestrator {
       rollbackResources: journal.resources ?? {},
     };
 
-    const record: InternalJobRecord = {
+    const record: JobRecord = {
       job,
       sequence: 1,
       abortController: new AbortController(),
@@ -187,7 +187,7 @@ class OperationOrchestrator {
   }
 
   public async scheduleJob(
-    record: InternalJobRecord,
+    record: JobRecord,
     execute: (context: StageExecutionContext) => Promise<void>,
   ): Promise<Job> {
     const previousQueue =
@@ -300,10 +300,10 @@ class OperationOrchestrator {
       } else {
         record.job.state = "failed";
         const message = err instanceof Error ? err.message : String(err);
+        console.error(`[job:${record.job.id}] ${record.optionId} ${record.job.kind} failed:`, err);
         record.job.failure = {
           code: "runtime",
-          cause:
-            "The operation encountered an unexpected error. Review the logs for details.",
+          cause: message,
           recovery: ["retry", "open-logs"],
           detail: message,
         };
@@ -411,9 +411,12 @@ class OperationOrchestrator {
     return record.job;
   }
 
-  public setStage(record: InternalJobRecord, stageIndex: number): void {
+  public setStage(record: JobRecord, stageIndex: number): void {
     if (stageIndex >= record.job.stages.length) return;
     record.job.currentStageIndex = stageIndex;
+    if (record.job.stages[stageIndex]?.id !== "download") {
+      record.job.measurements.download = undefined;
+    }
     for (let index = 0; index < record.job.stages.length; index += 1) {
       if (index < stageIndex) record.job.stages[index].status = "succeeded";
       else if (index === stageIndex)
@@ -424,7 +427,7 @@ class OperationOrchestrator {
     this.broadcastProgress(record, record.job.stages[stageIndex].label, true);
   }
 
-  private async syncJournal(record: InternalJobRecord): Promise<void> {
+  private async syncJournal(record: JobRecord): Promise<void> {
     const currentStage = record.job.stages[record.job.currentStageIndex];
     await mutateInstallState((state) => ({
       ...state,
@@ -443,7 +446,7 @@ class OperationOrchestrator {
     }));
   }
 
-  private async rollbackJob(record: InternalJobRecord): Promise<void> {
+  private async rollbackJob(record: JobRecord): Promise<void> {
     const resources = record.job.rollbackResources;
     if (!resources) return;
 
@@ -470,7 +473,7 @@ class OperationOrchestrator {
   }
 
   private broadcastProgress(
-    record: InternalJobRecord,
+    record: JobRecord,
     activity: string,
     immediate: boolean,
   ): void {
@@ -510,7 +513,7 @@ class OperationOrchestrator {
 
   private sendSnapshotTo(
     contents: WebContents,
-    record: InternalJobRecord,
+    record: JobRecord,
   ): void {
     const currentStage = record.job.stages[record.job.currentStageIndex];
     const event: ProgressEvent = {

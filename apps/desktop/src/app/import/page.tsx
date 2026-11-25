@@ -64,9 +64,8 @@ export default function ImportPage(): React.ReactElement {
       title="Data Hub"
       subtitle="Install curated resources, bring your own content, and keep every reference consistent"
     >
-      <div className="mx-auto max-w-4xl space-y-6 px-5 py-6">
+      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-4">
         <ResourceCta installed={packState.installedResources.length} />
-        <PromptSection />
         <ImportSection />
         <InstalledPanel
           summary={summary}
@@ -88,7 +87,7 @@ export default function ImportPage(): React.ReactElement {
             packState.notes.length > 0
           }
         />
-        <ImportSection />
+        <PromptSection />
       </div>
     </PageShell>
   );

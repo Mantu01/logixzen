@@ -128,10 +128,7 @@ export function PlaygroundResultPanel({
     );
   }
 
-  if (
-    result === null ||
-    (result.rows.length === 0 && result.columns.length === 0)
-  ) {
+  if (result === null) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <span className="flex size-10 items-center justify-center border border-border bg-surface-alt/60">
@@ -145,7 +142,7 @@ export function PlaygroundResultPanel({
     );
   }
 
-  if (result.rows.length === 0) {
+  if (result.rows.length === 0 && !result.isSelect) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1.5 text-center">
         <p className="text-[13px] font-medium text-success">
@@ -276,7 +273,9 @@ export function PlaygroundResultPanel({
                   colSpan={columns.length + 1}
                   className="py-8 text-center text-muted"
                 >
-                  No rows match the filter
+                  {result.rows.length === 0
+                    ? "Query returned no rows"
+                    : "No rows match the filter"}
                 </TableCell>
               </TableRow>
             ) : null}

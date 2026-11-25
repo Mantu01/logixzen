@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Database, Plus, RefreshCw } from "lucide-react";
 import type {
+  BridgeResult,
   EngineCatalogEntry,
   EngineOffer,
   EngineOptionId,
@@ -30,6 +31,13 @@ import { DeleteDataDialog } from "@/components/databases/delete-data-dialog";
 import { EngineDetailsDialog } from "@/components/databases/engine-details-dialog";
 import { ContainerLogsDialog } from "@/components/databases/container-logs-dialog";
 import { useSqlStore } from "@/sql/useSqlStore";
+import { cn } from "@/lib/utils";
+import {
+  errorMessage,
+  isJobFinished,
+  jobStateLabel,
+  waitForJob,
+} from "@/lib/engine-jobs";
 
 export default function DatabasesPage(): React.ReactElement {
   const [snapshot, setSnapshot] = useState<PlatformSnapshot | null>(null);
@@ -39,6 +47,7 @@ export default function DatabasesPage(): React.ReactElement {
   const [activeOptionId, setActiveOptionId] = useState<EngineOptionId | null>(
     null,
   );
+  const [activeDatabase, setActiveDatabase] = useState<string | null>(null);
   const [storageUsage, setStorageUsage] = useState<
     Record<string, EngineStorageUsage>
   >({});
@@ -74,22 +83,22 @@ export default function DatabasesPage(): React.ReactElement {
   const [isActionExecuting, setIsActionExecuting] = useState(false);
 
   const loadData = useCallback(async (): Promise<void> => {
-    await Promise.resolve();
-    if (typeof window === "undefined" || !window.logixzen?.setup) {
+    const bridge = window.logixzen?.setup;
+    if (!bridge) {
       setLoading(false);
       return;
     }
 
     try {
-      const [snapRes, catRes, compRes, instRes, activeRes] = await Promise.all([
-        window.logixzen.setup.snapshot(),
-        window.logixzen.setup.catalog(),
-        window.logixzen.setup.compatibility(),
-        window.logixzen.setup.installations(),
-        window.logixzen.setup.getActiveEngine
-          ? window.logixzen.setup.getActiveEngine()
-          : Promise.resolve({ ok: true, data: "sqlite" as EngineOptionId }),
-      ]);
+      const [snapRes, catRes, compRes, instRes, activeRes, dbRes] =
+        await Promise.all([
+          bridge.snapshot(),
+          bridge.catalog(),
+          bridge.compatibility(),
+          bridge.installations(),
+          bridge.getActiveEngine(),
+          window.logixzen?.database?.active() ?? Promise.resolve(null),
+        ]);
 
       if (!snapRes.ok) throw new Error(snapRes.failure.cause);
       if (!catRes.ok) throw new Error(catRes.failure.cause);
@@ -108,6 +117,7 @@ export default function DatabasesPage(): React.ReactElement {
           instRes.data[0]?.optionId ??
           null);
       setActiveOptionId(active);
+      setActiveDatabase(dbRes);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -116,11 +126,11 @@ export default function DatabasesPage(): React.ReactElement {
   }, []);
 
   const refreshStorage = useCallback(async (): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup?.storageUsage)
-      return;
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
     setIsStorageLoading(true);
     try {
-      const res = await window.logixzen.setup.storageUsage();
+      const res = await bridge.storageUsage();
       if (res.ok) {
         setStorageUsage(res.data);
       }
@@ -200,47 +210,57 @@ export default function DatabasesPage(): React.ReactElement {
     }
   };
 
-  const handleSwitch = async (optionId: EngineOptionId): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup) return;
-    setIsActionExecuting(true);
-    try {
-      const res = await window.logixzen.setup.switch(optionId);
-      if (res.ok) {
-        setActiveJob(res.data);
-        setActiveOptionId(optionId);
-      } else {
-        setError(res.failure.cause);
+  const trackJob = useCallback(
+    async (start: () => Promise<BridgeResult<Job>>): Promise<void> => {
+      setIsActionExecuting(true);
+      setError(null);
+      try {
+        const started = await start();
+        if (!started.ok) {
+          setError(started.failure.cause);
+          return;
+        }
+        setActiveJob(started.data);
+        const finished = await waitForJob(started.data.id);
+        if (finished) setActiveJob(finished);
+        await loadData();
+        await refreshStorage();
+        if (
+          finished !== null &&
+          finished.state === "succeeded" &&
+          (finished.kind === "switch" ||
+            finished.kind === "reset-practice" ||
+            finished.kind === "restore")
+        ) {
+          await useSqlStore.getState().autoConnect();
+        }
+      } catch (err) {
+        setError(errorMessage(err));
+      } finally {
+        setIsActionExecuting(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsActionExecuting(false);
-    }
+    },
+    [loadData, refreshStorage],
+  );
+
+  const handleSwitch = async (optionId: EngineOptionId): Promise<void> => {
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
+    await trackJob(() => bridge.switch(optionId));
   };
 
-  useEffect(() => {
-    if (activeJob?.state !== "succeeded") return;
-    if (
-      activeJob.kind === "switch" ||
-      activeJob.kind === "reset-practice" ||
-      activeJob.kind === "restore"
-    ) {
-      void useSqlStore.getState().autoConnect();
-    }
-  }, [activeJob?.state, activeJob?.kind]);
-
   const handleVerify = async (optionId: EngineOptionId): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup) return;
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
     setIsActionExecuting(true);
+    setError(null);
     try {
-      const res = await window.logixzen.setup.verifyConnection(optionId);
-      if (res.ok) {
-        await loadData();
-      } else {
-        setError(res.failure.cause);
-      }
+      const res = await bridge.verifyConnection(optionId);
+      if (!res.ok) setError(res.failure.cause);
+      await loadData();
+      await refreshStorage();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setIsActionExecuting(false);
     }
@@ -250,109 +270,58 @@ export default function DatabasesPage(): React.ReactElement {
     optionId: EngineOptionId,
     action: "start" | "stop",
   ): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup) return;
-    setIsActionExecuting(true);
-    try {
-      const fn =
-        action === "start"
-          ? window.logixzen.setup.start
-          : window.logixzen.setup.stop;
-      const res = await fn(optionId);
-      if (res.ok) {
-        setActiveJob(res.data);
-      } else {
-        setError(res.failure.cause);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsActionExecuting(false);
-    }
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
+    await trackJob(
+      action === "start"
+        ? () => bridge.start(optionId)
+        : () => bridge.stop(optionId),
+    );
   };
 
   const handleRestartContainer = async (
     optionId: EngineOptionId,
   ): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup) return;
-    setIsActionExecuting(true);
-    try {
-      const res = await window.logixzen.setup.restart(optionId);
-      if (res.ok) {
-        setActiveJob(res.data);
-      } else {
-        setError(res.failure.cause);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsActionExecuting(false);
-    }
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
+    await trackJob(() => bridge.restart(optionId));
   };
 
   const handleUpdateContainerImage = async (
     optionId: EngineOptionId,
   ): Promise<void> => {
-    if (typeof window === "undefined" || !window.logixzen?.setup) return;
-    setIsActionExecuting(true);
-    try {
-      const res = await window.logixzen.setup.containerUpdateImage(optionId);
-      if (res.ok) {
-        setActiveJob(res.data);
-      } else {
-        setError(res.failure.cause);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsActionExecuting(false);
-    }
+    const bridge = window.logixzen?.setup;
+    if (!bridge) return;
+    await trackJob(() => bridge.containerUpdateImage(optionId));
   };
 
   const handleConfirmAction = async (): Promise<void> => {
     const { type, record } = confirmModal;
-    if (!record || typeof window === "undefined" || !window.logixzen?.setup)
-      return;
-    setIsActionExecuting(true);
-    try {
-      if (type === "reset") {
-        const res = await window.logixzen.setup.reset(record.optionId);
-        if (res.ok) {
-          setActiveJob(res.data);
-          setConfirmModal({ open: false, type: "reset", record: null });
-        } else {
-          setError(res.failure.cause);
-        }
-      } else if (type === "uninstall") {
-        const res = await window.logixzen.setup.uninstall(record.optionId);
-        if (res.ok) {
-          setActiveJob(res.data);
-          setConfirmModal({ open: false, type: "uninstall", record: null });
-        } else {
-          setError(res.failure.cause);
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsActionExecuting(false);
-    }
+    const bridge = window.logixzen?.setup;
+    if (!record || !bridge) return;
+    setConfirmModal({ open: false, type, record: null });
+    await trackJob(() =>
+      type === "reset" ? bridge.reset(record.optionId) : bridge.uninstall(record.optionId),
+    );
   };
 
   const handleDeleteData = async (): Promise<void> => {
     const { record } = deleteDataModal;
-    if (!record || typeof window === "undefined" || !window.logixzen?.setup)
-      return;
+    const bridge = window.logixzen?.setup;
+    if (!record || !bridge) return;
+    setDeleteDataModal({ open: false, record: null });
     setIsActionExecuting(true);
+    setError(null);
     try {
-      const res = await window.logixzen.setup.removeData(record.optionId);
-      if (res.ok) {
-        setActiveJob(res.data);
-        setDeleteDataModal({ open: false, record: null });
-      } else {
-        setError(res.failure.cause);
+      const result = await bridge.removeData(record.optionId);
+      if (!result.ok) {
+        setError(result.failure.cause);
+        return;
       }
+      await loadData();
+      await refreshStorage();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setIsActionExecuting(false);
     }
@@ -394,10 +363,18 @@ export default function DatabasesPage(): React.ReactElement {
     );
   }, [compatibility, installations]);
 
+  const containerOffers = useMemo(
+    () =>
+      compatibility.filter(
+        (offer) => offer.visible && offer.entry.method === "container",
+      ),
+    [compatibility],
+  );
+
   return (
     <PageShell
       title="Databases"
-      subtitle="Manage installed database engines, connections, and practice data"
+      subtitle="Engines, connections and practice data"
       actions={
         <div className="flex items-center gap-2">
           <Button
@@ -425,7 +402,7 @@ export default function DatabasesPage(): React.ReactElement {
         </div>
       }
     >
-      <div className="mx-auto max-w-5xl space-y-5 px-5 py-5 text-[12px]">
+      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 text-[12px]">
         <EnvironmentSummary
           snapshot={snapshot}
           onRefresh={handleRefreshAll}
@@ -451,64 +428,75 @@ export default function DatabasesPage(): React.ReactElement {
         ) : null}
 
         {activeJob ? (
-          <div className="border border-border bg-surface p-4">
-            <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
-              <div className="flex items-center gap-2">
-                <RefreshCw className="size-3.5 text-primary animate-spin" />
-                <span className="font-semibold text-foreground text-[12.5px]">
-                  Maintenance Job in Progress — {activeJob.kind} (
-                  {activeJob.optionId})
+          <section className="border border-border bg-surface">
+            <div className="flex h-9 items-center justify-between gap-3 border-b border-border px-3">
+              <div className="flex min-w-0 items-center gap-2 text-[11.5px]">
+                <span
+                  className={cn(
+                    "size-1.5 shrink-0",
+                    activeJob.state === "failed"
+                      ? "bg-destructive"
+                      : activeJob.state === "succeeded"
+                        ? "bg-success"
+                        : "bg-primary",
+                  )}
+                  aria-hidden="true"
+                />
+                <span className="font-medium text-foreground">
+                  {jobStateLabel(activeJob)}
+                </span>
+                <span className="truncate text-muted-dim">
+                  {activeJob.kind} · {activeJob.optionId}
                 </span>
               </div>
-              {activeJob.state === "succeeded" ||
-              activeJob.state === "failed" ||
-              activeJob.state === "cancelled" ? (
+              {isJobFinished(activeJob) ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => void handleJobDismiss()}
-                  className="border-border h-6.5 text-[10.5px]"
+                  className="h-6 px-2 text-[10.5px] text-muted-dim hover:text-foreground"
                 >
                   Dismiss
                 </Button>
               ) : null}
             </div>
-            <MaintenanceProgress
-              job={activeJob}
-              onCancel={handleCancelJob}
-              onRetry={() => {
-                if (activeJob.optionId) {
-                  void handleVerify(activeJob.optionId);
-                }
-              }}
-              onDismiss={handleJobDismiss}
-              onCheckWaiting={() => {
-                if (
-                  typeof window !== "undefined" &&
-                  window.logixzen?.setup?.checkWaitingJob
-                ) {
-                  void window.logixzen.setup
+            <div className="p-3">
+              <MaintenanceProgress
+                job={activeJob}
+                onCancel={handleCancelJob}
+                onRetry={() => {
+                  const bridge = window.logixzen?.setup;
+                  const optionId = activeJob.optionId;
+                  if (!bridge || optionId === undefined) return;
+                  void bridge
+                    .startJob({
+                      optionId,
+                      kind: activeJob.kind,
+                    })
+                    .then((res) => {
+                      if (res.ok) setActiveJob(res.data);
+                      else setError(res.failure.cause);
+                    });
+                }}
+                onDismiss={handleJobDismiss}
+                onCheckWaiting={() => {
+                  void window.logixzen?.setup
                     .checkWaitingJob(activeJob.id)
                     .then((res) => {
                       if (res.ok) setActiveJob(res.data);
                     });
-                }
-              }}
-              onConfirmIrreversible={(proceed: boolean) => {
-                if (
-                  typeof window !== "undefined" &&
-                  window.logixzen?.setup?.confirmIrreversible
-                ) {
-                  void window.logixzen.setup
+                }}
+                onConfirmIrreversible={(proceed: boolean) => {
+                  void window.logixzen?.setup
                     .confirmIrreversible(activeJob.id, proceed)
                     .then((res) => {
                       if (res.ok) setActiveJob(res.data);
                     });
-                }
-              }}
-            />
-          </div>
+                }}
+              />
+            </div>
+          </section>
         ) : null}
 
         {loading ? (
@@ -549,6 +537,7 @@ export default function DatabasesPage(): React.ReactElement {
           <div className="space-y-5">
             <ActiveConnectionCard
               activeOptionId={activeOptionId}
+              activeDatabase={activeDatabase}
               activeEntry={activeEntry}
               activeRecord={activeRecord}
               installedRecords={installations}
@@ -591,7 +580,7 @@ export default function DatabasesPage(): React.ReactElement {
             />
 
             <ContainerEnvironmentsSection
-              catalog={catalog}
+              offers={containerOffers}
               installedRecords={installations}
               snapshot={snapshot}
               onLifecycle={handleStartStop}

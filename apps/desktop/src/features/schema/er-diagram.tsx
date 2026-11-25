@@ -474,18 +474,18 @@ function RelationEdge({
     dimmed: false,
   };
   const active = edgeData.active || selected === true;
-  const opacity = edgeData.dimmed ? 0.12 : 1;
+  const opacity = edgeData.dimmed ? 0.25 : 1;
   const stroke = active
     ? "var(--primary)"
-    : "color-mix(in oklab, var(--primary) 42%, var(--border))";
-  const strokeWidth = active ? 1.8 : 1.1;
+    : "color-mix(in oklab, var(--primary) 65%, var(--border))";
+  const strokeWidth = active ? 2 : 1.3;
   const spread = 5;
   const reach = 9;
   const sourceOut = sourcePosition === Position.Right ? 1 : -1;
   const targetOut = targetPosition === Position.Left ? -1 : 1;
   const markerColor = active
     ? "var(--primary)"
-    : "color-mix(in oklab, var(--muted-foreground) 70%, transparent)";
+    : "color-mix(in oklab, var(--muted-foreground) 80%, transparent)";
 
   const foot = `M ${sourceX} ${sourceY - spread} L ${sourceX + sourceOut * reach} ${sourceY} L ${sourceX} ${sourceY + spread}`;
   const oneBar = `M ${targetX + targetOut * reach} ${targetY - spread} L ${targetX + targetOut * reach} ${targetY + spread}`;
@@ -528,21 +528,31 @@ function RelationEdge({
           opacity={opacity}
         />
         <div
-          className="nodrag nopan absolute whitespace-nowrap"
+          className="nodrag nopan absolute whitespace-nowrap transition-transform"
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-            pointerEvents: "none",
-            fontSize: 9,
-            lineHeight: "12px",
-            fontFamily: "var(--font-mono)",
-            color: active ? "var(--foreground)" : "var(--muted)",
-            background: active ? "var(--surface)" : "var(--background)",
-            border: `1px solid ${active ? "var(--primary)" : "var(--border)"}`,
-            padding: "1px 5px",
+            pointerEvents: "auto",
+            zIndex: active ? 30 : 10,
             opacity,
           }}
         >
-          {`${edgeData.childTable}.${edgeData.childColumn} → ${edgeData.parentTable}.${edgeData.parentColumn}`}
+          <div
+            className={cn(
+              "flex items-center gap-1.5 border bg-surface px-2 py-0.5 font-mono text-[10px] shadow-sm select-none transition-colors",
+              active
+                ? "border-primary text-foreground ring-1 ring-primary/40"
+                : "border-border text-foreground hover:border-primary/60",
+            )}
+            title={`JOIN ${edgeData.parentTable} ON ${edgeData.childTable}.${edgeData.childColumn} = ${edgeData.parentTable}.${edgeData.parentColumn}`}
+          >
+            <span className="font-semibold text-primary">
+              {edgeData.childTable}.{edgeData.childColumn}
+            </span>
+            <span className="text-[9px] text-muted-dim">──[ 1:N ]──▶</span>
+            <span className="font-semibold text-warning">
+              {edgeData.parentTable}.{edgeData.parentColumn}
+            </span>
+          </div>
         </div>
       </EdgeLabelRenderer>
     </>

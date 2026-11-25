@@ -5,6 +5,8 @@ allowBuilds:
   better-sqlite3: false
   electron-winstaller: false
   keytar: false
+  msnodesqlv8: set this to true or false
+  oracledb: set this to true or false
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@expo/cli@58.1.15'

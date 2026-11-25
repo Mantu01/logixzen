@@ -197,9 +197,10 @@ function QuestionWorkspace({
     (offset: number) => {
       const target = topicQuestions[index + offset];
       if (target === undefined) return;
-      router.push(`/learn/practice?topic=${topicId}&q=${target.id}`);
+      const catParam = categoryId ? `&category=${categoryId}` : "";
+      router.push(`/learn/practice?topic=${topicId}&q=${target.id}${catParam}`);
     },
-    [router, topicQuestions, index, topicId],
+    [router, topicQuestions, index, topicId, categoryId],
   );
 
   const isSqlQuestion =

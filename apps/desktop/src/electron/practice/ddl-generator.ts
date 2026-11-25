@@ -1,14 +1,16 @@
 import type { EngineDialect } from "../../shared/engines";
 import type { ColumnSpec, TableSpec } from "./schema";
 
-function quoteIdentifier(name: string, dialect: EngineDialect): string {
+export function quoteIdentifier(
+  name: string,
+  dialect: EngineDialect,
+): string {
   switch (dialect) {
     case "tsql":
       return `[${name}]`;
     case "mysql":
       return `\`${name}\``;
-    case "postgres":
-    case "sqlite":
+    default:
       return `"${name}"`;
   }
 }
@@ -18,18 +20,14 @@ function resolveColumnType(col: ColumnSpec, dialect: EngineDialect): string {
     case "integer":
       return dialect === "sqlite" ? "INTEGER" : "INT";
     case "text":
-      if (col.unique || col.primaryKey) {
+      if (col.unique || col.primaryKey || col.defaultValue !== undefined) {
         return dialect === "tsql"
           ? "NVARCHAR(255)"
           : dialect === "sqlite"
             ? "TEXT"
             : "VARCHAR(255)";
       }
-      return dialect === "tsql"
-        ? "NVARCHAR(MAX)"
-        : dialect === "mysql"
-          ? "TEXT"
-          : "TEXT";
+      return dialect === "tsql" ? "NVARCHAR(MAX)" : "TEXT";
     case "real":
       switch (dialect) {
         case "sqlite":
@@ -38,10 +36,9 @@ function resolveColumnType(col: ColumnSpec, dialect: EngineDialect): string {
           return "FLOAT";
         case "postgres":
           return "DOUBLE PRECISION";
-        case "mysql":
+        default:
           return "DOUBLE";
       }
-      break;
     case "boolean":
       switch (dialect) {
         case "sqlite":
@@ -50,21 +47,20 @@ function resolveColumnType(col: ColumnSpec, dialect: EngineDialect): string {
           return "BIT";
         case "postgres":
           return "BOOLEAN";
-        case "mysql":
+        default:
           return "TINYINT(1)";
       }
-      break;
     case "datetime":
       switch (dialect) {
-        case "sqlite":
-        case "postgres":
-          return "TEXT";
         case "tsql":
           return "NVARCHAR(64)";
         case "mysql":
           return "VARCHAR(64)";
+        default:
+          return "TEXT";
       }
   }
+  return "TEXT";
 }
 
 function resolveDefaultValue(
@@ -81,7 +77,7 @@ function resolveDefaultValue(
         return "CONVERT(VARCHAR(19), GETDATE(), 120)";
       case "postgres":
         return "TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS')";
-      case "mysql":
+      default:
         return "(DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'))";
     }
   }
@@ -93,7 +89,7 @@ function resolveDefaultValue(
         return "CONVERT(VARCHAR(10), GETDATE(), 120)";
       case "postgres":
         return "TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')";
-      case "mysql":
+      default:
         return "(CURDATE())";
     }
   }
@@ -130,9 +126,10 @@ export function generateTableDdl(
     if (col.references) {
       const refTable = quoteIdentifier(col.references.table, dialect);
       const refCol = quoteIdentifier(col.references.column, dialect);
-      const cascade = col.references.onDelete
-        ? ` ON DELETE ${col.references.onDelete}`
-        : "";
+      const cascade =
+        col.references.onDelete !== undefined
+          ? ` ON DELETE ${col.references.onDelete}`
+          : "";
       constraints.push(
         `FOREIGN KEY (${qCol}) REFERENCES ${refTable}(${refCol})${cascade}`,
       );
@@ -170,7 +167,10 @@ export function generateTableDdl(
   return `CREATE TABLE IF NOT EXISTS ${qTable} (\n    ${allElements}\n);`;
 }
 
-function formatSqlValue(value: unknown): string {
+function formatSqlValue(
+  value: unknown,
+  dialect: EngineDialect,
+): string {
   if (value === null || value === undefined) {
     return "NULL";
   }
@@ -178,6 +178,9 @@ function formatSqlValue(value: unknown): string {
     return String(value);
   }
   if (typeof value === "boolean") {
+    if (dialect === "postgres") {
+      return value ? "TRUE" : "FALSE";
+    }
     return value ? "1" : "0";
   }
   const str = String(value);
@@ -200,7 +203,7 @@ export function generateInsertStatements(
     const chunk = rows.slice(i, i + batchSize);
     const valueTuples = chunk.map((row) => {
       const vals = cols
-        .map((colName) => formatSqlValue(row[colName]))
+        .map((colName) => formatSqlValue(row[colName], dialect))
         .join(", ");
       return `(${vals})`;
     });
@@ -236,6 +239,7 @@ export function generateDropTableSql(
     case "mysql":
       return `DROP TABLE IF EXISTS \`${tableName}\`;`;
     case "sqlite":
+    default:
       return `DROP TABLE IF EXISTS "${tableName}";`;
   }
 }

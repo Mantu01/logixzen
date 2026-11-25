@@ -19,6 +19,7 @@ interface SqlStoreState {
   isInitialized: boolean;
   isLoading: boolean;
   lastResult: SqlResult[] | null;
+  resultVersion: number;
   schema: TableInfo[];
   error: string | null;
   activeDatasetId: string | null;
@@ -26,11 +27,15 @@ interface SqlStoreState {
   activeEngineName: string;
   activeDialect: EngineDialect;
   connectionStatus: ConnectionState;
+  engineInstalled: boolean;
 }
 
 interface SqlStoreActions {
   autoConnect: () => Promise<void>;
-  activateDataset: (datasetId: string | null) => Promise<void>;
+  activateDataset: (
+    datasetId: string | null,
+    options?: { reset?: boolean },
+  ) => Promise<void>;
   getActiveDataset: () => Dataset | null;
   execute: (sql: string) => Promise<void>;
   refreshSchema: () => Promise<void>;
@@ -45,13 +50,15 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
     isInitialized: false,
     isLoading: false,
     lastResult: null,
+    resultVersion: 0,
     schema: [],
     error: null,
     activeDatasetId: null,
     activeOptionId: "sqlite",
-    activeEngineName: "SQLite",
+    activeEngineName: "No engine",
     activeDialect: "sqlite",
     connectionStatus: "connecting",
+    engineInstalled: false,
 
     autoConnect: async () => {
       const bridge = window.logixzen?.database;
@@ -67,7 +74,7 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
 
       set({ connectionStatus: "connecting", error: null });
 
-      let optionId: EngineOptionId = "sqlite";
+      let optionId: EngineOptionId | null = null;
       if (setupBridge?.getActiveEngine) {
         try {
           const activeRes = await setupBridge.getActiveEngine();
@@ -75,8 +82,21 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
             optionId = activeRes.data;
           }
         } catch {
-          optionId = "sqlite";
+          optionId = null;
         }
+      }
+
+      if (!optionId) {
+        set({
+          activeOptionId: "sqlite",
+          activeEngineName: "No engine",
+          activeDialect: "sqlite",
+          connectionStatus: "failed",
+          engineInstalled: false,
+          isInitialized: false,
+          error: "No database engine is currently installed. Visit Setup to install an engine.",
+        });
+        return;
       }
 
       const entry = ENGINE_CATALOG.find((c) => c.id === optionId);
@@ -87,6 +107,8 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
         activeOptionId: optionId,
         activeEngineName: engineName,
         activeDialect: dialect,
+        engineInstalled: true,
+        activeDatasetId: get().activeDatasetId,
       });
 
       try {
@@ -107,7 +129,7 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
       }
     },
 
-    activateDataset: async (datasetId) => {
+    activateDataset: async (datasetId, options) => {
       const bridge = window.logixzen?.database;
       if (bridge === undefined) {
         set({ error: BRIDGE_ERROR, isInitialized: false });
@@ -124,7 +146,11 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
         activeDatasetId: datasetId,
       });
       try {
-        await bridge.initialize(dataset?.setupSql, dataset?.name);
+        await bridge.initialize(
+          dataset?.setupSql,
+          dataset?.name,
+          options?.reset === true,
+        );
         set({ isInitialized: true, isLoading: false });
         await get().refreshSchema();
       } catch (error: unknown) {
@@ -167,7 +193,8 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
 
     reseed: () => {
       const dataset = get().getActiveDataset();
-      return get().activateDataset(dataset?.id ?? null);
+      if (dataset === null) return Promise.resolve();
+      return get().activateDataset(dataset.id, { reset: true });
     },
 
     clearError: () => set({ error: null }),
@@ -186,6 +213,7 @@ async function runSql(sql: string): Promise<{ results: SqlResult[] } | null> {
     const failed = results.find((result) => result.error !== undefined);
     useSqlStore.setState({
       lastResult: results,
+      resultVersion: useSqlStore.getState().resultVersion + 1,
       isLoading: false,
       error: failed?.error ?? null,
     });
@@ -198,6 +226,7 @@ async function runSql(sql: string): Promise<{ results: SqlResult[] } | null> {
       error: error instanceof Error ? error.message : String(error),
       isLoading: false,
       lastResult: null,
+      resultVersion: useSqlStore.getState().resultVersion + 1,
     });
     return null;
   }
@@ -317,8 +346,9 @@ function syncActiveDataset(activeName: string | null): void {
   if (
     dataset === undefined ||
     dataset.id === useSqlStore.getState().activeDatasetId
-  )
+  ) {
     return;
+  }
   useSqlStore.setState({ activeDatasetId: dataset.id });
 }
 

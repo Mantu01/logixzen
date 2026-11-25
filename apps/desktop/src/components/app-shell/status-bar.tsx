@@ -8,6 +8,8 @@ import { usePackStore } from "@/stores/usePackStore";
 import type { ProgressEvent } from "@/shared/engines";
 import { cn } from "@/lib/utils";
 
+const APP_VERSION = "0.1.0";
+
 export function StatusBar(): React.ReactElement {
   const schema = useSqlStore((state) => state.schema);
   const activeDatasetId = useSqlStore((state) => state.activeDatasetId);
@@ -15,13 +17,13 @@ export function StatusBar(): React.ReactElement {
   const activeEngineName = useSqlStore((state) => state.activeEngineName);
   const activeDialect = useSqlStore((state) => state.activeDialect);
   const connectionStatus = useSqlStore((state) => state.connectionStatus);
+  const hasEngine = useSqlStore((state) => state.engineInstalled);
   const autoConnect = useSqlStore((state) => state.autoConnect);
 
   const databases = usePackStore((state) => state.databases);
-  const activeName = databases.find(
+  const datasetName = databases.find(
     (item) => item.id === activeDatasetId,
   )?.name;
-  const tables = schema.length;
 
   const [activeJobEvent, setActiveJobEvent] = useState<ProgressEvent | null>(
     null,
@@ -34,25 +36,23 @@ export function StatusBar(): React.ReactElement {
   useEffect(() => {
     const bridge = window.logixzen?.setup;
     if (!bridge) return;
-
-    const unsubscribe = bridge.subscribeProgress((evt: ProgressEvent) => {
-      setActiveJobEvent(evt);
-    });
-
-    return () => {
-      if (typeof unsubscribe === "function") unsubscribe();
-    };
+    return bridge.subscribeProgress(setActiveJobEvent);
   }, []);
 
   const isConnecting = connectionStatus === "connecting";
   const isReady = connectionStatus === "ready" && isInitialized;
   const isFailed =
     connectionStatus === "failed" || connectionStatus === "needs-repair";
+  const jobRunning =
+    activeJobEvent !== null &&
+    (activeJobEvent.status === "running" ||
+      activeJobEvent.status === "queued" ||
+      activeJobEvent.status === "waiting-for-user");
 
   return (
-    <footer className="flex h-6 shrink-0 items-center justify-between gap-4 border-t border-border bg-titlebar px-3 text-[10.5px] text-muted-dim font-mono">
+    <footer className="flex h-6 shrink-0 items-center justify-between gap-4 border-t border-border bg-titlebar px-3 font-mono text-[10.5px] text-muted-dim">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex items-center gap-1.5 font-sans">
+        <span className="flex min-w-0 items-center gap-1.5">
           <span
             className={cn(
               "size-1.5 shrink-0",
@@ -66,43 +66,53 @@ export function StatusBar(): React.ReactElement {
             )}
             aria-hidden="true"
           />
-          <span className="font-medium text-foreground">
+          <span className="truncate font-sans font-medium text-foreground">
             {activeEngineName}
           </span>
-          <span className="text-[9.5px] uppercase text-muted-dim">
-            ({activeDialect})
-          </span>
+          {hasEngine ? (
+            <span className="uppercase tracking-wide">{activeDialect}</span>
+          ) : null}
         </span>
 
-        <span className="text-muted border-l border-border pl-3">
-          {activeName ?? "LogixZenPractice"}
+        <span className="border-l border-border pl-3 text-muted">
+          {datasetName ?? "practice"}
         </span>
 
-        <span className="numeric text-muted-dim">{tables} tables</span>
+        <span className="numeric">{schema.length} tables</span>
 
-        {isFailed ? (
+        {isFailed && hasEngine ? (
           <Link
             href="/databases"
-            className="flex items-center gap-1 text-destructive hover:underline border-l border-border pl-3"
+            className="flex items-center gap-1 border-l border-border pl-3 text-destructive hover:underline"
           >
             <AlertTriangle className="size-2.5" />
-            <span>Connection issue — Repair in Databases</span>
+            Repair in Databases
           </Link>
         ) : null}
 
-        {activeJobEvent && activeJobEvent.activity ? (
+        {!hasEngine ? (
+          <Link
+            href="/setup"
+            className="flex items-center gap-1 border-l border-border pl-3 text-warning hover:underline"
+          >
+            <AlertTriangle className="size-2.5" />
+            Install an engine
+          </Link>
+        ) : null}
+
+        {jobRunning && activeJobEvent ? (
           <Link
             href="/databases"
-            className="flex items-center gap-1.5 text-primary hover:underline border-l border-border pl-3"
+            className="flex min-w-0 items-center gap-1.5 border-l border-border pl-3 text-primary hover:underline"
           >
-            <Loader2 className="size-2.5 animate-spin" />
-            <span className="truncate max-w-48">{activeJobEvent.activity}</span>
+            <Loader2 className="size-2.5 shrink-0 animate-spin" />
+            <span className="max-w-56 truncate">{activeJobEvent.activity}</span>
           </Link>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="numeric text-[10px]">LogixZen v0.1.0</span>
+      <div className="flex shrink-0 items-center gap-3">
+        <span className="numeric">v{APP_VERSION}</span>
       </div>
     </footer>
   );

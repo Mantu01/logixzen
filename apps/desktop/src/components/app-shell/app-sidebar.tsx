@@ -3,52 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  BarChart3,
-  BookOpen,
-  ChevronLeft,
-  Database,
-  GraduationCap,
-  Import,
-  Network,
-  PanelLeft,
-  Settings2,
-  Terminal,
-} from "lucide-react";
+import { ChevronLeft, PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { usePackStore } from "@/stores/usePackStore";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const GROUPS: NavGroup[] = [
-  {
-    label: "Data",
-    items: [
-      { href: "/playground", label: "Editor", icon: Terminal },
-      { href: "/databases", label: "Databases", icon: Database },
-      { href: "/schema", label: "Schema", icon: Network },
-      { href: "/import", label: "Data Hub", icon: Import },
-    ],
-  },
-  {
-    label: "Learn",
-    items: [
-      { href: "/learn", label: "Practice", icon: GraduationCap },
-      { href: "/notes", label: "Notes", icon: BookOpen },
-      { href: "/progress", label: "Progress", icon: BarChart3 },
-    ],
-  },
-];
+import { SETTINGS_NAV, WORKSPACE_NAV } from "@/lib/navigation";
 
 const STORAGE_KEY = "logixzen.sidebar.collapsed";
 
@@ -75,25 +34,23 @@ export function AppSidebar() {
   const isActive = (href: string): boolean =>
     pathname === href || pathname.startsWith(`${href}/`);
 
-  if (pathname === "/") return null;
-
   return (
     <aside
       className={cn(
         "flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-150 ease-out",
-        collapsed ? "w-[52px]" : "w-[216px]",
+        collapsed ? "w-12" : "w-[212px]",
       )}
     >
-      <div className="flex h-8 items-center justify-between border-b border-sidebar-border px-3">
+      <div className="flex h-9 items-center justify-between border-b border-sidebar-border pl-3">
         {!collapsed && <span className="section-label">Workspace</span>}
         <button
           type="button"
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex size-6 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="flex h-9 w-9 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           {collapsed ? (
-            <PanelLeft className="size-5" />
+            <PanelLeft className="size-4" />
           ) : (
             <ChevronLeft className="size-3.5" />
           )}
@@ -104,7 +61,7 @@ export function AppSidebar() {
         aria-label="Main"
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1.5 py-2"
       >
-        {GROUPS.map((group) => (
+        {WORKSPACE_NAV.map((group) => (
           <div key={group.label} className="flex flex-col gap-0.5">
             {collapsed ? null : (
               <span className="section-label px-2 pb-1">{group.label}</span>
@@ -173,26 +130,26 @@ export function AppSidebar() {
           </div>
         )}
         <Link
-          href="/settings"
-          aria-current={isActive("/settings") ? "page" : undefined}
-          title={collapsed ? "Settings" : undefined}
+          href={SETTINGS_NAV.href}
+          aria-current={isActive(SETTINGS_NAV.href) ? "page" : undefined}
+          title={collapsed ? SETTINGS_NAV.label : undefined}
           className={cn(
             "group relative flex h-7 items-center gap-2 px-2 text-[12.5px] font-medium transition-colors",
-            isActive("/settings")
+            isActive(SETTINGS_NAV.href)
               ? "bg-accent text-accent-foreground"
               : "text-sidebar-foreground hover:bg-surface-hover hover:text-foreground",
             collapsed && "justify-center px-0",
           )}
         >
-          <Settings2
+          <SETTINGS_NAV.icon
             className={cn(
               "size-3.5 shrink-0",
-              isActive("/settings")
+              isActive(SETTINGS_NAV.href)
                 ? "text-primary"
                 : "text-muted-dim group-hover:text-foreground",
             )}
           />
-          {collapsed ? null : <span>Settings</span>}
+          {collapsed ? null : <span>{SETTINGS_NAV.label}</span>}
         </Link>
       </div>
     </aside>

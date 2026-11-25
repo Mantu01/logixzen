@@ -29,8 +29,9 @@ const SCHEMA_VERSION = 1;
 
 const ENGINE_IDS: EngineId[] = [
   "sqlite",
-  "mssql-express",
-  "mssql-localdb",
+  "postgres",
+  "mysql",
+  "sqlserver",
   "mssql-container",
   "postgres-container",
   "mysql-container",
@@ -38,8 +39,10 @@ const ENGINE_IDS: EngineId[] = [
 
 const METHODS: InstallMethod[] = [
   "bundled",
+  "native",
   "native-windows",
   "native-linux",
+  "native-macos",
   "container",
 ];
 
@@ -120,15 +123,22 @@ function parseVariant(value: unknown): VariantMetadata | null {
   if (displayName === null || publisher === null || purpose === null)
     return null;
   if (technicalName === null || dialect === null) return null;
-  if (
-    dialect !== "sqlite" &&
-    dialect !== "tsql" &&
-    dialect !== "postgres" &&
-    dialect !== "mysql"
-  ) {
+  const validDialects = [
+    "sqlite",
+    "postgres",
+    "mysql",
+    "tsql",
+  ];
+  if (!validDialects.includes(dialect)) {
     return null;
   }
-  return { displayName, publisher, purpose, technicalName, dialect };
+  return {
+    displayName,
+    publisher,
+    purpose,
+    technicalName,
+    dialect: dialect as VariantMetadata["dialect"],
+  };
 }
 
 function parseRecord(value: unknown): InstallationRecord | null {

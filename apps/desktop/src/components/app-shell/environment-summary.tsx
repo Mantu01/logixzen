@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Cpu, HardDrive, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StatusDot } from "@/components/ui/status-chip";
 import type { PlatformSnapshot } from "@/shared/engines";
+import { formatBytes } from "@/shared/format";
 import { cn } from "@/lib/utils";
 
 interface EnvironmentSummaryProps {
@@ -12,6 +14,12 @@ interface EnvironmentSummaryProps {
   loading?: boolean;
 }
 
+const OS_NAMES: Record<string, string> = {
+  windows: "Windows",
+  macos: "macOS",
+  linux: "Linux",
+};
+
 export function EnvironmentSummary({
   snapshot,
   onRefresh,
@@ -19,7 +27,7 @@ export function EnvironmentSummary({
 }: EnvironmentSummaryProps): React.ReactElement {
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (): Promise<void> => {
     setRefreshing(true);
     try {
       await onRefresh();
@@ -28,71 +36,74 @@ export function EnvironmentSummary({
     }
   };
 
-  const osLabel = snapshot
-    ? `${snapshot.osFamily === "windows" ? "Windows" : snapshot.osFamily === "macos" ? "macOS" : "Linux"} (${snapshot.arch})`
-    : "Detecting OS...";
-
-  const ramLabel = snapshot?.totalMemoryBytes
-    ? `${Math.round(snapshot.totalMemoryBytes / (1024 * 1024 * 1024))} GB RAM`
-    : "Detecting RAM...";
-
-  const diskLabel = snapshot?.dataDisk.known
-    ? `${Math.round(snapshot.dataDisk.value.freeBytes / (1024 * 1024 * 1024))} GB free`
-    : "Disk available";
-
-  const dockerRuntime = snapshot?.containerReadiness?.find(
-    (r) => r.runtime === "docker",
-  );
-  const dockerState = dockerRuntime?.state ?? "unknown";
-  const dockerReady = dockerState === "ready";
+  const dockerState =
+    snapshot?.containerReadiness?.find((runtime) => runtime.runtime === "docker")
+      ?.state ?? "unknown";
 
   return (
-    <div className="border border-border bg-surface p-3.5 text-[11.5px]">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5 text-foreground font-medium">
-            <Cpu className="size-3.5 text-primary shrink-0" />
-            <span>{osLabel}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-muted">
-            <span>{ramLabel}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-muted">
-            <HardDrive className="size-3.5 text-muted-dim shrink-0" />
-            <span className="font-mono tabular-nums">{diskLabel}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                "size-1.5 shrink-0",
-                dockerReady ? "bg-success" : "bg-muted-dim",
-              )}
-            />
-            <span className="text-muted">
-              Docker:{" "}
-              <span className="font-medium text-foreground capitalize">
-                {dockerState}
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={loading || refreshing}
-          className="h-7 text-[11px] gap-1.5 border-border"
-        >
-          <RefreshCw
-            className={cn("size-3", (loading || refreshing) && "animate-spin")}
+    <div className="flex flex-wrap items-center justify-between gap-2 border border-border bg-surface px-3 py-1.5 text-[11px]">
+      <dl className="flex flex-wrap items-center divide-x divide-border">
+        <Fact
+          label="OS"
+          value={
+            snapshot
+              ? `${OS_NAMES[snapshot.osFamily] ?? snapshot.osFamily} ${snapshot.arch}`
+              : "Detecting"
+          }
+        />
+        <Fact
+          label="RAM"
+          value={
+            snapshot?.totalMemoryBytes
+              ? formatBytes(snapshot.totalMemoryBytes)
+              : "Detecting"
+          }
+        />
+        <Fact
+          label="Disk"
+          value={
+            snapshot?.dataDisk.known
+              ? `${formatBytes(snapshot.dataDisk.value.freeBytes)} free`
+              : "Unknown"
+          }
+        />
+        <div className="flex items-center gap-1.5 px-2.5">
+          <StatusDot
+            tone={dockerState === "ready" ? "success" : "neutral"}
           />
-          <span>Re-check</span>
-        </Button>
-      </div>
+          <span className="text-muted-dim">Docker</span>
+          <span className="font-mono text-foreground">{dockerState}</span>
+        </div>
+      </dl>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => void handleRefresh()}
+        disabled={loading || refreshing}
+        className="h-6 gap-1.5 px-1.5 text-[10.5px] text-muted-dim hover:text-foreground"
+      >
+        <RefreshCw
+          className={cn("size-3", (loading || refreshing) && "animate-spin")}
+        />
+        Re-check
+      </Button>
+    </div>
+  );
+}
+
+function Fact({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}): React.ReactElement {
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 first:pl-0">
+      <dt className="text-muted-dim">{label}</dt>
+      <dd className="font-mono text-foreground">{value}</dd>
     </div>
   );
 }

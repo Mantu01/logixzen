@@ -3,7 +3,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 function secretsFile(): string {
-  return join(app.getPath("userData"), "secrets.json");
+  if (app && typeof app.getPath === "function") {
+    try {
+      return join(app.getPath("userData"), "secrets.json");
+    } catch {}
+  }
+  return join(process.cwd(), ".data", "secrets.json");
 }
 
 function readAll(): Record<string, string> {

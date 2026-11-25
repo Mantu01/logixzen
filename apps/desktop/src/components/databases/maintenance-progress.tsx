@@ -1,17 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  RotateCw,
-  XCircle,
-} from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import type { Job } from "@/shared/engines";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { JobProgressBar, JobStageList } from "@/components/jobs/job-stages";
 
 interface MaintenanceProgressProps {
   job: Job;
@@ -21,6 +14,14 @@ interface MaintenanceProgressProps {
   onConfirmIrreversible?: (proceed: boolean) => void;
   onRetry?: () => void;
 }
+
+const STATE_TITLES: Record<string, string> = {
+  succeeded: "Operation completed",
+  failed: "Operation failed",
+  cancelled: "Operation cancelled",
+  interrupted: "Operation interrupted",
+  "waiting-for-user": "Action required",
+};
 
 export function MaintenanceProgress({
   job,
@@ -33,15 +34,11 @@ export function MaintenanceProgress({
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
-  const isFailed = job.state === "failed";
-  const isSucceeded = job.state === "succeeded";
-  const isCancelled = job.state === "cancelled";
-  const isWaiting = job.state === "waiting-for-user";
-  const isRunning = job.state === "running" || job.state === "queued";
-
   const currentStage = job.stages[job.currentStageIndex];
-  const downloadMeasure = job.measurements?.download;
-  const isDeterminate = downloadMeasure && downloadMeasure.determinate;
+  const isRunning = job.state === "running" || job.state === "queued";
+  const download = job.measurements.download;
+  const percent =
+    download?.determinate === true ? Math.round(download.percent) : null;
 
   const handleCancelClick = async (): Promise<void> => {
     if (currentStage?.irreversible && !confirmingCancel) {
@@ -53,153 +50,73 @@ export function MaintenanceProgress({
   };
 
   return (
-    <div className="space-y-4 text-[12px]">
+    <div className="space-y-3 text-[11.5px]">
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-[11px] font-mono">
-          <span className="text-foreground font-medium">
-            {isSucceeded
-              ? "Operation Completed"
-              : isFailed
-                ? "Operation Failed"
-                : isCancelled
-                  ? "Operation Cancelled"
-                  : isWaiting
-                    ? "Action Required"
-                    : (currentStage?.label ?? "Processing...")}
+        <div className="flex items-center justify-between font-mono text-[10.5px]">
+          <span className="font-medium text-foreground">
+            {STATE_TITLES[job.state] ?? currentStage?.label ?? "Processing"}
           </span>
-          <span className="text-muted-dim">
-            {isDeterminate ? `${Math.round(downloadMeasure.percent)}%` : ""}
-          </span>
+          {percent !== null ? (
+            <span className="numeric text-muted-dim">{percent}%</span>
+          ) : null}
         </div>
-
-        <div className="relative h-1.5 w-full overflow-hidden bg-surface-alt">
-          {isDeterminate ? (
-            <div
-              className="h-full bg-primary transition-all duration-150"
-              style={{
-                width: `${Math.min(100, Math.max(0, downloadMeasure.percent))}%`,
-              }}
-            />
-          ) : isRunning ? (
-            <div className="h-full w-1/3 bg-primary animate-pulse" />
-          ) : isSucceeded ? (
-            <div className="h-full w-full bg-success" />
-          ) : isFailed ? (
-            <div className="h-full w-full bg-destructive" />
-          ) : (
-            <div className="h-full w-full bg-muted-dim" />
-          )}
-        </div>
+        <JobProgressBar job={job} />
       </div>
 
-      <div className="border border-border divide-y divide-border bg-surface-alt/20 font-mono text-[11px]">
-        {job.stages.map((stage, idx) => {
-          const isCurrent = idx === job.currentStageIndex && isRunning;
-          const isDone =
-            stage.status === "succeeded" || idx < job.currentStageIndex;
-          const isStageFailed = stage.status === "failed";
+      <JobStageList job={job} />
 
-          return (
-            <div
-              key={stage.id}
-              className={cn(
-                "flex items-center justify-between py-2 px-3",
-                isCurrent && "bg-surface-alt/60",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                {isDone ? (
-                  <CheckCircle2 className="size-3.5 text-success shrink-0" />
-                ) : isStageFailed ? (
-                  <XCircle className="size-3.5 text-destructive shrink-0" />
-                ) : isCurrent ? (
-                  <RotateCw className="size-3.5 text-primary animate-spin shrink-0" />
-                ) : (
-                  <Clock className="size-3.5 text-muted-dim shrink-0" />
-                )}
-                <span
-                  className={cn(
-                    isDone
-                      ? "text-muted"
-                      : isCurrent
-                        ? "text-foreground font-semibold"
-                        : isStageFailed
-                          ? "text-destructive font-semibold"
-                          : "text-muted-dim",
-                  )}
-                >
-                  {stage.label}
-                </span>
-              </div>
-
-              <span className="text-[10px] uppercase text-muted-dim">
-                {isDone
-                  ? "Done"
-                  : isCurrent
-                    ? "Active"
-                    : isStageFailed
-                      ? "Failed"
-                      : "Pending"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {isWaiting ? (
-        <div className="border border-warning/40 bg-warning/10 p-3.5 text-[11.5px] space-y-2">
+      {job.state === "waiting-for-user" ? (
+        <div className="space-y-2 border border-warning/40 bg-warning/10 p-2.5">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
-            <div>
-              <div className="font-semibold text-foreground">
-                External Action Required
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
+            <div className="min-w-0">
+              <div className="font-medium text-foreground">
+                External action required
               </div>
-              <p className="mt-1 text-muted text-[11px] whitespace-pre-wrap">
+              <p className="mt-0.5 whitespace-pre-wrap text-[11px] leading-relaxed text-muted">
                 {job.waitingAction ??
-                  "Complete the necessary setup step outside LogixZen to proceed."}
+                  "Complete the step outside LogixZen, then check again."}
               </p>
             </div>
           </div>
           {onCheckWaiting ? (
-            <div className="pt-1">
-              <Button
-                type="button"
-                size="sm"
-                onClick={onCheckWaiting}
-                className="h-7 text-[11px]"
-              >
-                Check Again & Resume
-              </Button>
-            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={onCheckWaiting}
+              className="h-7 px-2.5 text-[11px]"
+            >
+              Check again
+            </Button>
           ) : null}
         </div>
       ) : null}
 
-      {isFailed && job.failure ? (
-        <div className="border border-destructive/40 bg-destructive/10 p-3.5 text-[11.5px] space-y-2.5">
+      {job.state === "failed" && job.failure ? (
+        <div className="space-y-2.5 border border-destructive/40 bg-destructive/10 p-2.5">
           <div className="flex items-start gap-2">
-            <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <div className="font-semibold text-destructive">
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
+            <div className="min-w-0">
+              <div className="font-medium text-destructive">
                 {job.failure.cause}
               </div>
               {showTechnicalDetails && job.failure.detail ? (
-                <div className="mt-2 border border-destructive/30 bg-black/60 p-2 font-mono text-[10.5px] text-destructive-foreground whitespace-pre-wrap">
+                <pre className="mt-1.5 max-h-40 overflow-auto whitespace-pre-wrap border border-destructive/30 bg-background p-2 font-mono text-[10.5px] text-muted">
                   {job.failure.detail}
-                </div>
+                </pre>
               ) : null}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-1.5">
             {onRetry ? (
               <Button
                 type="button"
                 size="sm"
                 onClick={onRetry}
-                className="h-7 text-[11px]"
+                className="h-7 px-2.5 text-[11px]"
               >
-                Retry Operation
+                Retry
               </Button>
             ) : null}
             {job.failure.detail ? (
@@ -208,11 +125,9 @@ export function MaintenanceProgress({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowTechnicalDetails((prev) => !prev)}
-                className="border-destructive/40 h-7 text-[11px]"
+                className="h-7 border-border px-2 text-[11px]"
               >
-                {showTechnicalDetails
-                  ? "Hide Technical Details"
-                  : "View Technical Details"}
+                {showTechnicalDetails ? "Hide details" : "Details"}
               </Button>
             ) : null}
             <Button
@@ -220,7 +135,7 @@ export function MaintenanceProgress({
               variant="outline"
               size="sm"
               onClick={() => void onDismiss()}
-              className="border-border h-7 text-[11px]"
+              className="h-7 border-border px-2 text-[11px]"
             >
               Dismiss
             </Button>
@@ -228,35 +143,38 @@ export function MaintenanceProgress({
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between">
         {confirmingCancel ? (
-          <div className="flex items-center gap-2 border border-warning/40 bg-warning/10 p-2 w-full justify-between">
+          <div className="flex w-full items-center justify-between gap-2 border border-warning/40 bg-warning/10 px-2 py-1.5">
             <span className="text-[11px] text-warning">
               This stage is irreversible. Cancel anyway?
             </span>
-            <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1">
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
                 onClick={() => {
-                  if (onConfirmIrreversible) onConfirmIrreversible(false);
-                  void handleCancelClick();
+                  onConfirmIrreversible?.(true);
+                  setConfirmingCancel(false);
                 }}
-                className="h-6.5 px-2 text-[10.5px]"
+                className="h-6 px-2 text-[10.5px]"
               >
-                Yes, Stop
+                Stop
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setConfirmingCancel(false)}
-                className="border-border h-6.5 px-2 text-[10.5px]"
+                onClick={() => {
+                  onConfirmIrreversible?.(false);
+                  setConfirmingCancel(false);
+                }}
+                className="h-6 border-border px-2 text-[10.5px]"
               >
                 Continue
               </Button>
-            </div>
+            </span>
           </div>
         ) : isRunning ? (
           <Button
@@ -264,9 +182,9 @@ export function MaintenanceProgress({
             variant="outline"
             size="sm"
             onClick={() => void handleCancelClick()}
-            className="border-border h-7 text-[11px] text-muted hover:text-foreground"
+            className="h-7 border-border px-2 text-[11px]"
           >
-            Cancel Job
+            Cancel job
           </Button>
         ) : (
           <Button
@@ -274,9 +192,9 @@ export function MaintenanceProgress({
             variant="outline"
             size="sm"
             onClick={() => void onDismiss()}
-            className="border-border h-7 text-[11px]"
+            className="h-7 border-border px-2 text-[11px]"
           >
-            Close Progress
+            Close
           </Button>
         )}
       </div>

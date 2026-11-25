@@ -71,7 +71,7 @@ export default function SettingsPage(): React.ReactElement {
 
   return (
     <PageShell title="Settings">
-      <div className="mx-auto max-w-2xl space-y-6 px-5 py-6">
+      <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4">
         <section>
           <div className="mb-2 flex items-center justify-between">
             <span className="section-label">Appearance</span>

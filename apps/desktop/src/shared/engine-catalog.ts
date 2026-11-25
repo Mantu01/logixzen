@@ -24,7 +24,6 @@ export function defaultVolumeName(optionId: EngineOptionId): string {
 const MIB = 1024 * 1024;
 const GIB = 1024 * MIB;
 
-const WINDOWS_MIN_BUILD = 14393;
 const SQL_SERVER_MIN_DISK = 6 * GIB;
 
 const SUPPORTED_LINUX: Array<{ id: string; versions: string[] }> = [
@@ -51,15 +50,15 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     id: "sqlite",
     engine: "sqlite",
     displayName: "SQLite",
-    advancedName: "SQLite engine bundled with the app runtime",
+    advancedName: "SQLite in-process embedded database",
     publisher: "SQLite",
     method: "bundled",
-    purpose: "Lightweight practice database with no download and no service.",
+    purpose: "Lightweight practice database with zero external download and zero background service.",
     dialect: "sqlite",
     license: "Public domain",
     pin: "bundled",
     sourceUrl: "https://www.sqlite.org/",
-    verification: "Run SELECT sqlite_version() against the practice file.",
+    verification: "Run SELECT sqlite_version() against practice database.",
     platforms: MULTI_ARCH_PLATFORMS,
     sizes: {},
     elevation: "never",
@@ -75,31 +74,30 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     },
   },
   {
-    id: "mssql-express-windows",
-    engine: "mssql-express",
-    displayName: "SQL Server Express",
-    advancedName: "SQL Server 2025 Express, named instance LogixZenPractice",
-    publisher: "Microsoft",
-    method: "native-windows",
-    purpose: "Full T-SQL practice engine running as a local Windows service.",
-    dialect: "tsql",
-    license: "Free; Express limits (50 GB database, 1,410 MB memory, 4 cores)",
-    pin: "17.0.1000.9",
-    sourceUrl:
-      "https://www.microsoft.com/en-us/download/details.aspx?id=108836",
-    verification:
-      "Check the installer signature and hash, then run a T-SQL version query.",
-    platforms: ["windows-x64"],
+    id: "postgres",
+    engine: "postgres",
+    displayName: "PostgreSQL",
+    advancedName: "PostgreSQL 18 server binaries",
+    publisher: "PostgreSQL Global Development Group",
+    method: "native",
+    purpose: "Advanced open-source relational database running locally on loopback.",
+    dialect: "postgres",
+    license: "PostgreSQL License",
+    pin: "18.7.0",
+    sourceUrl: "https://github.com/theseus-rs/postgresql-binaries",
+    verification: "Run SELECT version() over loopback connection.",
+    platforms: MULTI_ARCH_PLATFORMS,
     sizes: {
-      "windows-x64": { downloadBytes: 748772024, installedBytes: 1480 * MIB },
+      "windows-x64": { downloadBytes: 49797717, installedBytes: 150 * MIB },
+      "macos-arm64": { downloadBytes: 88965986, installedBytes: 240 * MIB },
+      "macos-x64": { downloadBytes: 92187545, installedBytes: 250 * MIB },
     },
-    minMemoryBytes: 512 * MIB,
-    recommendedMemoryBytes: 1 * GIB,
-    minDiskBytes: SQL_SERVER_MIN_DISK,
-    minWindowsBuild: WINDOWS_MIN_BUILD,
-    supportedLinux: false,
-    elevation: "required",
-    restart: "may-be-required",
+    minMemoryBytes: 256 * MIB,
+    recommendedMemoryBytes: 512 * MIB,
+    minDiskBytes: 1 * GIB,
+    supportedLinux: true,
+    elevation: "never",
+    restart: "never",
     recommended: false,
     capabilities: {
       startStop: true,
@@ -110,29 +108,60 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     },
   },
   {
-    id: "mssql-localdb",
-    engine: "mssql-localdb",
-    displayName: "SQL Server LocalDB",
-    advancedName: "SQL Server 2025 Express LocalDB, instance LogixZenPractice",
-    publisher: "Microsoft",
-    method: "native-windows",
-    purpose: "T-SQL engine in user mode with no Windows service to manage.",
-    dialect: "tsql",
-    license: "Free; Express limits apply",
-    pin: "17.0.1000.9",
-    sourceUrl:
-      "https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-express-localdb",
-    verification:
-      "Check the MSI signature and hash, then run a T-SQL version query.",
-    platforms: ["windows-x64"],
+    id: "mysql",
+    engine: "mysql",
+    displayName: "MySQL",
+    advancedName: "MySQL 8.4 LTS server",
+    publisher: "Oracle",
+    method: "native",
+    purpose: "Popular open-source relational database running locally on loopback.",
+    dialect: "mysql",
+    license: "GPLv2 with FOSS Exception",
+    pin: "8.4.3",
+    sourceUrl: "https://cdn.mysql.com/archives/mysql-8.4/",
+    verification: "Run SELECT version() over loopback connection.",
+    platforms: ["windows-x64", "macos-arm64", "macos-x64"],
     sizes: {
-      "windows-x64": { downloadBytes: 68452352 },
+      "windows-x64": { downloadBytes: 259751071, installedBytes: 800 * MIB },
+      "macos-arm64": { downloadBytes: 164352132, installedBytes: 600 * MIB },
+      "macos-x64": { downloadBytes: 168667303, installedBytes: 600 * MIB },
     },
     minMemoryBytes: 512 * MIB,
     recommendedMemoryBytes: 1 * GIB,
-    minDiskBytes: SQL_SERVER_MIN_DISK,
-    minWindowsBuild: WINDOWS_MIN_BUILD,
-    supportedLinux: false,
+    minDiskBytes: 2 * GIB,
+    supportedLinux: true,
+    elevation: "never",
+    restart: "never",
+    recommended: false,
+    capabilities: {
+      startStop: true,
+      backup: true,
+      portConfig: true,
+      introspection: true,
+      multipleInstances: true,
+    },
+  },
+  {
+    id: "sqlserver",
+    engine: "sqlserver",
+    displayName: "Microsoft SQL Server",
+    advancedName: "SQL Server LocalDB / Express instance",
+    publisher: "Microsoft",
+    method: "native-windows",
+    purpose: "Full Transact-SQL engine with CTEs, window functions, and procedures.",
+    dialect: "tsql",
+    license: "Microsoft SQL Server Express License",
+    pin: "2022",
+    sourceUrl: "https://www.microsoft.com/sql-server",
+    verification: "Run SELECT @@VERSION over instance connection.",
+    platforms: ["windows-x64", "windows-arm64"],
+    sizes: {
+      "windows-x64": { downloadBytes: 63508480, installedBytes: 500 * MIB },
+    },
+    minMemoryBytes: 512 * MIB,
+    recommendedMemoryBytes: 1 * GIB,
+    minDiskBytes: 2 * GIB,
+    supportedLinux: true,
     elevation: "required",
     restart: "never",
     recommended: false,
@@ -142,39 +171,6 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
       portConfig: false,
       introspection: true,
       multipleInstances: true,
-    },
-  },
-  {
-    id: "mssql-express-linux",
-    engine: "mssql-express",
-    displayName: "SQL Server Express on Linux",
-    advancedName: "mssql-server package from the Microsoft repository",
-    publisher: "Microsoft",
-    method: "native-linux",
-    purpose: "T-SQL practice engine installed as a Linux service.",
-    dialect: "tsql",
-    license: "Free; Express limits (50 GB database, 1,410 MB memory, 4 cores)",
-    pin: "17.0.4045.5",
-    sourceUrl:
-      "https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup",
-    verification:
-      "Check the package signature, then run a T-SQL version query.",
-    platforms: ["linux-x64"],
-    sizes: {
-      "linux-x64": { downloadBytes: 317148974, installedBytes: 1479375 * 1024 },
-    },
-    minMemoryBytes: 2 * GIB,
-    minDiskBytes: SQL_SERVER_MIN_DISK,
-    supportedLinux: true,
-    elevation: "required",
-    restart: "may-be-required",
-    recommended: false,
-    capabilities: {
-      startStop: true,
-      backup: true,
-      portConfig: true,
-      introspection: true,
-      multipleInstances: false,
     },
   },
   {
@@ -441,7 +437,7 @@ function diskCheck(
     (platform === null ? undefined : entry.sizes[platform]?.downloadBytes);
   if (required === undefined) return null;
   if (!snapshot.dataDisk.known || !snapshot.tempDisk.known) {
-    return { kind: "disk", status: "unknown" };
+    return { kind: "disk", status: "warn" };
   }
   const enough =
     snapshot.dataDisk.value.freeBytes >= required &&
@@ -550,6 +546,13 @@ const CHECK_ORDER: RequirementKind[] = [
   "container-runtime",
 ];
 
+function isHiddenVariant(
+  entry: EngineCatalogEntry,
+  snapshot: PlatformSnapshot,
+): boolean {
+  return entry.method === "container" && snapshot.osFamily === "windows";
+}
+
 export function resolveEngineOffers(snapshot: PlatformSnapshot): EngineOffer[] {
   const platform = platformOf(snapshot);
   return ENGINE_CATALOG.map((entry) => {
@@ -566,12 +569,17 @@ export function resolveEngineOffers(snapshot: PlatformSnapshot): EngineOffer[] {
         (left, right) =>
           CHECK_ORDER.indexOf(left.kind) - CHECK_ORDER.indexOf(right.kind),
       );
+    const platformResult = checks.find((c) => c.kind === "platform");
+    const distroResult = checks.find((c) => c.kind === "distro");
+    const runtimeResult = checks.find((c) => c.kind === "container-runtime");
     return {
       entry,
       checks,
-      visible: checks.every(
-        (check) => check.status === "met" || check.status === "warn",
-      ),
+      visible:
+        !isHiddenVariant(entry, snapshot) &&
+        platformResult?.status === "met" &&
+        (distroResult === undefined || distroResult.status === "met") &&
+        (entry.method !== "container" || runtimeResult?.status === "met"),
     };
   });
 }

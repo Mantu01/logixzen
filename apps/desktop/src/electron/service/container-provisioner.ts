@@ -240,6 +240,14 @@ async function waitForContainerReady(
   return false;
 }
 
+export async function getContainerLogs(
+  containerName: string,
+  lines = 50,
+): Promise<string[]> {
+  const text = await getContainerLogTail(containerName, lines);
+  return text.length > 0 ? text.split(/\r?\n/) : [];
+}
+
 async function getContainerLogTail(
   containerName: string,
   lines = 50,
@@ -806,6 +814,9 @@ export async function executeContainerProvision(
       "ALTER ROLE [db_datareader] ADD MEMBER [logixzen_user];",
       "ALTER ROLE [db_datawriter] ADD MEMBER [logixzen_user];",
       "ALTER ROLE [db_ddladmin] ADD MEMBER [logixzen_user];",
+      "USE [master];",
+      "GRANT CREATE ANY DATABASE TO [logixzen_user];",
+      "USE [LogixZenPractice];",
       markerStatement("tsql"),
     ].join("\n");
 
@@ -907,12 +918,11 @@ export async function executeContainerProvision(
         containerName,
         "mysql",
         "-u",
-        "logixzen",
-        "LogixZenPractice",
+        "root",
         "-e",
-        markerStatement("mysql"),
+        `GRANT ALL PRIVILEGES ON *.* TO 'logixzen'@'%'; FLUSH PRIVILEGES; USE LogixZenPractice; ${markerStatement("mysql")}`,
       ],
-      extraEnv: { MYSQL_PWD: userPassword },
+      extraEnv: { MYSQL_PWD: adminPassword },
       timeoutMs: 30000,
     });
 

@@ -22,7 +22,7 @@ export function markerStatement(dialect: EngineDialect): string {
       ].join("\n");
     case "tsql":
       return [
-        `IF OBJECT_ID(N'${PRACTICE_MARKER_TABLE}', N'U') IS NULL CREATE TABLE ${PRACTICE_MARKER_TABLE} (k NVARCHAR(64) PRIMARY KEY, v NVARCHAR(64) NOT NULL);`,
+        `IF OBJECT_ID(N'${PRACTICE_MARKER_TABLE}', N'U') IS NULL CREATE TABLE ${PRACTICE_MARKER_TABLE} (k NVARCHAR(64) PRIMARY KEY, v NVARCHAR(512) NOT NULL);`,
         `IF NOT EXISTS (SELECT 1 FROM ${PRACTICE_MARKER_TABLE} WHERE k = ${key}) INSERT INTO ${PRACTICE_MARKER_TABLE} (k, v) VALUES (${key}, ${value});`,
       ].join("\n");
     case "postgres":
@@ -32,7 +32,7 @@ export function markerStatement(dialect: EngineDialect): string {
       ].join("\n");
     case "mysql":
       return [
-        `CREATE TABLE IF NOT EXISTS ${PRACTICE_MARKER_TABLE} (k VARCHAR(64) PRIMARY KEY, v VARCHAR(64) NOT NULL);`,
+        `CREATE TABLE IF NOT EXISTS ${PRACTICE_MARKER_TABLE} (k VARCHAR(64) PRIMARY KEY, v VARCHAR(512) NOT NULL);`,
         `INSERT IGNORE INTO ${PRACTICE_MARKER_TABLE} (k, v) VALUES (${key}, ${value});`,
       ].join("\n");
   }

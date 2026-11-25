@@ -1,25 +1,14 @@
 import type {
-  BackupManifest,
   BridgeResult,
-  ContainerLifecycleAction,
-  ContainerStats,
-  ContainerTechnicalDetails,
-  DiagnosticsSummary,
-  DockerGuidanceContent,
-  DocsTopicId,
   EngineCatalogEntry,
-  EngineDoctorReport,
   EngineOffer,
   EngineOptionId,
   EngineStorageUsage,
   InstallationRecord,
   Job,
-  LogFileSummary,
-  OrphanContainerSummary,
   PlatformSnapshot,
   ProgressEvent,
   StartJobRequest,
-  SupportBundleSummary,
   VerificationResult,
 } from "./engines";
 
@@ -52,7 +41,7 @@ export interface SqlResult {
   executionTimeMs: number;
 }
 
-interface ForeignKeyInfo {
+export interface ForeignKeyInfo {
   from: string;
   table: string;
   to: string;
@@ -85,7 +74,7 @@ export interface AiCompletionRequest {
   maxTokens?: number;
 }
 
-interface SetupApi {
+export interface SetupApi {
   snapshot: () => Promise<BridgeResult<PlatformSnapshot>>;
   catalog: () => Promise<BridgeResult<EngineCatalogEntry[]>>;
   compatibility: () => Promise<BridgeResult<EngineOffer[]>>;
@@ -106,66 +95,22 @@ interface SetupApi {
   getJob: (jobId: string) => Promise<BridgeResult<Job | null>>;
   subscribeProgress: (callback: (event: ProgressEvent) => void) => () => void;
   switch: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  getActiveEngine: () => Promise<BridgeResult<EngineOptionId>>;
+  getActiveEngine: () => Promise<BridgeResult<EngineOptionId | null>>;
   storageUsage: () => Promise<BridgeResult<Record<string, EngineStorageUsage>>>;
-  activate: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
   start: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
   stop: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
   restart: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
   repair: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
   reset: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  reinitialize: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  backup: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  restore: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  listBackups: (
-    optionId?: EngineOptionId,
-  ) => Promise<BridgeResult<BackupManifest[]>>;
-  cleanupBackups: (
-    keepCount?: number,
-  ) => Promise<BridgeResult<{ deletedCount: number; freedBytes: number }>>;
   uninstall: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  removeData: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  provisionContainer: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  containerLifecycle: (
+  removeData: (optionId: EngineOptionId) => Promise<BridgeResult<void>>;
+  containerUpdateImage: (
     optionId: EngineOptionId,
-    action: ContainerLifecycleAction,
   ) => Promise<BridgeResult<Job>>;
-  containerStats: (
-    optionId: EngineOptionId,
-  ) => Promise<BridgeResult<ContainerStats>>;
-  containerDetails: (
-    optionId: EngineOptionId,
-  ) => Promise<BridgeResult<ContainerTechnicalDetails>>;
   containerLogs: (
     optionId: EngineOptionId,
     tail?: number,
   ) => Promise<BridgeResult<string[]>>;
-  containerUpdateImage: (
-    optionId: EngineOptionId,
-  ) => Promise<BridgeResult<Job>>;
-  removeContainer: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  removeVolume: (optionId: EngineOptionId) => Promise<BridgeResult<Job>>;
-  listOrphanContainers: () => Promise<BridgeResult<OrphanContainerSummary[]>>;
-  cleanupOrphanContainer: (name: string) => Promise<BridgeResult<void>>;
-  listLogs: () => Promise<BridgeResult<LogFileSummary[]>>;
-  tailLog: (name: string, lines?: number) => Promise<BridgeResult<string[]>>;
-  openLogsFolder: () => Promise<BridgeResult<void>>;
-  diagnosticsSummary: () => Promise<BridgeResult<DiagnosticsSummary>>;
-  openDocs: (topic: DocsTopicId) => Promise<BridgeResult<void>>;
-  getDockerGuidance: () => Promise<BridgeResult<DockerGuidanceContent>>;
-  openExternalUrl: (url: string) => Promise<BridgeResult<void>>;
-  cacheSize: () => Promise<BridgeResult<number>>;
-  clearCache: () => Promise<BridgeResult<void>>;
-  doctor: (
-    optionId: EngineOptionId,
-  ) => Promise<BridgeResult<EngineDoctorReport>>;
-  repairIssue: (
-    optionId: EngineOptionId,
-    issueId?: string,
-  ) => Promise<BridgeResult<void>>;
-  exportSupportBundle: (
-    targetPath?: string,
-  ) => Promise<BridgeResult<SupportBundleSummary>>;
 }
 
 export interface DesktopApi {
@@ -189,7 +134,11 @@ export interface DesktopApi {
     saveFile: (options?: SaveFileOptions) => Promise<string | null>;
   };
   database: {
-    initialize: (setupSql?: string, name?: string) => Promise<void>;
+    initialize: (
+      setupSql?: string,
+      name?: string,
+      reset?: boolean,
+    ) => Promise<void>;
     execute: (sql: string) => Promise<SqlResult[]>;
     use: (name: string) => Promise<void>;
     list: () => Promise<string[]>;

@@ -123,7 +123,7 @@ export default function ProgressPage(): React.ReactElement {
         </>
       }
     >
-      <div className="mx-auto max-w-4xl space-y-5 px-5 py-6">
+      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-4">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <Stat
             label="Completion"

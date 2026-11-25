@@ -7,9 +7,9 @@ import {
   Play,
   RefreshCw,
   RotateCcw,
+  ShieldAlert,
   Square,
   Trash2,
-  ShieldAlert,
 } from "lucide-react";
 import type {
   EngineCatalogEntry,
@@ -18,7 +18,10 @@ import type {
   InstallationRecord,
 } from "@/shared/engines";
 import { Button } from "@/components/ui/button";
+import { Panel } from "@/components/app-shell/panel";
+import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
 import { formatBytes } from "@/shared/format";
+import { methodLabel, statusLabel } from "@/lib/engine-status";
 import { cn } from "@/lib/utils";
 
 interface InstalledEnginesTableProps {
@@ -41,6 +44,13 @@ interface InstalledEnginesTableProps {
   isActionExecuting?: boolean;
 }
 
+function statusTone(status: InstallationRecord["status"]): StatusTone {
+  if (status === "ready") return "success";
+  if (status === "needs-repair" || status === "failed") return "warning";
+  if (status === "stopped") return "neutral";
+  return "info";
+}
+
 export function InstalledEnginesTable({
   records,
   catalog,
@@ -58,121 +68,93 @@ export function InstalledEnginesTable({
   isActionExecuting = false,
 }: InstalledEnginesTableProps): React.ReactElement {
   return (
-    <div className="border border-border bg-surface text-[12px]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3.5">
-        <div>
-          <h2 className="text-[13px] font-semibold text-foreground">
-            Installed Database Engines
-          </h2>
-          <p className="text-[11.5px] text-muted">
-            Configured engines, current operational state, storage footprints,
-            and maintenance actions.
-          </p>
-        </div>
-
+    <Panel
+      title="Installed engines"
+      description="Operational state, storage footprint and maintenance actions."
+      actions={
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={() => void onRefreshStorage()}
           disabled={isStorageLoading}
-          className="border-border h-7 text-[11px] gap-1.5"
+          className="h-7 gap-1.5 border-border px-2 text-[11px]"
         >
-          <HardDrive
-            className={cn("size-3", isStorageLoading && "animate-pulse")}
-          />
-          <span>
-            {isStorageLoading
-              ? "Computing storage..."
-              : "Refresh Storage Usage"}
-          </span>
+          <HardDrive className={cn("size-3", isStorageLoading && "animate-pulse")} />
+          Storage
         </Button>
-      </div>
-
+      }
+    >
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full border-collapse text-left text-[11.5px]">
           <thead>
-            <tr className="border-b border-border bg-surface-alt/40 text-[10px] uppercase font-mono text-muted-dim">
-              <th className="py-2 px-3 font-medium">Engine</th>
-              <th className="py-2 px-3 font-medium">Method</th>
-              <th className="py-2 px-3 font-medium">Version</th>
-              <th className="py-2 px-3 font-medium">Status</th>
-              <th className="py-2 px-3 font-medium">Storage</th>
-              <th className="py-2 px-3 font-medium text-right">Actions</th>
+            <tr className="border-b border-border bg-surface-alt/60 font-mono text-[9.5px] uppercase tracking-wider text-muted-dim">
+              <th className="px-3 py-1.5 font-medium">Engine</th>
+              <th className="px-3 py-1.5 font-medium">Method</th>
+              <th className="px-3 py-1.5 font-medium">Version</th>
+              <th className="px-3 py-1.5 font-medium">Target</th>
+              <th className="px-3 py-1.5 font-medium">Status</th>
+              <th className="px-3 py-1.5 font-medium">Storage</th>
+              <th className="px-3 py-1.5 text-right font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border font-mono text-[11.5px]">
+          <tbody className="divide-y divide-border">
             {records.map((record) => {
-              const entry = catalog.find((c) => c.id === record.optionId);
+              const entry = catalog.find((item) => item.id === record.optionId);
               const isActive = record.optionId === activeOptionId;
               const isReady = record.status === "ready";
               const isStopped = record.status === "stopped";
-              const isNeedsRepair = record.status === "needs-repair";
               const storage = storageUsage[record.optionId];
-              const supportsStartStop = entry?.capabilities?.startStop ?? false;
+              const supportsStartStop = entry?.capabilities.startStop ?? false;
 
               return (
-                <tr
-                  key={record.optionId}
-                  className="hover:bg-surface-alt/30 transition-colors"
-                >
-                  <td className="py-2.5 px-3">
+                <tr key={record.optionId} className="hover:bg-surface-alt/40">
+                  <td className="px-3 py-2">
                     <div className="font-medium text-foreground">
                       {entry?.displayName ?? record.optionId}
                     </div>
-                    <div className="text-[10px] text-muted-dim">
+                    <div className="font-mono text-[10px] text-muted-dim">
                       {record.optionId}
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3">
-                    <span className="border border-border bg-surface-alt px-1.5 py-0.5 text-[10px] uppercase text-muted">
-                      {record.method}
-                    </span>
+                  <td className="px-3 py-2 text-muted">
+                    {methodLabel(record.method)}
                   </td>
 
-                  <td className="py-2.5 px-3 text-muted">
-                    {record.installedVersion ?? entry?.pin ?? "Bundled"}
+                  <td className="px-3 py-2 font-mono text-muted">
+                    {record.installedVersion ?? entry?.pin ?? "—"}
                   </td>
 
-                  <td className="py-2.5 px-3">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider",
-                        isReady
-                          ? "border-success/30 bg-success/10 text-success"
-                          : isNeedsRepair
-                            ? "border-warning/30 bg-warning/10 text-warning"
-                            : isStopped
-                              ? "border-border bg-surface-alt text-muted"
-                              : "border-primary/30 bg-primary/10 text-primary",
-                      )}
-                    >
-                      {record.status}
-                    </span>
+                  <td className="max-w-44 truncate px-3 py-2 font-mono text-muted-dim">
+                    {record.port !== undefined
+                      ? `127.0.0.1:${record.port}`
+                      : (record.dataLocation ?? "—")}
                   </td>
 
-                  <td className="py-2.5 px-3">
+                  <td className="px-3 py-2">
+                    <StatusChip tone={statusTone(record.status)}>
+                      {statusLabel(record.status)}
+                    </StatusChip>
+                  </td>
+
+                  <td className="px-3 py-2 font-mono">
                     <div className="text-foreground">
-                      Practice:{" "}
                       {storage?.practiceBytes !== undefined
                         ? formatBytes(storage.practiceBytes)
                         : "—"}
                     </div>
-                    <div className="text-[10.5px] text-muted-dim">
-                      Total:{" "}
+                    <div className="text-[10px] text-muted-dim">
                       {storage?.dataBytes !== undefined
                         ? formatBytes(storage.dataBytes)
                         : "—"}
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3 text-right">
-                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-end gap-1">
                       {isActive ? (
-                        <span className="border border-primary/30 bg-primary/10 text-primary px-2 py-0.5 text-[10px] uppercase font-semibold">
-                          Active
-                        </span>
+                        <StatusChip tone="info">Active</StatusChip>
                       ) : isReady ? (
                         <Button
                           type="button"
@@ -180,10 +162,10 @@ export function InstalledEnginesTable({
                           size="sm"
                           onClick={() => void onSwitch(record.optionId)}
                           disabled={isActionExecuting}
-                          className="border-border h-6.5 px-2 text-[10.5px] gap-1"
+                          className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
                         >
                           <ArrowRightLeft className="size-2.5" />
-                          <span>Switch</span>
+                          Switch
                         </Button>
                       ) : null}
 
@@ -197,10 +179,10 @@ export function InstalledEnginesTable({
                               void onStartStop(record.optionId, "start")
                             }
                             disabled={isActionExecuting}
-                            className="border-border h-6.5 px-2 text-[10.5px] gap-1 text-success hover:text-success"
+                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
                           >
                             <Play className="size-2.5" />
-                            <span>Start</span>
+                            Start
                           </Button>
                         ) : (
                           <Button
@@ -211,10 +193,10 @@ export function InstalledEnginesTable({
                               void onStartStop(record.optionId, "stop")
                             }
                             disabled={isActionExecuting}
-                            className="border-border h-6.5 px-2 text-[10.5px] gap-1 text-warning hover:text-warning"
+                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
                           >
                             <Square className="size-2.5" />
-                            <span>Stop</span>
+                            Stop
                           </Button>
                         )
                       ) : null}
@@ -225,10 +207,10 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => void onVerify(record.optionId)}
                         disabled={isActionExecuting}
-                        className="border-border h-6.5 px-2 text-[10.5px] gap-1"
+                        className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
                       >
                         <RefreshCw className="size-2.5" />
-                        <span>Verify</span>
+                        Verify
                       </Button>
 
                       <Button
@@ -237,46 +219,44 @@ export function InstalledEnginesTable({
                         size="sm"
                         onClick={() => onOpenResetConfirm(record)}
                         disabled={isActionExecuting}
-                        className="border-border h-6.5 px-2 text-[10.5px] gap-1"
-                        title="Reset practice database to canonical 373 records"
+                        className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                        title="Reset the practice environment"
                       >
                         <RotateCcw className="size-2.5" />
-                        <span>Reset DB</span>
+                        Reset
                       </Button>
 
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
+                        size="icon-xs"
                         onClick={() => onOpenDetails(record)}
-                        className="h-6.5 px-1.5 text-[10.5px] text-muted hover:text-foreground"
-                        title="View technical details"
+                        className="text-muted hover:text-foreground"
+                        aria-label={`Details for ${entry?.displayName ?? record.optionId}`}
                       >
-                        <Info className="size-3" />
+                        <Info />
                       </Button>
-
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
+                        size="icon-xs"
                         onClick={() => onOpenUninstallConfirm(record)}
                         disabled={isActionExecuting}
-                        className="h-6.5 px-1.5 text-[10.5px] text-muted-dim hover:text-destructive"
-                        title="Uninstall engine (keeps data)"
+                        className="text-muted-dim hover:text-foreground"
+                        aria-label={`Uninstall ${entry?.displayName ?? record.optionId}`}
                       >
-                        <Trash2 className="size-3" />
+                        <Trash2 />
                       </Button>
-
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
+                        size="icon-xs"
                         onClick={() => onOpenDeleteDataConfirm(record)}
                         disabled={isActionExecuting}
-                        className="h-6.5 px-1.5 text-[10.5px] text-destructive/70 hover:text-destructive"
-                        title="Permanently delete data"
+                        className="text-destructive/70 hover:text-destructive"
+                        aria-label={`Delete data for ${entry?.displayName ?? record.optionId}`}
                       >
-                        <ShieldAlert className="size-3" />
+                        <ShieldAlert />
                       </Button>
                     </div>
                   </td>
@@ -286,6 +266,6 @@ export function InstalledEnginesTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </Panel>
   );
 }

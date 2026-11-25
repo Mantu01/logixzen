@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statfsSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import os from "node:os";
 import type {
   ContainerRuntimeId,
@@ -31,7 +31,9 @@ import {
 const PROBE_TIMEOUT_MS = 2000;
 
 type ContainerEngineId =
-  "mssql-container" | "postgres-container" | "mysql-container";
+  | "mssql-container"
+  | "postgres-container"
+  | "mysql-container";
 
 const CONTAINER_ENGINES: ContainerEngineId[] = [
   "mssql-container",
@@ -92,7 +94,13 @@ function nativeArch(): CpuArch {
 
 function disk(path: string): Probe<DiskSpace> {
   return attempt(() => {
-    const stats = statfsSync(path);
+    let target = path;
+    while (!existsSync(target)) {
+      const parent = dirname(target);
+      if (parent === target) break;
+      target = parent;
+    }
+    const stats = statfsSync(target);
     return {
       freeBytes: stats.bavail * stats.bsize,
       totalBytes: stats.blocks * stats.bsize,
