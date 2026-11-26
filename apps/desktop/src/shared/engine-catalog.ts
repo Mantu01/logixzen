@@ -1,12 +1,12 @@
-import type {
-  CatalogPlatform,
-  EngineCatalogEntry,
-  EngineOffer,
-  EngineOptionId,
-  LinuxEnvironment,
-  PlatformSnapshot,
-  RequirementCheck,
-  RequirementKind,
+import {
+  FEATURE_FLAGS,
+  type CatalogPlatform,
+  type EngineCatalogEntry,
+  type EngineOffer,
+  type EngineOptionId,
+  type PlatformSnapshot,
+  type RequirementCheck,
+  type RequirementKind,
 } from "./engines";
 
 export const LOCALDB_INSTANCE = "LogixZenPractice";
@@ -26,23 +26,15 @@ const GIB = 1024 * MIB;
 
 const SQL_SERVER_MIN_DISK = 6 * GIB;
 
-const SUPPORTED_LINUX: Array<{ id: string; versions: string[] }> = [
-  { id: "ubuntu", versions: ["22.04", "24.04"] },
-  { id: "rhel", versions: ["9", "10"] },
-];
-
 const X64_CONTAINER_PLATFORMS: CatalogPlatform[] = [
   "windows-x64",
   "macos-x64",
-  "linux-x64",
 ];
 const MULTI_ARCH_PLATFORMS: CatalogPlatform[] = [
   "windows-x64",
   "windows-arm64",
   "macos-x64",
   "macos-arm64",
-  "linux-x64",
-  "linux-arm64",
 ];
 
 export const ENGINE_CATALOG: EngineCatalogEntry[] = [
@@ -63,7 +55,6 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     sizes: {},
     elevation: "never",
     restart: "never",
-    supportedLinux: true,
     recommended: true,
     capabilities: {
       startStop: false,
@@ -95,7 +86,6 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     minMemoryBytes: 256 * MIB,
     recommendedMemoryBytes: 512 * MIB,
     minDiskBytes: 1 * GIB,
-    supportedLinux: true,
     elevation: "never",
     restart: "never",
     recommended: false,
@@ -129,7 +119,6 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     minMemoryBytes: 512 * MIB,
     recommendedMemoryBytes: 1 * GIB,
     minDiskBytes: 2 * GIB,
-    supportedLinux: true,
     elevation: "never",
     restart: "never",
     recommended: false,
@@ -161,7 +150,6 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     minMemoryBytes: 512 * MIB,
     recommendedMemoryBytes: 1 * GIB,
     minDiskBytes: 2 * GIB,
-    supportedLinux: true,
     elevation: "required",
     restart: "never",
     recommended: false,
@@ -192,11 +180,9 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     sizes: {
       "windows-x64": { downloadBytes: 476169295 },
       "macos-x64": { downloadBytes: 476169295 },
-      "linux-x64": { downloadBytes: 476169295 },
     },
     minMemoryBytes: 2 * GIB,
     minDiskBytes: SQL_SERVER_MIN_DISK,
-    supportedLinux: true,
     elevation: "never",
     restart: "never",
     recommended: false,
@@ -242,14 +228,11 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     sizes: {
       "windows-x64": { downloadBytes: 167333338 },
       "macos-x64": { downloadBytes: 167333338 },
-      "linux-x64": { downloadBytes: 167333338 },
       "windows-arm64": { downloadBytes: 165869675 },
       "macos-arm64": { downloadBytes: 165869675 },
-      "linux-arm64": { downloadBytes: 165869675 },
     },
     minMemoryBytes: 512 * MIB,
     minDiskBytes: 1 * GIB,
-    supportedLinux: true,
     elevation: "never",
     restart: "never",
     recommended: false,
@@ -295,14 +278,11 @@ export const ENGINE_CATALOG: EngineCatalogEntry[] = [
     sizes: {
       "windows-x64": { downloadBytes: 238256607 },
       "macos-x64": { downloadBytes: 238256607 },
-      "linux-x64": { downloadBytes: 238256607 },
       "windows-arm64": { downloadBytes: 232912945 },
       "macos-arm64": { downloadBytes: 232912945 },
-      "linux-arm64": { downloadBytes: 232912945 },
     },
     minMemoryBytes: 1 * GIB,
     minDiskBytes: 2 * GIB,
-    supportedLinux: true,
     elevation: "never",
     restart: "never",
     recommended: false,
@@ -341,23 +321,7 @@ export function platformOf(snapshot: PlatformSnapshot): CatalogPlatform | null {
     return arch === "x64" ? "windows-x64" : "windows-arm64";
   if (snapshot.osFamily === "macos")
     return arch === "x64" ? "macos-x64" : "macos-arm64";
-  if (snapshot.osFamily === "linux")
-    return arch === "x64" ? "linux-x64" : "linux-arm64";
   return null;
-}
-
-export function linuxSupported(environment: LinuxEnvironment): boolean {
-  return SUPPORTED_LINUX.some(
-    (supported) =>
-      supported.id === environment.distroId &&
-      supported.versions.some(
-        (version) =>
-          environment.versionId === version ||
-          environment.versionId.startsWith(`${version}.`) ||
-          (version.length <= 2 &&
-            environment.versionId.split(".")[0] === version),
-      ),
-  );
 }
 
 export function versionAtLeast(actual: string, minimum: string): boolean {
@@ -395,19 +359,6 @@ function osVersionCheck(
   return {
     kind: "os-version",
     status: build >= entry.minWindowsBuild ? "met" : "unmet",
-  };
-}
-
-function distroCheck(
-  entry: EngineCatalogEntry,
-  snapshot: PlatformSnapshot,
-): RequirementCheck | null {
-  if (!entry.supportedLinux || entry.method !== "native-linux") return null;
-  if (!snapshot.linux || !snapshot.linux.known)
-    return { kind: "distro", status: "unknown" };
-  return {
-    kind: "distro",
-    status: linuxSupported(snapshot.linux.value) ? "met" : "unmet",
   };
 }
 
@@ -540,7 +491,6 @@ function runtimeCheck(
 const CHECK_ORDER: RequirementKind[] = [
   "platform",
   "os-version",
-  "distro",
   "memory",
   "disk",
   "container-runtime",
@@ -550,6 +500,9 @@ function isHiddenVariant(
   entry: EngineCatalogEntry,
   snapshot: PlatformSnapshot,
 ): boolean {
+  if (!FEATURE_FLAGS.docker && entry.method === "container") {
+    return false;
+  }
   return entry.method === "container" && snapshot.osFamily === "windows";
 }
 
@@ -559,10 +512,11 @@ export function resolveEngineOffers(snapshot: PlatformSnapshot): EngineOffer[] {
     const checks = [
       platformCheck(entry, platform),
       osVersionCheck(entry, snapshot),
-      distroCheck(entry, snapshot),
       memoryCheck(entry, snapshot),
       diskCheck(entry, snapshot, platform),
-      entry.method === "container" ? runtimeCheck(entry, snapshot) : null,
+      entry.method === "container" && FEATURE_FLAGS.docker
+        ? runtimeCheck(entry, snapshot)
+        : null,
     ]
       .filter((check): check is RequirementCheck => check !== null)
       .sort(
@@ -570,7 +524,6 @@ export function resolveEngineOffers(snapshot: PlatformSnapshot): EngineOffer[] {
           CHECK_ORDER.indexOf(left.kind) - CHECK_ORDER.indexOf(right.kind),
       );
     const platformResult = checks.find((c) => c.kind === "platform");
-    const distroResult = checks.find((c) => c.kind === "distro");
     const runtimeResult = checks.find((c) => c.kind === "container-runtime");
     return {
       entry,
@@ -578,8 +531,9 @@ export function resolveEngineOffers(snapshot: PlatformSnapshot): EngineOffer[] {
       visible:
         !isHiddenVariant(entry, snapshot) &&
         platformResult?.status === "met" &&
-        (distroResult === undefined || distroResult.status === "met") &&
-        (entry.method !== "container" || runtimeResult?.status === "met"),
+        (!FEATURE_FLAGS.docker ||
+          entry.method !== "container" ||
+          runtimeResult?.status === "met"),
     };
   });
 }

@@ -30,6 +30,11 @@ export default function ResourcesPage(): React.ReactElement {
     <PageShell
       title="Our Resources"
       subtitle={`${installed}/${OFFICIAL_RESOURCES.length} installed · database, questions and notes are validated as one unit`}
+      backHref="/import"
+      breadcrumbs={[
+        { label: "Data Hub", href: "/import" },
+        { label: "Our Resources" },
+      ]}
       actions={
         <Link
           href="/import"

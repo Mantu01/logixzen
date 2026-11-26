@@ -8,9 +8,14 @@ export function splitStatements(sql: string): Statement[] {
   let current = ''
   let inSingleQuote = false
   let inDoubleQuote = false
+  let inBacktick = false
+  let inBrackets = false
+  let dollarTag: string | null = null
   let inLineComment = false
   let inBlockComment = false
   let inTransaction = false
+  let isTrigger = false
+  let triggerDepth = 0
   let i = 0
 
   while (i < sql.length) {
@@ -38,9 +43,24 @@ export function splitStatements(sql: string): Statement[] {
       continue
     }
 
+    if (dollarTag !== null) {
+      if (char === '$' && sql.slice(i).startsWith(dollarTag)) {
+        current += dollarTag
+        i += dollarTag.length
+        dollarTag = null
+      } else {
+        current += char
+        i++
+      }
+      continue
+    }
+
     if (inSingleQuote) {
       if (char === "'" && next === "'") {
         current += "''"
+        i += 2
+      } else if (char === '\\' && next !== undefined) {
+        current += char + next
         i += 2
       } else if (char === "'") {
         inSingleQuote = false
@@ -68,6 +88,36 @@ export function splitStatements(sql: string): Statement[] {
       continue
     }
 
+    if (inBacktick) {
+      if (char === '`' && next === '`') {
+        current += '``'
+        i += 2
+      } else if (char === '`') {
+        inBacktick = false
+        current += char
+        i++
+      } else {
+        current += char
+        i++
+      }
+      continue
+    }
+
+    if (inBrackets) {
+      if (char === ']' && next === ']') {
+        current += ']]'
+        i += 2
+      } else if (char === ']') {
+        inBrackets = false
+        current += char
+        i++
+      } else {
+        current += char
+        i++
+      }
+      continue
+    }
+
     if (char === '-' && next === '-') {
       inLineComment = true
       current += '--'
@@ -80,6 +130,16 @@ export function splitStatements(sql: string): Statement[] {
       current += '/*'
       i += 2
       continue
+    }
+
+    if (char === '$') {
+      const match = /^\$([a-zA-Z0-9_]*)\$/.exec(sql.slice(i))
+      if (match !== null) {
+        dollarTag = match[0]
+        current += dollarTag
+        i += dollarTag.length
+        continue
+      }
     }
 
     if (char === "'") {
@@ -96,35 +156,69 @@ export function splitStatements(sql: string): Statement[] {
       continue
     }
 
-    if (char === ';' && !inTransaction) {
+    if (char === '`') {
+      inBacktick = true
+      current += char
+      i++
+      continue
+    }
+
+    if (char === '[') {
+      inBrackets = true
+      current += char
+      i++
+      continue
+    }
+
+    const tailUpper = sql.slice(i).toUpperCase()
+    if (/^CREATE\s+(?:TEMP\s+|TEMPORARY\s+)?TRIGGER\b/.test(tailUpper)) {
+      isTrigger = true
+    }
+    if (isTrigger) {
+      if (/^BEGIN\b/.test(tailUpper) && (i === 0 || !/[A-Z0-9_]/i.test(sql[i - 1] ?? ''))) {
+        triggerDepth += 1
+      } else if (/^END\b/.test(tailUpper) && (i === 0 || !/[A-Z0-9_]/i.test(sql[i - 1] ?? ''))) {
+        triggerDepth = Math.max(0, triggerDepth - 1)
+      }
+    }
+
+    if (char === ';' && !inTransaction && !(isTrigger && triggerDepth > 0)) {
       const trimmed = current.trim()
       if (trimmed.length > 0) {
         statements.push({ sql: trimmed, index: statements.length })
       }
       current = ''
+      isTrigger = false
+      triggerDepth = 0
       i++
       continue
     }
 
-    if (char.toUpperCase() === 'B' && sql.slice(i, i + 7).toUpperCase() === 'BEGIN') {
-      inTransaction = true
-      current += 'BEGIN'
-      i += 5
-      continue
+    if (!isTrigger && char.toUpperCase() === 'B' && /^BEGIN\b/i.test(sql.slice(i))) {
+      if (i === 0 || !/[A-Z0-9_]/i.test(sql[i - 1] ?? '')) {
+        inTransaction = true
+        current += 'BEGIN'
+        i += 5
+        continue
+      }
     }
 
-    if (char.toUpperCase() === 'C' && sql.slice(i, i + 6).toUpperCase() === 'COMMIT') {
-      inTransaction = false
-      current += 'COMMIT'
-      i += 6
-      continue
+    if (!isTrigger && char.toUpperCase() === 'C' && /^COMMIT\b/i.test(sql.slice(i))) {
+      if (i === 0 || !/[A-Z0-9_]/i.test(sql[i - 1] ?? '')) {
+        inTransaction = false
+        current += 'COMMIT'
+        i += 6
+        continue
+      }
     }
 
-    if (char.toUpperCase() === 'R' && sql.slice(i, i + 8).toUpperCase() === 'ROLLBACK') {
-      inTransaction = false
-      current += 'ROLLBACK'
-      i += 8
-      continue
+    if (!isTrigger && char.toUpperCase() === 'R' && /^ROLLBACK\b/i.test(sql.slice(i))) {
+      if (i === 0 || !/[A-Z0-9_]/i.test(sql[i - 1] ?? '')) {
+        inTransaction = false
+        current += 'ROLLBACK'
+        i += 8
+        continue
+      }
     }
 
     current += char

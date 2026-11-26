@@ -41,7 +41,6 @@ const METHODS: InstallMethod[] = [
   "bundled",
   "native",
   "native-windows",
-  "native-linux",
   "native-macos",
   "container",
 ];

@@ -5,8 +5,6 @@ import {
   parseCreateDatabase,
   parseDropDatabase,
   parseUseStatement,
-  splitBatches,
-  splitSqlStatements,
 } from "../../../shared/sql";
 import type {
   SqlResult,
@@ -14,6 +12,8 @@ import type {
 } from "../../../shared/desktop-api";
 import type { EngineDialect } from "../../../shared/engines";
 import { sqlitePracticeFile } from "../../paths";
+import { splitScript } from "../script-splitter";
+import { formatSqlRow } from "../value-formatter";
 import { emptyResult, type EngineDriver, type SqlOptions } from "./base";
 
 const PRACTICE_DATABASE = "practice";
@@ -43,7 +43,8 @@ function returnsRows(sql: string): boolean {
     trimmed.startsWith("WITH") ||
     trimmed.startsWith("VALUES") ||
     trimmed.startsWith("PRAGMA") ||
-    trimmed.startsWith("EXPLAIN")
+    trimmed.startsWith("EXPLAIN") ||
+    /^(?:INSERT|UPDATE|DELETE)\b[\s\S]*\bRETURNING\b/.test(trimmed)
   );
 }
 
@@ -161,6 +162,10 @@ class SqliteEngine {
   }
 
   public execute(sql: string, maxRows = DEFAULT_MAX_ROWS): SqlResult[] {
+    const split = splitScript(sql, "sqlite");
+    if (split.error !== undefined) {
+      return [emptyResult(0, performance.now(), split.error)];
+    }
     const results: SqlResult[] = [];
     let statementIndex = 0;
 
@@ -253,7 +258,7 @@ class SqliteEngine {
           const columns = prepared.columns().map((column) => column.name);
           const rows: Record<string, unknown>[] = [];
           for (const row of prepared.iterate()) {
-            rows.push({ ...row });
+            rows.push(formatSqlRow(row as Record<string, unknown>));
             if (rows.length >= maxRows) break;
           }
           results.push({
@@ -287,10 +292,8 @@ class SqliteEngine {
       }
     };
 
-    for (const batch of splitBatches(sql)) {
-      for (const statement of splitSqlStatements(batch.join("\n"))) {
-        run(statement.sql);
-      }
+    for (const statement of split.statements) {
+      run(statement);
     }
 
     return results;
@@ -323,7 +326,7 @@ class SqliteEngine {
       const sampleRows = database
         .prepare(`SELECT * FROM ${quoted} LIMIT 5`)
         .all()
-        .map((row) => ({ ...row }));
+        .map((row) => formatSqlRow(row as Record<string, unknown>));
 
       const foreignKeys = database
         .prepare(`PRAGMA foreign_key_list(${quoted})`)

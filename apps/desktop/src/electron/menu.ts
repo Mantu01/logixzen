@@ -63,7 +63,7 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
         },
         {
           label: "Databases",
-          accelerator: "CmdOrCtrl+D",
+          accelerator: "CmdOrCtrl+Shift+D",
           click: () => navigate("/databases"),
         },
         {

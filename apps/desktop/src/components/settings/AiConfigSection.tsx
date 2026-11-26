@@ -23,6 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type AiProvider = "openai" | "anthropic" | "openrouter" | "custom";
 
@@ -149,20 +154,27 @@ export function AiConfigSection(): React.ReactElement {
                 placeholder={apiKey ? "••••••••••••" : "sk-..."}
                 className="pr-9 font-mono text-[12px]"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={showKey ? "Hide API key" : "Show API key"}
-                onClick={() => setShowKey((value) => !value)}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-              >
-                {showKey ? (
-                  <EyeOff className="size-3" />
-                ) : (
-                  <Eye className="size-3" />
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={showKey ? "Hide API key" : "Show API key"}
+                    onClick={() => setShowKey((value) => !value)}
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                  >
+                    {showKey ? (
+                      <EyeOff className="size-3" />
+                    ) : (
+                      <Eye className="size-3" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {showKey ? "Hide API key" : "Show API key"}
+                </TooltipContent>
+              </Tooltip>
             </div>
             <Button
               onClick={() => void handleSaveApiKey()}

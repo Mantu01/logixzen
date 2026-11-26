@@ -11,6 +11,7 @@ module.exports = {
         allowSyntheticDefaultImports: true,
         strict: true,
         skipLibCheck: true,
+        types: ['jest', 'node'],
       },
     }],
   },

@@ -11,9 +11,13 @@ import {
   splitSqlStatements,
 } from "@/shared/sql";
 import { usePackStore } from "@/stores/usePackStore";
-import { tablesToDatasetTables, slugify } from "@/lib/dataset-from-sql";
-type ConnectionState =
-  "connecting" | "ready" | "failed" | "needs-repair";
+import {
+  isDatasetForEngine,
+  slugify,
+  tablesToDatasetTables,
+} from "@/lib/dataset-from-sql";
+
+type ConnectionState = "connecting" | "ready" | "failed" | "needs-repair";
 
 interface SqlStoreState {
   isInitialized: boolean;
@@ -44,6 +48,7 @@ interface SqlStoreActions {
 }
 
 const BRIDGE_ERROR = "Desktop bridge unavailable. Run the Electron app.";
+const SYSTEM_DATABASES = new Set(["postgres", "master", "tempdb", "model", "msdb"]);
 
 export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
   (set, get) => ({
@@ -94,7 +99,10 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
           connectionStatus: "failed",
           engineInstalled: false,
           isInitialized: false,
-          error: "No database engine is currently installed. Visit Setup to install an engine.",
+          activeDatasetId: null,
+          schema: [],
+          error:
+            "No database engine is currently installed. Visit Setup to install an engine.",
         });
         return;
       }
@@ -103,22 +111,34 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
       const engineName = entry?.displayName ?? optionId;
       const dialect = entry?.dialect ?? "sqlite";
 
+      const prevDatasetId = get().activeDatasetId;
+      const prevDataset = prevDatasetId
+        ? usePackStore.getState().databases.find((d) => d.id === prevDatasetId)
+        : undefined;
+      const nextDatasetId =
+        prevDataset && isDatasetForEngine(prevDataset, optionId)
+          ? prevDataset.id
+          : null;
+
       set({
         activeOptionId: optionId,
         activeEngineName: engineName,
         activeDialect: dialect,
         engineInstalled: true,
-        activeDatasetId: get().activeDatasetId,
+        activeDatasetId: nextDatasetId,
       });
 
       try {
         const tables = await bridge.getSchema();
+        const activeName = await bridge.active();
         set({
           schema: tables,
           isInitialized: true,
           connectionStatus: "ready",
           error: null,
         });
+        await reconcileDatabases();
+        syncActiveDataset(activeName, optionId);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         set({
@@ -139,6 +159,13 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
         usePackStore
           .getState()
           .databases.find((item) => item.id === datasetId) ?? null;
+      const activeOptionId = get().activeOptionId;
+      if (dataset && !isDatasetForEngine(dataset, activeOptionId)) {
+        set({
+          error: `Database "${dataset.name}" belongs to ${dataset.engineId}. Switch engine before activating it.`,
+        });
+        return;
+      }
       set({
         isLoading: true,
         error: null,
@@ -163,14 +190,18 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
     },
 
     getActiveDataset: () => {
-      const { activeDatasetId } = get();
+      const { activeDatasetId, activeOptionId } = get();
       const databases = usePackStore.getState().databases;
-      return databases.find((item) => item.id === activeDatasetId) ?? null;
+      const dataset = databases.find((item) => item.id === activeDatasetId);
+      if (!dataset || !isDatasetForEngine(dataset, activeOptionId)) {
+        return null;
+      }
+      return dataset;
     },
 
     execute: async (sql) => {
       const prepared = await prepareDatabases(sql);
-      if (prepared === null) return;
+      if (!prepared) return;
       const outcome = await runSql(sql);
       if (outcome === null) return;
       await reconcileDatabases();
@@ -218,8 +249,7 @@ async function runSql(sql: string): Promise<{ results: SqlResult[] } | null> {
       error: failed?.error ?? null,
     });
     const active = await bridge.active();
-    syncActiveDataset(active);
-    await useSqlStore.getState().refreshSchema();
+    syncActiveDataset(active, useSqlStore.getState().activeOptionId);
     return { results };
   } catch (error: unknown) {
     useSqlStore.setState({
@@ -259,9 +289,7 @@ async function prepareDatabases(sql: string): Promise<boolean> {
     useSqlStore.setState({ error: BRIDGE_ERROR });
     return false;
   }
-  if (useSqlStore.getState().activeOptionId !== "sqlite") {
-    return true;
-  }
+  const activeOptionId = useSqlStore.getState().activeOptionId;
   const targets = collectDatabaseTargets(sql);
   if (targets.length === 0) return true;
 
@@ -276,7 +304,10 @@ async function prepareDatabases(sql: string): Promise<boolean> {
     const key = name.toLowerCase();
     if (loaded.has(key)) continue;
     const dataset = store.databases.find(
-      (item) => item.name.toLowerCase() === key,
+      (item) =>
+        isDatasetForEngine(item, activeOptionId) &&
+        item.name.toLowerCase() === key &&
+        item.setupSql.trim().length > 0,
     );
     if (dataset === undefined) continue;
     await bridge.initialize(dataset.setupSql, dataset.name);
@@ -291,7 +322,9 @@ async function prepareDatabases(sql: string): Promise<boolean> {
       const dataset = usePackStore
         .getState()
         .databases.find(
-          (item) => item.name.toLowerCase() === active.toLowerCase(),
+          (item) =>
+            isDatasetForEngine(item, activeOptionId) &&
+            item.name.toLowerCase() === active.toLowerCase(),
         );
       if (dataset !== undefined) {
         useSqlStore.setState({ activeDatasetId: dataset.id });
@@ -304,44 +337,62 @@ async function prepareDatabases(sql: string): Promise<boolean> {
 async function reconcileDatabases(): Promise<void> {
   const bridge = window.logixzen?.database;
   if (bridge === undefined) return;
-  if (useSqlStore.getState().activeOptionId !== "sqlite") {
-    await useSqlStore.getState().refreshSchema();
-    return;
-  }
-  const loaded = new Set(
-    (await bridge.list()).map((name) => name.toLowerCase()),
-  );
+  const { activeOptionId, activeEngineName, activeDialect } =
+    useSqlStore.getState();
+  const loadedNames = await bridge.list();
+  const loaded = new Set(loadedNames.map((name) => name.toLowerCase()));
   const store = usePackStore.getState();
 
-  for (const name of loaded) {
-    if (store.databases.some((item) => item.name.toLowerCase() === name))
-      continue;
-    const label = name.charAt(0).toUpperCase() + name.slice(1);
+  for (const rawName of loadedNames) {
+    const lower = rawName.toLowerCase();
+    if (SYSTEM_DATABASES.has(lower)) continue;
+    const existsForEngine = store.databases.some(
+      (item) =>
+        item.name.toLowerCase() === lower &&
+        (item.engineId === activeOptionId || !item.engineId),
+    );
+    if (existsForEngine) continue;
+    const label = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     store.addDataset({
-      id: slugify(name),
+      id: `${activeOptionId}-${slugify(rawName)}`,
       name: label,
-      description: "Created from a query.",
+      description: `Database on ${activeEngineName}.`,
       setupSql: "",
       tables: [],
+      engineId: activeOptionId,
+      dialect: activeDialect,
     });
   }
 
   for (const dataset of store.databases) {
+    if (dataset.engineId !== activeOptionId) continue;
     if (dataset.setupSql.trim().length > 0) continue;
     if (!loaded.has(dataset.name.toLowerCase())) {
       store.removeDataset(dataset.id);
     }
   }
 
+  const activeName = await bridge.active();
+  syncActiveDataset(activeName, activeOptionId);
   await useSqlStore.getState().refreshSchema();
 }
 
-function syncActiveDataset(activeName: string | null): void {
+function syncActiveDataset(
+  activeName: string | null,
+  activeOptionId: EngineOptionId,
+): void {
   if (activeName === null) return;
-  const dataset = usePackStore
-    .getState()
-    .databases.find(
-      (item) => item.name.toLowerCase() === activeName.toLowerCase(),
+  const databases = usePackStore.getState().databases;
+  const dataset =
+    databases.find(
+      (item) =>
+        item.engineId === activeOptionId &&
+        item.name.toLowerCase() === activeName.toLowerCase(),
+    ) ??
+    databases.find(
+      (item) =>
+        !item.engineId &&
+        item.name.toLowerCase() === activeName.toLowerCase(),
     );
   if (
     dataset === undefined ||
@@ -354,8 +405,9 @@ function syncActiveDataset(activeName: string | null): void {
 
 function syncDatasetTables(datasetId: string, tables: TableInfo[]): void {
   const pack = usePackStore.getState();
+  const activeOptionId = useSqlStore.getState().activeOptionId;
   const dataset = pack.databases.find((item) => item.id === datasetId);
-  if (!dataset) return;
+  if (!dataset || !isDatasetForEngine(dataset, activeOptionId)) return;
   if (dataset.setupSql.trim().length > 0 && dataset.tables.length > 0) return;
   pack.addDataset({
     ...dataset,

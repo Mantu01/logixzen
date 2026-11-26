@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import type { EngineOffer, PlatformSnapshot } from "@/shared/engines";
+import {
+  FEATURE_FLAGS,
+  type EngineOffer,
+  type PlatformSnapshot,
+} from "@/shared/engines";
 import { platformOf } from "@/shared/engine-catalog";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/app-shell/panel";
@@ -19,7 +23,10 @@ export function AvailableEnginesSection({
   availableOffers,
   snapshot,
 }: AvailableEnginesSectionProps): React.ReactElement | null {
-  if (availableOffers.length === 0) return null;
+  const visibleOffers = availableOffers.filter(
+    (offer) => FEATURE_FLAGS.docker || offer.entry.method !== "container",
+  );
+  if (visibleOffers.length === 0) return null;
 
   const platform = snapshot ? platformOf(snapshot) : null;
 
@@ -37,7 +44,7 @@ export function AvailableEnginesSection({
       }
     >
       <ul className="divide-y divide-border">
-        {availableOffers.map(({ entry }) => {
+        {visibleOffers.map(({ entry }) => {
           const size =
             (platform ? entry.sizes[platform] : undefined) ??
             Object.values(entry.sizes)[0] ??
@@ -72,7 +79,7 @@ export function AvailableEnginesSection({
                 size="sm"
                 className="h-7 border-border px-2 text-[11px]"
               >
-                <Link href={`/setup?preselect=${entry.id}`}>Install</Link>
+                <Link href={`/setup?engine=${entry.id}`}>Install</Link>
               </Button>
             </li>
           );

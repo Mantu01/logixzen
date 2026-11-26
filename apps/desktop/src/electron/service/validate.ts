@@ -45,7 +45,6 @@ const VALID_LIFECYCLE_ACTIONS: ReadonlySet<ContainerLifecycleAction> = new Set([
 const VALID_DOC_TOPICS: ReadonlySet<DocsTopicId> = new Set([
   "docker-install-windows",
   "docker-install-macos",
-  "docker-install-linux",
   "sql-server-express",
   "sql-server-localdb",
   "sqlite",

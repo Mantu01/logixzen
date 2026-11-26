@@ -17,12 +17,17 @@ import type {
   QuestionsPack,
 } from "@/lib/packs/types";
 import {
+  DEFAULT_WORKSPACE,
+  DEFAULT_WORKSPACE_ID,
   ZERO_COUNTS,
   categorySlug,
+  workspaceSlug,
   type CategoryAssignments,
   type InstallCounts,
   type QuestionCategory,
+  type Workspace,
 } from "@/lib/categories";
+import type { SubjectId } from "@/lib/subjects";
 
 export interface InstallOutcome {
   ok: boolean;
@@ -38,22 +43,32 @@ interface ContentBundle {
 }
 
 type PersistedKey =
+  | "workspaces"
+  | "activeWorkspaceId"
   | "databases"
   | "questions"
   | "topics"
   | "notes"
   | "categories"
+  | "noteCategories"
   | "questionCategory"
+  | "questionWorkspace"
+  | "noteWorkspace"
   | "installedResources";
 
 interface PackState {
   hydrated: boolean;
+  workspaces: Workspace[];
+  activeWorkspaceId: string;
   databases: Dataset[];
   questions: Question[];
   topics: Topic[];
   notes: Note[];
   categories: QuestionCategory[];
+  noteCategories: QuestionCategory[];
   questionCategory: CategoryAssignments;
+  questionWorkspace: Record<string, string>;
+  noteWorkspace: Record<string, string>;
   installedResources: string[];
 
   importFile: (text: string) => InstallOutcome;
@@ -61,33 +76,84 @@ interface PackState {
   addDataset: (dataset: Dataset) => void;
   removeDataset: (datasetId: string) => void;
   markResourceInstalled: (resourceId: string) => void;
-  createCategory: (name: string) => string | null;
+
+  createWorkspace: (
+    name: string,
+    subjectId?: SubjectId,
+    description?: string,
+  ) => Workspace | null;
+  renameWorkspace: (workspaceId: string, name: string, description?: string) => void;
+  removeWorkspace: (workspaceId: string) => void;
+  setActiveWorkspace: (workspaceId: string) => void;
+
+  createCategory: (name: string, workspaceId?: string) => string | null;
   renameCategory: (categoryId: string, name: string) => void;
+  reorderCategory: (categoryId: string, direction: "up" | "down") => void;
   removeCategory: (categoryId: string) => void;
   setQuestionCategory: (questionId: string, categoryId: string | null) => void;
   setQuestionCategories: (
     questionIds: string[],
     categoryId: string | null,
   ) => void;
-  addQuestion: (question: Question, categoryId?: string | null) => void;
+  setQuestionWorkspace: (questionId: string, workspaceId: string) => void;
+  addQuestion: (
+    question: Question,
+    categoryId?: string | null,
+    workspaceId?: string,
+  ) => void;
   removeQuestion: (questionId: string) => void;
+
+  createNoteCategory: (name: string, workspaceId?: string) => string | null;
+  renameNoteCategory: (
+    oldName: string,
+    newName: string,
+    workspaceId?: string,
+  ) => void;
+  reorderNoteCategory: (categoryId: string, direction: "up" | "down") => void;
+  removeNoteCategory: (name: string, workspaceId?: string) => void;
   setNoteCategory: (noteId: string, category: string) => void;
-  addNote: (note: Note) => void;
+  setNoteWorkspace: (noteId: string, workspaceId: string) => void;
+  addNote: (note: Note, workspaceId?: string) => void;
+  updateNote: (note: Note) => void;
   removeNote: (noteId: string) => void;
   resetAll: () => void;
 }
 
 const EMPTY: Pick<PackState, PersistedKey> = {
+  workspaces: [DEFAULT_WORKSPACE],
+  activeWorkspaceId: DEFAULT_WORKSPACE_ID,
   databases: [],
   questions: [],
   topics: [],
   notes: [],
   categories: [],
+  noteCategories: [],
   questionCategory: {},
+  questionWorkspace: {},
+  noteWorkspace: {},
   installedResources: [],
 };
 
 const MAX_ISSUES = 25;
+
+function moveItemOrder(
+  items: QuestionCategory[],
+  categoryId: string,
+  direction: "up" | "down",
+): QuestionCategory[] {
+  const ordered = [...items].sort(
+    (a, b) => a.order - b.order || a.name.localeCompare(b.name),
+  );
+  const index = ordered.findIndex((item) => item.id === categoryId);
+  if (index === -1) return items;
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (swapIndex < 0 || swapIndex >= ordered.length) return items;
+  const target = ordered[index];
+  const partner = ordered[swapIndex];
+  ordered[index] = partner;
+  ordered[swapIndex] = target;
+  return ordered.map((item, idx) => ({ ...item, order: idx }));
+}
 
 export const usePackStore = create<PackState>()(
   persist(
@@ -120,11 +186,44 @@ export const usePackStore = create<PackState>()(
         if (issues.length > 0) {
           return { ok: false, issues, counts: ZERO_COUNTS };
         }
+        const activeWorkspaceId = state.activeWorkspaceId || DEFAULT_WORKSPACE_ID;
         const questions = content.questions ?? [];
+        const notes = content.notes ?? [];
         const topics = deriveTopics(
           content.topics ? mergeById(state.topics, content.topics) : state.topics,
           questions,
         );
+        const nextQuestionWorkspace = { ...state.questionWorkspace };
+        for (const q of questions) {
+          if (!nextQuestionWorkspace[q.id]) {
+            nextQuestionWorkspace[q.id] = activeWorkspaceId;
+          }
+        }
+        const nextNoteWorkspace = { ...state.noteWorkspace };
+        const existingNoteCatNames = new Set(
+          state.noteCategories
+            .filter(
+              (c) => (c.workspaceId ?? DEFAULT_WORKSPACE_ID) === activeWorkspaceId,
+            )
+            .map((c) => c.name.toLowerCase()),
+        );
+        const addedNoteCats: QuestionCategory[] = [];
+        for (const n of notes) {
+          if (!nextNoteWorkspace[n.id]) {
+            nextNoteWorkspace[n.id] = activeWorkspaceId;
+          }
+          const catName = n.category.trim();
+          if (catName && !existingNoteCatNames.has(catName.toLowerCase())) {
+            existingNoteCatNames.add(catName.toLowerCase());
+            addedNoteCats.push({
+              id: `${activeWorkspaceId}-${categorySlug(catName)}`,
+              name: catName,
+              order: state.noteCategories.length + addedNoteCats.length,
+              workspaceId: activeWorkspaceId,
+            });
+          }
+        }
+
         set({
           databases: content.databases
             ? mergeById(state.databases, content.databases)
@@ -133,9 +232,13 @@ export const usePackStore = create<PackState>()(
             ? mergeById(state.questions, questions)
             : state.questions,
           topics,
-          notes: content.notes
-            ? mergeById(state.notes, content.notes)
-            : state.notes,
+          notes: notes.length ? mergeById(state.notes, notes) : state.notes,
+          noteCategories:
+            addedNoteCats.length > 0
+              ? [...state.noteCategories, ...addedNoteCats]
+              : state.noteCategories,
+          questionWorkspace: nextQuestionWorkspace,
+          noteWorkspace: nextNoteWorkspace,
         });
         return { ok: true, issues: [], counts: countsOf(content) };
       },
@@ -155,9 +258,89 @@ export const usePackStore = create<PackState>()(
             : { installedResources: [...state.installedResources, resourceId] },
         ),
 
-      createCategory: (name) => {
+      createWorkspace: (name, subjectId = "sql", description) => {
         const trimmed = name.trim();
         if (trimmed.length === 0) return null;
+        const workspaces = get().workspaces;
+        let id = workspaceSlug(trimmed);
+        if (workspaces.some((workspace) => workspace.id === id)) {
+          id = `${id}-${workspaces.length + 1}`;
+        }
+        const workspace: Workspace = {
+          id,
+          name: trimmed,
+          subjectId,
+          description: description?.trim() || undefined,
+          createdAt: new Date().toISOString(),
+          order: workspaces.length,
+        };
+        set({
+          workspaces: [...workspaces, workspace],
+          activeWorkspaceId: workspace.id,
+        });
+        return workspace;
+      },
+
+      renameWorkspace: (workspaceId, name, description) =>
+        set((state) => ({
+          workspaces: state.workspaces.map((workspace) =>
+            workspace.id === workspaceId && name.trim().length > 0
+              ? {
+                  ...workspace,
+                  name: name.trim(),
+                  description:
+                    description !== undefined
+                      ? description.trim() || undefined
+                      : workspace.description,
+                }
+              : workspace,
+          ),
+        })),
+
+      removeWorkspace: (workspaceId) =>
+        set((state) => {
+          if (state.workspaces.length <= 1 || workspaceId === DEFAULT_WORKSPACE_ID) {
+            return state;
+          }
+          const remaining = state.workspaces.filter((w) => w.id !== workspaceId);
+          const fallbackId = remaining[0]?.id ?? DEFAULT_WORKSPACE_ID;
+          const nextQuestionWorkspace = { ...state.questionWorkspace };
+          for (const [qId, wId] of Object.entries(nextQuestionWorkspace)) {
+            if (wId === workspaceId) nextQuestionWorkspace[qId] = fallbackId;
+          }
+          const nextNoteWorkspace = { ...state.noteWorkspace };
+          for (const [nId, wId] of Object.entries(nextNoteWorkspace)) {
+            if (wId === workspaceId) nextNoteWorkspace[nId] = fallbackId;
+          }
+          return {
+            workspaces: remaining,
+            activeWorkspaceId:
+              state.activeWorkspaceId === workspaceId
+                ? fallbackId
+                : state.activeWorkspaceId,
+            categories: state.categories.filter(
+              (c) => (c.workspaceId ?? DEFAULT_WORKSPACE_ID) !== workspaceId,
+            ),
+            noteCategories: state.noteCategories.filter(
+              (c) => (c.workspaceId ?? DEFAULT_WORKSPACE_ID) !== workspaceId,
+            ),
+            questionWorkspace: nextQuestionWorkspace,
+            noteWorkspace: nextNoteWorkspace,
+          };
+        }),
+
+      setActiveWorkspace: (workspaceId) =>
+        set((state) =>
+          state.workspaces.some((w) => w.id === workspaceId)
+            ? { activeWorkspaceId: workspaceId }
+            : state,
+        ),
+
+      createCategory: (name, workspaceId) => {
+        const trimmed = name.trim();
+        if (trimmed.length === 0) return null;
+        const targetWorkspaceId =
+          workspaceId ?? (get().activeWorkspaceId || DEFAULT_WORKSPACE_ID);
         const categories = get().categories;
         let id = categorySlug(trimmed);
         if (categories.some((category) => category.id === id)) {
@@ -166,7 +349,12 @@ export const usePackStore = create<PackState>()(
         set({
           categories: [
             ...categories,
-            { id, name: trimmed, order: categories.length },
+            {
+              id,
+              name: trimmed,
+              order: categories.length,
+              workspaceId: targetWorkspaceId,
+            },
           ],
         });
         return id;
@@ -179,6 +367,11 @@ export const usePackStore = create<PackState>()(
               ? { ...category, name: name.trim() }
               : category,
           ),
+        })),
+
+      reorderCategory: (categoryId, direction) =>
+        set((state) => ({
+          categories: moveItemOrder(state.categories, categoryId, direction),
         })),
 
       removeCategory: (categoryId) =>
@@ -206,14 +399,28 @@ export const usePackStore = create<PackState>()(
           return { questionCategory: next };
         }),
 
-      addQuestion: (question, categoryId) =>
+      setQuestionWorkspace: (questionId, workspaceId) =>
+        set((state) => ({
+          questionWorkspace: {
+            ...state.questionWorkspace,
+            [questionId]: workspaceId,
+          },
+        })),
+
+      addQuestion: (question, categoryId, workspaceId) =>
         set((state) => {
           const nextQuestions = mergeById(state.questions, [question]);
           const nextCategories = { ...state.questionCategory };
           if (categoryId) nextCategories[question.id] = categoryId;
+          const targetWorkspace =
+            workspaceId ?? (state.activeWorkspaceId || DEFAULT_WORKSPACE_ID);
           return {
             questions: nextQuestions,
             questionCategory: nextCategories,
+            questionWorkspace: {
+              ...state.questionWorkspace,
+              [question.id]: targetWorkspace,
+            },
           };
         }),
 
@@ -221,9 +428,94 @@ export const usePackStore = create<PackState>()(
         set((state) => {
           const nextCategories = { ...state.questionCategory };
           delete nextCategories[questionId];
+          const nextWorkspaces = { ...state.questionWorkspace };
+          delete nextWorkspaces[questionId];
           return {
             questions: state.questions.filter((item) => item.id !== questionId),
             questionCategory: nextCategories,
+            questionWorkspace: nextWorkspaces,
+          };
+        }),
+
+      createNoteCategory: (name, workspaceId) => {
+        const trimmed = name.trim();
+        if (trimmed.length === 0) return null;
+        const targetWorkspaceId =
+          workspaceId ?? (get().activeWorkspaceId || DEFAULT_WORKSPACE_ID);
+        const existing = get().noteCategories;
+        const dup = existing.find(
+          (c) =>
+            (c.workspaceId ?? DEFAULT_WORKSPACE_ID) === targetWorkspaceId &&
+            c.name.toLowerCase() === trimmed.toLowerCase(),
+        );
+        if (dup) return dup.id;
+        let id = `${targetWorkspaceId}-${categorySlug(trimmed)}`;
+        if (existing.some((c) => c.id === id)) {
+          id = `${id}-${existing.length + 1}`;
+        }
+        set({
+          noteCategories: [
+            ...existing,
+            {
+              id,
+              name: trimmed,
+              order: existing.length,
+              workspaceId: targetWorkspaceId,
+            },
+          ],
+        });
+        return id;
+      },
+
+      renameNoteCategory: (oldName, newName, workspaceId) =>
+        set((state) => {
+          const trimmed = newName.trim();
+          if (!trimmed) return state;
+          const targetWorkspaceId =
+            workspaceId ?? (state.activeWorkspaceId || DEFAULT_WORKSPACE_ID);
+          return {
+            noteCategories: state.noteCategories.map((c) =>
+              (c.workspaceId ?? DEFAULT_WORKSPACE_ID) === targetWorkspaceId &&
+              c.name === oldName
+                ? { ...c, name: trimmed }
+                : c,
+            ),
+            notes: state.notes.map((n) =>
+              (state.noteWorkspace[n.id] ?? DEFAULT_WORKSPACE_ID) ===
+                targetWorkspaceId && n.category === oldName
+                ? { ...n, category: trimmed }
+                : n,
+            ),
+          };
+        }),
+
+      reorderNoteCategory: (categoryId, direction) =>
+        set((state) => ({
+          noteCategories: moveItemOrder(
+            state.noteCategories,
+            categoryId,
+            direction,
+          ),
+        })),
+
+      removeNoteCategory: (name, workspaceId) =>
+        set((state) => {
+          const targetWorkspaceId =
+            workspaceId ?? (state.activeWorkspaceId || DEFAULT_WORKSPACE_ID);
+          return {
+            noteCategories: state.noteCategories.filter(
+              (c) =>
+                !(
+                  (c.workspaceId ?? DEFAULT_WORKSPACE_ID) === targetWorkspaceId &&
+                  c.name === name
+                ),
+            ),
+            notes: state.notes.map((n) =>
+              (state.noteWorkspace[n.id] ?? DEFAULT_WORKSPACE_ID) ===
+                targetWorkspaceId && n.category === name
+                ? { ...n, category: "General" }
+                : n,
+            ),
           };
         }),
 
@@ -234,29 +526,118 @@ export const usePackStore = create<PackState>()(
           ),
         })),
 
-      addNote: (note) =>
+      setNoteWorkspace: (noteId, workspaceId) =>
         set((state) => ({
-          notes: mergeById(state.notes, [note]),
+          noteWorkspace: {
+            ...state.noteWorkspace,
+            [noteId]: workspaceId,
+          },
+        })),
+
+      addNote: (note, workspaceId) =>
+        set((state) => {
+          const targetWorkspace =
+            workspaceId ?? (state.activeWorkspaceId || DEFAULT_WORKSPACE_ID);
+          const trimmedCat = note.category.trim() || "General";
+          const hasCat = state.noteCategories.some(
+            (c) =>
+              (c.workspaceId ?? DEFAULT_WORKSPACE_ID) === targetWorkspace &&
+              c.name.toLowerCase() === trimmedCat.toLowerCase(),
+          );
+          const nextCats = hasCat
+            ? state.noteCategories
+            : [
+                ...state.noteCategories,
+                {
+                  id: `${targetWorkspace}-${categorySlug(trimmedCat)}-${state.noteCategories.length + 1}`,
+                  name: trimmedCat,
+                  order: state.noteCategories.length,
+                  workspaceId: targetWorkspace,
+                },
+              ];
+          return {
+            notes: mergeById(state.notes, [{ ...note, category: trimmedCat }]),
+            noteCategories: nextCats,
+            noteWorkspace: {
+              ...state.noteWorkspace,
+              [note.id]: targetWorkspace,
+            },
+          };
+        }),
+
+      updateNote: (note) =>
+        set((state) => ({
+          notes: state.notes.map((existing) =>
+            existing.id === note.id ? note : existing,
+          ),
         })),
 
       removeNote: (noteId) =>
-        set((state) => ({
-          notes: state.notes.filter((item) => item.id !== noteId),
-        })),
+        set((state) => {
+          const nextWorkspaces = { ...state.noteWorkspace };
+          delete nextWorkspaces[noteId];
+          return {
+            notes: state.notes.filter((item) => item.id !== noteId),
+            noteWorkspace: nextWorkspaces,
+          };
+        }),
 
       resetAll: () => set({ ...EMPTY }),
     }),
     {
       name: "logixzen-packs",
-      version: 1,
+      version: 2,
+      migrate: (persisted) => {
+        if (!persisted || typeof persisted !== "object") {
+          return { ...EMPTY };
+        }
+        const record = persisted as Record<string, unknown>;
+        const workspaces = Array.isArray(record.workspaces) && record.workspaces.length > 0
+          ? (record.workspaces as Workspace[])
+          : [DEFAULT_WORKSPACE];
+        const activeWorkspaceId =
+          typeof record.activeWorkspaceId === "string" && record.activeWorkspaceId.length > 0
+            ? record.activeWorkspaceId
+            : DEFAULT_WORKSPACE_ID;
+        const rawNotes = Array.isArray(record.notes) ? (record.notes as Note[]) : [];
+        const existingNoteCats = Array.isArray(record.noteCategories)
+          ? (record.noteCategories as QuestionCategory[])
+          : [];
+        const derivedNoteCats = [...existingNoteCats];
+        const seen = new Set(derivedNoteCats.map((c) => c.name.toLowerCase()));
+        for (const note of rawNotes) {
+          const cat = note.category?.trim();
+          if (cat && !seen.has(cat.toLowerCase())) {
+            seen.add(cat.toLowerCase());
+            derivedNoteCats.push({
+              id: `${DEFAULT_WORKSPACE_ID}-${categorySlug(cat)}`,
+              name: cat,
+              order: derivedNoteCats.length,
+              workspaceId: DEFAULT_WORKSPACE_ID,
+            });
+          }
+        }
+        return {
+          ...EMPTY,
+          ...record,
+          workspaces,
+          activeWorkspaceId,
+          noteCategories: derivedNoteCats,
+        };
+      },
       storage: createJSONStorage(() => nativeStorage),
       partialize: (state) => ({
+        workspaces: state.workspaces,
+        activeWorkspaceId: state.activeWorkspaceId,
         databases: state.databases,
         questions: state.questions,
         topics: state.topics,
         notes: state.notes,
         categories: state.categories,
+        noteCategories: state.noteCategories,
         questionCategory: state.questionCategory,
+        questionWorkspace: state.questionWorkspace,
+        noteWorkspace: state.noteWorkspace,
         installedResources: state.installedResources,
       }),
       onRehydrateStorage: () => (state) => {

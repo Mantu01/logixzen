@@ -4,8 +4,13 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusDot } from "@/components/ui/status-chip";
-import type { PlatformSnapshot } from "@/shared/engines";
+import { FEATURE_FLAGS, type PlatformSnapshot } from "@/shared/engines";
 import { formatBytes } from "@/shared/format";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface EnvironmentSummaryProps {
@@ -17,7 +22,6 @@ interface EnvironmentSummaryProps {
 const OS_NAMES: Record<string, string> = {
   windows: "Windows",
   macos: "macOS",
-  linux: "Linux",
 };
 
 export function EnvironmentSummary({
@@ -67,28 +71,53 @@ export function EnvironmentSummary({
               : "Unknown"
           }
         />
-        <div className="flex items-center gap-1.5 px-2.5">
-          <StatusDot
-            tone={dockerState === "ready" ? "success" : "neutral"}
-          />
-          <span className="text-muted-dim">Docker</span>
-          <span className="font-mono text-foreground">{dockerState}</span>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-1.5 px-2.5">
+              <StatusDot
+                tone={
+                  FEATURE_FLAGS.docker && dockerState === "ready"
+                    ? "success"
+                    : "neutral"
+                }
+              />
+              <span className="text-muted-dim">Docker</span>
+              <span className="font-mono text-foreground">
+                {FEATURE_FLAGS.docker ? dockerState : "Coming Soon"}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {FEATURE_FLAGS.docker
+              ? `Container runtime status: ${dockerState}`
+              : "Docker-based database sandboxes are coming in a future update"}
+          </TooltipContent>
+        </Tooltip>
       </dl>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => void handleRefresh()}
-        disabled={loading || refreshing}
-        className="h-6 gap-1.5 px-1.5 text-[10.5px] text-muted-dim hover:text-foreground"
-      >
-        <RefreshCw
-          className={cn("size-3", (loading || refreshing) && "animate-spin")}
-        />
-        Re-check
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void handleRefresh()}
+            disabled={loading || refreshing}
+            className="h-6 gap-1.5 px-1.5 text-[10.5px] text-muted-dim hover:text-foreground"
+          >
+            <RefreshCw
+              className={cn(
+                "size-3",
+                (loading || refreshing) && "animate-spin",
+              )}
+            />
+            Re-check
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          Refresh detected host OS, memory, disk space, and runtime status
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

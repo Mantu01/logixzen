@@ -113,6 +113,7 @@ function splitStandardStatements(
   let inSingleQuote = false;
   let inDoubleQuote = false;
   let inBacktick = false;
+  let inBrackets = false;
   let inLineComment = false;
   let inBlockComment = false;
   let dollarTag: string | null = null;
@@ -196,6 +197,20 @@ function splitStandardStatements(
       continue;
     }
 
+    if (inBrackets) {
+      current += char;
+      if (char === "]" && next === "]") {
+        current += "]";
+        i += 2;
+        continue;
+      }
+      if (char === "]") {
+        inBrackets = false;
+      }
+      i += 1;
+      continue;
+    }
+
     if (char === "-" && next === "-") {
       inLineComment = true;
       current += "--";
@@ -236,6 +251,13 @@ function splitStandardStatements(
 
     if (char === "`") {
       inBacktick = true;
+      current += char;
+      i += 1;
+      continue;
+    }
+
+    if (dialect === "tsql" && char === "[") {
+      inBrackets = true;
       current += char;
       i += 1;
       continue;

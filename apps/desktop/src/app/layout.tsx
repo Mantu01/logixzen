@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeApplier } from "@/components/theme-applier";
 import { TitleBar } from "@/components/title-bar";
-import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { StatusBar } from "@/components/app-shell/status-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MenuNavigation } from "@/components/menu-navigation";
@@ -28,10 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SetupGate />
         <TooltipProvider delayDuration={200}>
           <TitleBar />
-          <div className="flex min-h-0 flex-1">
-            <AppSidebar />
-            <main className="min-w-0 flex-1 overflow-hidden">{children}</main>
-          </div>
+          <div className="flex min-h-0 flex-1">{children}</div>
           <StatusBar />
         </TooltipProvider>
       </body>

@@ -17,13 +17,13 @@
   --secondary: #eceef2;
   --secondary-foreground: #1a1e27;
   --muted: #eff1f4;
-  --muted-foreground: #5c6470;
+  --muted-foreground: #505866;
   --accent: #e8ebef;
   --accent-foreground: #12151c;
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --border: #dcdfe5;
-  --input: #c9cdd6;
+  --border: #d0d5dd;
+  --input: #bcc3cf;
   --ring: #0e7490;
 
   --surface: #ffffff;
@@ -67,13 +67,13 @@
   --secondary: #161b22;
   --secondary-foreground: #dfe3e9;
   --muted: #12161d;
-  --muted-foreground: #8d95a3;
+  --muted-foreground: #96a0b0;
   --accent: #171d26;
   --accent-foreground: #e7eaef;
   --destructive: #f2777a;
   --destructive-foreground: #1a0a0b;
-  --border: #1e242e;
-  --input: #262d38;
+  --border: #252c38;
+  --input: #2c3543;
   --ring: #2dd4bf;
 
   --surface: #0d1015;
@@ -166,9 +166,15 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes edge-flow {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
 @layer base {
   * {
     border-color: var(--border);
+    border-radius: 0 !important;
     min-width: 0;
   }
 
@@ -237,7 +243,7 @@
   }
 
   .text-muted-dim {
-    color: color-mix(in oklab, var(--muted-foreground) 72%, transparent);
+    color: color-mix(in oklab, var(--muted-foreground) 84%, transparent);
   }
 
   .app-drag {
@@ -289,6 +295,30 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.react-flow__controls,
+.react-flow__controls-button,
+.react-flow__panel,
+.react-flow__minimap {
+  border-radius: 0 !important;
+}
+
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  background: var(--surface) !important;
+}
+
+.react-flow__controls-button {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  fill: var(--foreground) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--surface-hover) !important;
 }
 
 .react-flow__minimap-svg {

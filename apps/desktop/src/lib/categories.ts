@@ -1,10 +1,33 @@
+import type { SubjectId } from "@/lib/subjects";
+
+export interface Workspace {
+  id: string;
+  name: string;
+  subjectId: SubjectId;
+  description?: string;
+  createdAt: string;
+  order: number;
+}
+
 export interface QuestionCategory {
   id: string;
   name: string;
   order: number;
+  workspaceId?: string;
 }
 
 export type CategoryAssignments = Record<string, string>;
+
+export const DEFAULT_WORKSPACE_ID = "sql-default";
+
+export const DEFAULT_WORKSPACE: Workspace = {
+  id: DEFAULT_WORKSPACE_ID,
+  name: "SQL Practice",
+  subjectId: "sql",
+  description: "Default workspace for SQL databases, questions, and study notes",
+  createdAt: "2026-01-01T00:00:00.000Z",
+  order: 0,
+};
 
 export const UNCATEGORIZED = "uncategorised";
 
@@ -29,11 +52,31 @@ export function categorySlug(name: string): string {
   );
 }
 
+export function workspaceSlug(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "workspace"
+  );
+}
+
 function sortedCategories(
   categories: QuestionCategory[],
 ): QuestionCategory[] {
   return [...categories].sort(
     (a, b) => a.order - b.order || a.name.localeCompare(b.name),
+  );
+}
+
+export function workspaceCategories(
+  categories: QuestionCategory[],
+  workspaceId: string,
+): QuestionCategory[] {
+  return sortedCategories(
+    categories.filter(
+      (category) => (category.workspaceId ?? DEFAULT_WORKSPACE_ID) === workspaceId,
+    ),
   );
 }
 

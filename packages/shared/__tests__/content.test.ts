@@ -1,5 +1,5 @@
-import { describe, expect, it } from '@jest/globals'
 import { DatasetSchema, TopicSchema, QuestionSchema } from '../src/content/schemas'
+import type { Dataset, Question, Topic } from '../src/content/schemas'
 import { checkSafety, validateConsistency } from '../src/content/validators'
 
 describe('DatasetSchema', () => {
@@ -134,90 +134,57 @@ describe('checkSafety', () => {
   })
 })
 
+function makeQueryQuestion(overrides: Partial<Extract<Question, { type: 'query' }>>): Question {
+  return {
+    id: 'q1',
+    topicId: 'select-basics',
+    type: 'query',
+    difficulty: 'easy',
+    title: 'T',
+    description: 'D',
+    datasetId: 'school',
+    hints: ['h'],
+    explanation: 'e',
+    tags: [],
+    points: 10,
+    solutionSql: 'SELECT 1;',
+    validation: {
+      mode: 'result-match',
+      columnNamesMatter: false,
+      columnOrderMatters: false,
+      orderMatters: true,
+      floatTolerance: 0.001,
+      caseSensitiveStrings: false,
+    },
+    testCases: [{ id: 'tc-1', expected: { type: 'fromSolution' }, hidden: false }],
+    ...overrides,
+  }
+}
+
 describe('validateConsistency', () => {
   it('passes when all references are valid', () => {
-    const datasets = [{ id: 'school', name: 'School', description: 'desc', setupSql: 'SELECT 1', tables: [] }]
-    const topics = [{ id: 'select-basics', title: 'Select Basics', order: 0 }]
-    const questions = [
-      {
-        id: 'q1',
-        topicId: 'select-basics',
-        type: 'query',
-        difficulty: 'easy',
-        title: 'T',
-        description: 'D',
-        datasetId: 'school',
-        hints: ['h'],
-        explanation: 'e',
-        tags: [],
-        points: 10,
-        validation: { mode: 'result-match' },
-        testCases: [{ id: 'tc-1', expected: { type: 'fromSolution' } }],
-      },
-    ]
+    const datasets: Dataset[] = [{ id: 'school', name: 'School', description: 'desc', setupSql: 'SELECT 1', tables: [] }]
+    const topics: Topic[] = [{ id: 'select-basics', title: 'Select Basics', order: 0 }]
+    const questions: Question[] = [makeQueryQuestion({})]
     const result = validateConsistency(questions, datasets, topics)
     expect(result.valid).toBe(true)
   })
 
   it('flags invalid dataset reference', () => {
-    const datasets: Array<{ id: string }> = []
-    const topics = [{ id: 't1', title: 'T', order: 0 }]
-    const questions = [
-      {
-        id: 'q1',
-        topicId: 't1',
-        type: 'query',
-        difficulty: 'easy',
-        title: 'T',
-        description: 'D',
-        datasetId: 'nonexistent',
-        hints: ['h'],
-        explanation: 'e',
-        tags: [],
-        points: 10,
-        validation: { mode: 'result-match' },
-        testCases: [{ id: 'tc-1', expected: { type: 'fromSolution' } }],
-      },
-    ]
+    const datasets: Dataset[] = []
+    const topics: Topic[] = [{ id: 't1', title: 'T', order: 0 }]
+    const questions: Question[] = [makeQueryQuestion({ topicId: 't1', datasetId: 'nonexistent' })]
     const result = validateConsistency(questions, datasets, topics)
     expect(result.valid).toBe(false)
     expect(result.errors.some((e) => e.type === 'invalid-dataset-reference')).toBe(true)
   })
 
   it('flags duplicate question IDs', () => {
-    const datasets = [{ id: 'd', name: 'D', description: 'd', setupSql: 'S', tables: [] }]
-    const topics = [{ id: 't1', title: 'T', order: 0 }]
-    const questions = [
-      {
-        id: 'dup',
-        topicId: 't1',
-        type: 'query',
-        difficulty: 'easy',
-        title: 'T',
-        description: 'D',
-        datasetId: 'd',
-        hints: ['h'],
-        explanation: 'e',
-        tags: [],
-        points: 10,
-        validation: { mode: 'result-match' },
-        testCases: [{ id: 'tc-1', expected: { type: 'fromSolution' } }],
-      },
-      {
-        id: 'dup',
-        topicId: 't1',
-        type: 'query',
-        difficulty: 'easy',
-        title: 'T',
-        description: 'D',
-        datasetId: 'd',
-        hints: ['h'],
-        explanation: 'e',
-        tags: [],
-        points: 10,
-        validation: { mode: 'result-match' },
-        testCases: [{ id: 'tc-1', expected: { type: 'fromSolution' } }],
-      },
+    const datasets: Dataset[] = [{ id: 'd', name: 'D', description: 'd', setupSql: 'S', tables: [] }]
+    const topics: Topic[] = [{ id: 't1', title: 'T', order: 0 }]
+    const questions: Question[] = [
+      makeQueryQuestion({ id: 'dup', topicId: 't1', datasetId: 'd' }),
+      makeQueryQuestion({ id: 'dup', topicId: 't1', datasetId: 'd' }),
     ]
     const result = validateConsistency(questions, datasets, topics)
     expect(result.valid).toBe(false)

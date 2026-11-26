@@ -312,9 +312,14 @@ function ImportSection(): React.ReactElement {
         setMessage(outcome.ok ? describeCounts(outcome.counts) : null);
         return;
       }
+      const sqlState = useSqlStore.getState();
       const dataset = await buildDatasetFromSql(
         dbNameFromSql(text, fileName.replace(/\.(sql|txt)$/i, "")),
         text,
+        {
+          engineId: sqlState.activeOptionId,
+          dialect: sqlState.activeDialect,
+        },
       );
       const outcome = usePackStore
         .getState()

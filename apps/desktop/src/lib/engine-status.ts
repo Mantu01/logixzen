@@ -18,7 +18,6 @@ const METHOD_LABELS: Record<InstallMethod, string> = {
   bundled: "Bundled",
   native: "Local server",
   "native-windows": "Windows service",
-  "native-linux": "Native service",
   "native-macos": "macOS service",
   container: "Container",
 };

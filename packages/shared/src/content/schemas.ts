@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 export const CURRENT_FORMAT_VERSION = 2
 
-// --- Dataset schemas ---
 
 export const ColumnMetaSchema = z.object({
   name: z.string().min(1).max(100),
@@ -26,11 +25,12 @@ export const DatasetSchema = z.object({
   description: z.string().min(1).max(1000),
   setupSql: z.string().min(1).max(10_000_000),
   tables: z.array(TableMetaSchema).min(1).max(20),
+  engineId: z.string().min(1).max(60).optional(),
+  dialect: z.enum(['sqlite', 'postgres', 'mysql', 'tsql']).optional(),
 })
 
 export type Dataset = z.infer<typeof DatasetSchema>
 
-// --- Topic schemas ---
 
 export const TopicSchema = z.object({
   id: z.string().min(1).max(100),
@@ -41,7 +41,6 @@ export const TopicSchema = z.object({
 
 export type Topic = z.infer<typeof TopicSchema>
 
-// --- Question schemas ---
 
 const BaseQuestionSchema = z.object({
   id: z.string().min(1).max(100),
@@ -176,7 +175,6 @@ export const QuestionSchema = z.discriminatedUnion('type', [
 export type Question = z.infer<typeof QuestionSchema>
 export type QuestionType = Question['type']
 
-// --- ValidationResult types ---
 
 export const ValidationReportSchema = z.object({
   version: z.number(),

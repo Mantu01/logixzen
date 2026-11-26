@@ -1,14 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Group,
+  Panel as ResizablePanel,
+  Separator,
+  usePanelRef,
+  type PanelSize,
+} from "react-resizable-panels";
 import {
   Grid2x2,
-  Network,
   Loader2,
+  Network,
   Plus,
   RotateCcw,
   Search,
-  Table2,
   Trash2,
 } from "lucide-react";
 import type { Dataset } from "@logixzen/shared/content";
@@ -35,18 +42,39 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
-import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
-import { ErDiagram } from "@/features/schema/er-diagram";
 import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { usePackStore } from "@/stores/usePackStore";
 import { useSqlStore } from "@/sql/useSqlStore";
-import { tablesFromDataset } from "@/lib/dataset-from-sql";
+import {
+  filterDatasetsForEngine,
+  isDatasetForEngine,
+  slugify,
+  tablesFromDataset,
+} from "@/lib/dataset-from-sql";
+import { dialectLabel } from "@/lib/sql-editor";
 import { cn } from "@/lib/utils";
+
+const SqlCodeEditor = dynamic(
+  () =>
+    import("@/components/editor/SqlCodeEditor").then((m) => m.SqlCodeEditor),
+  { ssr: false },
+);
+
+const ErDiagram = dynamic(
+  () => import("@/features/schema/er-diagram").then((m) => m.ErDiagram),
+  { ssr: false },
+);
 
 type ViewMode = "diagram" | "tables";
 
 const EMPTY_TABLES: Record<string, string[]> = {};
+const SCHEMA_COLLAPSED_KEY = "logixzen.schemaPanel.collapsed";
 
 export default function SchemaPage(): React.ReactElement {
   const databases = usePackStore((state) => state.databases);
@@ -59,17 +87,31 @@ export default function SchemaPage(): React.ReactElement {
   const isLoading = useSqlStore((state) => state.isLoading);
   const error = useSqlStore((state) => state.error);
   const activeDatasetId = useSqlStore((state) => state.activeDatasetId);
+  const activeOptionId = useSqlStore((state) => state.activeOptionId);
   const activeEngineName = useSqlStore((state) => state.activeEngineName);
+  const activeDialect = useSqlStore((state) => state.activeDialect);
   const activateDataset = useSqlStore((state) => state.activateDataset);
   const reseed = useSqlStore((state) => state.reseed);
 
   const [view, setView] = useState<ViewMode>("diagram");
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const schemaPanelRef = usePanelRef();
+  const [schemaCollapsed, setSchemaCollapsed] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.localStorage.getItem(SCHEMA_COLLAPSED_KEY) === "true",
+  );
+  const collapsedRef = useRef(schemaCollapsed);
 
   const activeDataset = useMemo(
-    () => databases.find((item) => item.id === activeDatasetId) ?? null,
-    [databases, activeDatasetId],
+    () =>
+      databases.find(
+        (item) =>
+          item.id === activeDatasetId &&
+          isDatasetForEngine(item, activeOptionId),
+      ) ?? null,
+    [databases, activeDatasetId, activeOptionId],
   );
 
   const displayTables = useMemo<TableInfo[]>(() => {
@@ -77,18 +119,50 @@ export default function SchemaPage(): React.ReactElement {
     if (activeDataset) return tablesFromDataset(activeDataset);
     return [];
   }, [schema, isInitialized, activeDataset]);
+
   useEnsureActiveDataset();
+
+  const toggleSchemaPanel = useCallback((): void => {
+    const panel = schemaPanelRef.current;
+    if (!panel) return;
+    if (collapsedRef.current) {
+      panel.expand();
+    } else {
+      panel.collapse();
+    }
+  }, [schemaPanelRef]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      const mod = event.ctrlKey || event.metaKey;
+      if (mod && !event.shiftKey && event.key.toLowerCase() === "b") {
+        event.preventDefault();
+        toggleSchemaPanel();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [toggleSchemaPanel]);
+
+  const handleResize = useCallback((size: PanelSize): void => {
+    const collapsed = size.inPixels <= 40;
+    collapsedRef.current = collapsed;
+    setSchemaCollapsed(collapsed);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SCHEMA_COLLAPSED_KEY, String(collapsed));
+    }
+  }, []);
 
   return (
     <PageShell
       title="Schema"
       subtitle={
         activeDataset
-          ? `${activeDataset.name} · ${displayTables.length} tables`
+          ? `${activeDataset.name} · ${dialectLabel(activeDialect)} · ${displayTables.length} tables`
           : isInitialized
             ? `${activeEngineName} · ${displayTables.length} tables`
             : hydrated
-              ? "No database selected"
+              ? `${dialectLabel(activeDialect)} · No database selected`
               : undefined
       }
       actions={
@@ -99,76 +173,53 @@ export default function SchemaPage(): React.ReactElement {
               onClick={() => setView("diagram")}
               icon={<Network className="size-3.5" />}
               label="ER diagram"
+              tooltip="Interactive entity-relationship diagram"
             />
             <ViewTab
               active={view === "tables"}
               onClick={() => setView("tables")}
               icon={<Grid2x2 className="size-3.5" />}
               label="Tables"
+              tooltip="Inspect table columns and sample rows"
             />
           </div>
           {isInitialized && activeDatasetId !== null ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => void reseed()}
-              disabled={isLoading}
-            >
-              <RotateCcw className="size-3.5" /> Reset data
-            </Button>
-          ) : null}
-          <NewDatabaseDialog
-            onCreate={async (dataset) => {
-              addDataset(dataset);
-              await activateDataset(dataset.id);
-            }}
-          />
-        </>
-      }
-      toolbar={
-        <>
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-            {databases.length === 0 ? (
-              <span className="text-[11.5px] text-muted-dim">
-                No databases yet — import a pack or create one
-              </span>
-            ) : null}
-            {databases.map((dataset) => (
-              <button
-                key={dataset.id}
-                type="button"
-                onClick={() => void activateDataset(dataset.id)}
-                className={cn(
-                  "flex h-6 shrink-0 items-center gap-1.5 border px-2 text-[11.5px] transition-colors",
-                  dataset.id === activeDatasetId
-                    ? "border-primary/50 bg-primary/10 text-foreground"
-                    : "border-border text-muted hover:bg-surface-hover hover:text-foreground",
-                )}
-              >
-                <Table2 className="size-3 shrink-0 text-primary" />
-                <span className="max-w-40 truncate">{dataset.name}</span>
-                {dataset.id === activeDatasetId && isInitialized ? (
-                  <span
-                    className="size-1.5 shrink-0 bg-success"
-                    aria-label="active"
-                  />
-                ) : null}
-              </button>
-            ))}
-          </div>
-          {activeDataset && activeDatasetId ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon-xs"
-                  aria-label="Remove database"
-                  className="text-muted-dim hover:text-destructive"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => void reseed()}
+                  disabled={isLoading}
                 >
-                  <Trash2 className="size-3" />
+                  <RotateCcw className="size-3.5" /> Reset data
                 </Button>
-              </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Reset tables and rows in {activeDataset?.name ?? "database"}
+              </TooltipContent>
+            </Tooltip>
+          ) : null}
+          {activeDataset ? (
+            <AlertDialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={`Remove ${activeDataset.name}`}
+                      className="text-muted-dim hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Remove {activeDataset.name} from library
+                </TooltipContent>
+              </Tooltip>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -185,8 +236,9 @@ export default function SchemaPage(): React.ReactElement {
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => {
                       removeDataset(activeDataset.id);
-                      const remaining = databases.filter(
-                        (item) => item.id !== activeDataset.id,
+                      const remaining = filterDatasetsForEngine(
+                        databases.filter((item) => item.id !== activeDataset.id),
+                        activeOptionId,
                       );
                       void activateDataset(remaining[0]?.id ?? null);
                     }}
@@ -197,48 +249,74 @@ export default function SchemaPage(): React.ReactElement {
               </AlertDialogContent>
             </AlertDialog>
           ) : null}
+          <NewDatabaseDialog
+            onCreate={async (dataset) => {
+              addDataset(dataset);
+              await activateDataset(dataset.id);
+            }}
+          />
         </>
       }
       bodyClassName="overflow-hidden"
     >
-      <div className="flex h-full min-h-0">
-        <div className="w-56 shrink-0 border-r border-border">
+      <Group orientation="horizontal" className="h-full min-h-0">
+        <ResizablePanel minSize={300}>
+          <div className="flex h-full min-h-0">
+            {error ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6">
+                <p className="max-w-md text-center font-mono text-[12px] text-error">
+                  {error}
+                </p>
+                <Button variant="outline" size="sm" onClick={() => void reseed()}>
+                  <RotateCcw className="size-3.5" /> Rebuild database
+                </Button>
+              </div>
+            ) : displayTables.length === 0 && hydrated ? (
+              <EmptyDatabases />
+            ) : view === "diagram" ? (
+              <div className="min-w-0 flex-1">
+                <ErDiagram
+                  tables={displayTables}
+                  highlightTable={selectedTable}
+                  onTableClick={setSelectedTable}
+                />
+              </div>
+            ) : (
+              <TableInspector
+                tables={displayTables}
+                selected={selectedTable}
+                search={search}
+                onSearch={setSearch}
+                onSelect={setSelectedTable}
+              />
+            )}
+          </div>
+        </ResizablePanel>
+
+        <Separator className="w-px bg-border transition-colors hover:bg-primary/50" />
+
+        <ResizablePanel
+          panelRef={schemaPanelRef}
+          defaultSize={schemaCollapsed ? 32 : 264}
+          minSize={200}
+          maxSize={380}
+          collapsible
+          collapsedSize={32}
+          onResize={handleResize}
+        >
           <SchemaPanel
             tables={displayTables}
             activeTable={selectedTable}
             onSelectTable={setSelectedTable}
+            collapsed={schemaCollapsed}
+            onToggleCollapsed={toggleSchemaPanel}
+            databases={databases}
+            activeDatasetId={activeDatasetId}
+            activeOptionId={activeOptionId}
+            onSelectDatabase={(datasetId) => void activateDataset(datasetId)}
           />
-        </div>
-
-        {error ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6">
-            <p className="max-w-md text-center font-mono text-[12px] text-error">
-              {error}
-            </p>
-            <Button variant="outline" size="sm" onClick={() => void reseed()}>
-              <RotateCcw className="size-3.5" /> Rebuild database
-            </Button>
-          </div>
-        ) : displayTables.length === 0 && hydrated ? (
-          <EmptyDatabases />
-        ) : view === "diagram" ? (
-          <div className="min-w-0 flex-1">
-            <ErDiagram
-              tables={displayTables}
-              highlightTable={selectedTable}
-              onTableClick={setSelectedTable}
-            />
-          </div>
-        ) : (
-          <TableInspector
-            tables={displayTables}
-            selected={selectedTable}
-            search={search}
-            onSearch={setSearch}
-            onSelect={setSelectedTable}
-          />
-        )}
-      </div>
+        </ResizablePanel>
+      </Group>
     </PageShell>
   );
 }
@@ -248,27 +326,34 @@ function ViewTab({
   onClick,
   icon,
   label,
+  tooltip,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
+  tooltip: string;
 }): React.ReactElement {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "flex h-7 items-center gap-1.5 px-2.5 text-[11.5px] transition-colors",
-        active
-          ? "bg-accent text-accent-foreground"
-          : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
-      )}
-    >
-      {icon}
-      {label}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onClick}
+          aria-pressed={active}
+          className={cn(
+            "flex h-7 items-center gap-1.5 px-2.5 text-[11.5px] transition-colors",
+            active
+              ? "bg-accent text-accent-foreground"
+              : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
+          )}
+        >
+          {icon}
+          {label}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -277,10 +362,10 @@ function EmptyDatabases(): React.ReactElement {
     <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
       <Network className="size-8 text-muted-dim" />
       <div>
-        <p className="text-[13px] font-medium">No databases yet</p>
+        <p className="text-[13px] font-medium">No tables or database active</p>
         <p className="mx-auto mt-1 max-w-sm text-[11.5px] text-muted-dim">
-          Import a dataset from the Data Hub, or create one from a query with
-          CREATE DATABASE.
+          Select a database from the Schema sidebar, import a pack from the
+          Data Hub, or create one using New database.
         </p>
       </div>
     </div>
@@ -324,6 +409,7 @@ function TableInspector({
           value={search}
           onChange={(event) => onSearch(event.target.value)}
           placeholder="Filter tables"
+          aria-label="Filter tables"
           className="h-6 w-48 bg-transparent px-1 text-[11.5px]"
         />
         <div className="ml-auto flex items-center gap-1">
@@ -350,7 +436,7 @@ function TableInspector({
             <h2 className="font-mono text-[15px] font-semibold">
               {current.name}
             </h2>
-            {current.primaryKey ? (
+            {current.primaryKey && current.primaryKey.length > 0 ? (
               <p className="mt-0.5 font-mono text-[11px] text-muted-dim">
                 primary key: {current.primaryKey.join(", ")}
               </p>
@@ -415,17 +501,11 @@ function TableInspector({
                         className="border-b border-border/60 last:border-0"
                       >
                         {current.columns.map((column) => (
-                          <td
-                            key={column.name}
-                            className="max-w-56 truncate px-2.5 py-1.5"
-                          >
-                            {row[column.name] === null ||
-                            row[column.name] === undefined ? (
-                              <span className="italic text-muted-dim">
-                                null
-                              </span>
+                          <td key={column.name} className="px-2.5 py-1.5">
+                            {row[column.name] === null ? (
+                              <span className="text-muted-dim">NULL</span>
                             ) : (
-                              String(row[column.name])
+                              String(row[column.name] ?? "")
                             )}
                           </td>
                         ))}
@@ -452,6 +532,8 @@ function NewDatabaseDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialect = useSqlStore((state) => state.activeDialect);
+  const activeOptionId = useSqlStore((state) => state.activeOptionId);
+  const activeEngineName = useSqlStore((state) => state.activeEngineName);
 
   const derivedName = useMemo(() => {
     for (const statement of splitSqlStatements(sql)) {
@@ -488,15 +570,13 @@ function NewDatabaseDialog({
         .map((statement) => statement.sql)
         .join(";\n");
       const dataset: Dataset = {
-        id:
-          derivedName
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-|-$/g, "") || "db",
+        id: `${activeOptionId}-${slugify(derivedName)}`,
         name: derivedName,
-        description: "Created from a query.",
+        description: `Created on ${activeEngineName}.`,
         setupSql: schemaPart,
         tables: [],
+        engineId: activeOptionId,
+        dialect,
       };
       await onCreate(dataset);
       setOpen(false);
@@ -510,29 +590,36 @@ function NewDatabaseDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="size-3.5" /> New database
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5">
+              <Plus className="size-3.5" /> New database
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          Create a new {dialectLabel(dialect)} database script
+        </TooltipContent>
+      </Tooltip>
       <DialogContent
         className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0"
         showCloseButton={false}
       >
         <div className="shrink-0 border-b border-border bg-surface-alt px-4 py-3">
-          <DialogTitle className="text-[13px]">New database</DialogTitle>
+          <DialogTitle className="text-[13px]">
+            New database ({activeEngineName})
+          </DialogTitle>
           <DialogDescription className="mt-0.5 text-[11px]">
-            Write the script exactly like SQL Server: CREATE DATABASE, then USE,
-            then your schema. The database starts empty — tables are created by
-            the queries themselves.
+            Start with CREATE DATABASE, then USE, then your schema statements.
+            This database stays isolated to {activeEngineName}.
           </DialogDescription>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <div className="flex items-center justify-between gap-3 pb-2 text-[11px]">
             <span className="text-muted-dim">
               Selected with{" "}
-              <code className="font-mono">USE {derivedName ?? "<name>"}</code>{" "}
-              everywhere
+              <code className="font-mono">USE {derivedName ?? "<name>"}</code>
             </span>
             <span
               className={cn(
@@ -553,7 +640,7 @@ function NewDatabaseDialog({
               fontSize={12}
               tables={EMPTY_TABLES}
               placeholder={
-                "CREATE DATABASE crm;\nGO\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
+                "CREATE DATABASE crm;\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
               }
               minHeight="260px"
             />

@@ -219,12 +219,7 @@ export function getRealCpuArch(): "x64" | "arm64" {
 }
 
 export function platformKey(): CatalogPlatform {
-  const osKey =
-    process.platform === "win32"
-      ? "windows"
-      : process.platform === "darwin"
-        ? "macos"
-        : "linux";
+  const osKey = process.platform === "win32" ? "windows" : "macos";
   return `${osKey}-${getRealCpuArch()}` as CatalogPlatform;
 }
 

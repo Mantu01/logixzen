@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { accessSync, constants, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import type {
@@ -111,47 +111,7 @@ function resolveRuntimeEndpoint(
     const homeSocket = join(process.env.HOME ?? "", ".docker/run/docker.sock");
     if (existsSync(homeSocket)) return homeSocket;
   }
-  const standard =
-    runtime === "docker" ? "/var/run/docker.sock" : "/run/podman/podman.sock";
-  if (existsSync(standard)) return standard;
-  const runtimeDir = process.env.XDG_RUNTIME_DIR;
-  if (runtimeDir) {
-    const userSocket = join(
-      runtimeDir,
-      runtime === "docker" ? "docker.sock" : "podman/podman.sock",
-    );
-    if (existsSync(userSocket)) return userSocket;
-  }
-  return standard;
-}
-
-function checkLinuxSocketAccess(socketPath: string): {
-  accessible: boolean;
-  inGroup: boolean;
-} {
-  if (process.platform !== "linux" || !existsSync(socketPath)) {
-    return { accessible: true, inGroup: true };
-  }
-
-  let accessible = false;
-  try {
-    accessSync(socketPath, constants.R_OK | constants.W_OK);
-    accessible = true;
-  } catch {
-    accessible = false;
-  }
-
-  let inGroup = false;
-  try {
-    const idProbe = runCommand("id", ["-Gn"]);
-    if (idProbe.ok) {
-      inGroup = idProbe.output.split(/\s+/).includes("docker");
-    }
-  } catch {
-    inGroup = false;
-  }
-
-  return { accessible, inGroup };
+  return runtime === "docker" ? "/var/run/docker.sock" : "/run/podman/podman.sock";
 }
 
 function normalizeArch(raw?: string): string | undefined {
@@ -306,22 +266,6 @@ export function probeContainerReadinessSync(
     }
   }
 
-  if (process.platform === "linux" && state === "ready") {
-    const socketPath = endpoint ?? "/var/run/docker.sock";
-    const socketAccess = checkLinuxSocketAccess(socketPath);
-    prerequisites.socketAccessible = socketAccess.accessible;
-    prerequisites.inDockerGroup = socketAccess.inGroup;
-    if (!socketAccess.accessible) {
-      state = "permission-denied";
-      guidance = {
-        title: "Docker socket permission denied",
-        message:
-          "Your user account does not have permission to access the Docker daemon socket.",
-        command: "sudo usermod -aG docker $USER",
-      };
-    }
-  }
-
   const daemonProbe = probeDaemonInfo(runtime);
   const daemon = daemonProbe.daemon;
 
@@ -332,24 +276,14 @@ export function probeContainerReadinessSync(
         guidance = {
           title: "Docker permission denied",
           message:
-            "Docker daemon socket returned permission denied. Add your user to the docker group.",
-          command:
-            process.platform === "linux"
-              ? "sudo usermod -aG docker $USER"
-              : undefined,
+            "Docker daemon socket returned permission denied. Ensure Docker Desktop is accessible.",
         };
       } else {
         state = "stopped";
         guidance = {
           title: "Docker is not running",
           message:
-            process.platform === "linux"
-              ? "The Docker service is stopped. Start it with 'sudo systemctl start docker'."
-              : "Docker Desktop is stopped. Please start Docker Desktop from your applications.",
-          command:
-            process.platform === "linux"
-              ? "sudo systemctl start docker"
-              : undefined,
+            "Docker Desktop is stopped. Please start Docker Desktop from your applications.",
         };
       }
     } else if (
@@ -430,95 +364,34 @@ export function getDockerInstallationGuidance(
   if (readiness.state === "stopped") {
     return {
       platform,
-      headline:
-        platform === "linux"
-          ? "Docker Service is Stopped"
-          : "Docker Desktop is Stopped",
+      headline: "Docker Desktop is Stopped",
       summary:
-        platform === "linux"
-          ? "The Docker service is installed on your Linux system, but the background daemon is not running."
-          : "Docker Desktop is installed on your computer, but the application is currently stopped.",
+        "Docker Desktop is installed on your computer, but the application is currently stopped.",
       statusText:
         "Docker is stopped. (LogixZen detects your installation; it never starts or modifies Docker directly.)",
       requirements: ["Docker daemon running and reachable via local socket"],
-      steps:
-        platform === "linux"
-          ? [
-              {
-                title: "Start Docker Service",
-                detail:
-                  "Run the systemd command in your terminal to start the background daemon:",
-                command: "sudo systemctl start docker",
-              },
-              {
-                title: "Enable Automatic Start (Optional)",
-                detail:
-                  "Configure the Docker service to automatically start whenever your computer boots:",
-                command: "sudo systemctl enable docker",
-              },
-            ]
-          : [
-              {
-                title: "Open Docker Desktop",
-                detail:
-                  "Launch Docker Desktop from your Applications folder or Start menu.",
-              },
-              {
-                title: "Wait for Engine Initialization",
-                detail:
-                  "Wait until the Docker whale icon stops animating and shows 'Engine running'.",
-              },
-            ],
+      steps: [
+        {
+          title: "Open Docker Desktop",
+          detail:
+            "Launch Docker Desktop from your Applications folder or Start menu.",
+        },
+        {
+          title: "Wait for Engine Initialization",
+          detail:
+            "Wait until the Docker whale icon stops animating and shows 'Engine running'.",
+        },
+      ],
       notes: {
         restartRequired: false,
         signInRequired: false,
-        permissionsRequired: platform === "linux",
+        permissionsRequired: false,
         alternativesAvailable: true,
       },
       officialDocUrl:
         platform === "windows"
           ? "https://docs.docker.com/desktop/setup/install/windows-install/"
-          : platform === "macos"
-            ? "https://docs.docker.com/desktop/setup/install/mac-install/"
-            : "https://docs.docker.com/engine/install/",
-      checkAgainLabel: "Check again",
-    };
-  }
-
-  if (readiness.state === "permission-denied") {
-    return {
-      platform,
-      headline: "Docker Socket Permission Required",
-      summary:
-        "The Docker daemon is active, but your current user account does not have permission to access /var/run/docker.sock without root privileges.",
-      statusText:
-        "Docker permission denied. (LogixZen detects your installation; it never alters user groups directly.)",
-      requirements: [
-        "Current user in the 'docker' system group",
-        "Read/write access to /var/run/docker.sock",
-      ],
-      steps: [
-        {
-          title: "Add User to Docker Group",
-          detail:
-            "Add your current user to the docker group so you can manage containers without sudo:",
-          command: "sudo usermod -aG docker $USER",
-        },
-        {
-          title: "Apply Group Membership",
-          detail:
-            "Log out of your desktop session and log back in (or run 'newgrp docker' in your shell) for the group changes to take effect.",
-          command: "newgrp docker",
-        },
-      ],
-      notes: {
-        restartRequired: false,
-        signInRequired: false,
-        permissionsRequired: true,
-        alternativesAvailable: true,
-      },
-      officialDocUrl:
-        "https://docs.docker.com/engine/install/linux-postinstall/",
+          : "https://docs.docker.com/desktop/setup/install/mac-install/",
       checkAgainLabel: "Check again",
     };
   }
@@ -541,9 +414,7 @@ export function getDockerInstallationGuidance(
           url:
             platform === "windows"
               ? "https://docs.docker.com/desktop/setup/install/windows-install/"
-              : platform === "macos"
-                ? "https://docs.docker.com/desktop/setup/install/mac-install/"
-                : "https://docs.docker.com/engine/install/",
+              : "https://docs.docker.com/desktop/setup/install/mac-install/",
           urlLabel: "Open official Docker install guide",
         },
       ],
@@ -553,7 +424,10 @@ export function getDockerInstallationGuidance(
         permissionsRequired: true,
         alternativesAvailable: true,
       },
-      officialDocUrl: "https://docs.docker.com/engine/install/",
+      officialDocUrl:
+        platform === "windows"
+          ? "https://docs.docker.com/desktop/setup/install/windows-install/"
+          : "https://docs.docker.com/desktop/setup/install/mac-install/",
       checkAgainLabel: "Check again",
     };
   }
@@ -608,89 +482,39 @@ export function getDockerInstallationGuidance(
     };
   }
 
-  if (platform === "macos") {
-    return {
-      platform: "macos",
-      headline: "Install Docker Desktop for Mac",
-      summary:
-        "To run containerized database engines, install Docker Desktop for Mac. Choose the installer matching your Mac's processor (Apple Silicon or Intel). LogixZen detects it automatically.",
-      statusText:
-        "Docker was not detected on this Mac. (LogixZen detects your installation; it never installs or modifies Docker directly.)",
-      requirements: [
-        "macOS 13 (Ventura), macOS 14 (Sonoma), or macOS 15 (Sequoia)",
-        "At least 4 GB system memory",
-        "Installer build matching your processor: Apple chip (M1/M2/M3/M4) or Intel chip",
-      ],
-      steps: [
-        {
-          title: "Download Docker Desktop for Mac",
-          detail: "Download the build matching your Mac processor.",
-          url: "https://docs.docker.com/desktop/setup/install/mac-install/",
-          urlLabel: "Open Docker Desktop for Mac download page",
-        },
-        {
-          title: "Drag to Applications",
-          detail:
-            "Open Docker.dmg and drag the Docker icon into the Applications folder.",
-        },
-        {
-          title: "Complete Privileged Helper Setup",
-          detail:
-            "Open Docker from Applications. macOS will ask for your administrator password to install networking helpers.",
-        },
-        {
-          title: "Wait for Engine Initialization",
-          detail:
-            "Once the menu bar whale icon is steady, Docker is ready. Sign-in is optional.",
-        },
-      ],
-      notes: {
-        restartRequired: false,
-        signInRequired: false,
-        permissionsRequired: true,
-        alternativesAvailable: true,
-      },
-      officialDocUrl:
-        "https://docs.docker.com/desktop/setup/install/mac-install/",
-      checkAgainLabel: "Check again",
-    };
-  }
-
   return {
-    platform: "linux",
-    headline: "Install Docker Engine on Linux",
+    platform: "macos",
+    headline: "Install Docker Desktop for Mac",
     summary:
-      "To run containerized database engines, install Docker Engine from the official Docker package repository. Configure systemd and add your user to the docker group so LogixZen can communicate with the daemon.",
+      "To run containerized database engines, install Docker Desktop for Mac. Choose the installer matching your Mac's processor (Apple Silicon or Intel). LogixZen detects it automatically.",
     statusText:
-      "Docker was not detected on this Linux system. (LogixZen detects your installation; it never installs or modifies Docker directly.)",
+      "Docker was not detected on this Mac. (LogixZen detects your installation; it never installs or modifies Docker directly.)",
     requirements: [
-      "64-bit architecture (x86-64 / AMD64 recommended; note SQL Server container requires x86-64)",
-      "systemd service manager",
-      "Non-root user with sudo privileges for initial setup",
+      "macOS 13 (Ventura), macOS 14 (Sonoma), or macOS 15 (Sequoia)",
+      "At least 4 GB system memory",
+      "Installer build matching your processor: Apple chip (M1/M2/M3/M4) or Intel chip",
     ],
     steps: [
       {
-        title: "Install from Official Repository",
-        detail:
-          "Follow the official instructions to add Docker's repository and install docker-ce.",
-        url: "https://docs.docker.com/engine/install/",
-        urlLabel: "Open Docker Engine installation guide",
+        title: "Download Docker Desktop for Mac",
+        detail: "Download the build matching your Mac processor.",
+        url: "https://docs.docker.com/desktop/setup/install/mac-install/",
+        urlLabel: "Open Docker Desktop for Mac download page",
       },
       {
-        title: "Enable and Start Service",
-        detail: "Ensure the systemd service starts on boot:",
-        command: "sudo systemctl enable --now docker",
+        title: "Drag to Applications",
+        detail:
+          "Open Docker.dmg and drag the Docker icon into the Applications folder.",
       },
       {
-        title: "Grant User Socket Permission",
+        title: "Complete Privileged Helper Setup",
         detail:
-          "Add your current user to the docker group to access /var/run/docker.sock without root:",
-        command: "sudo usermod -aG docker $USER",
+          "Open Docker from Applications. macOS will ask for your administrator password to install networking helpers.",
       },
       {
-        title: "Apply Group Changes",
+        title: "Wait for Engine Initialization",
         detail:
-          "Log out and log back in, or run 'newgrp docker' to apply group membership.",
+          "Once the menu bar whale icon is steady, Docker is ready. Sign-in is optional.",
       },
     ],
     notes: {
@@ -699,7 +523,8 @@ export function getDockerInstallationGuidance(
       permissionsRequired: true,
       alternativesAvailable: true,
     },
-    officialDocUrl: "https://docs.docker.com/engine/install/",
+    officialDocUrl:
+      "https://docs.docker.com/desktop/setup/install/mac-install/",
     checkAgainLabel: "Check again",
   };
 }

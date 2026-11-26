@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Group,
@@ -17,10 +17,17 @@ import {
   usePanelRef,
   type PanelSize,
 } from "react-resizable-panels";
-import { FolderOpen, Loader2, Plus, Save, X } from "lucide-react";
+import {
+  AlignLeft,
+  FolderOpen,
+  Loader2,
+  Plus,
+  Save,
+  X,
+} from "lucide-react";
+import dynamic from "next/dynamic";
 import type { SqlResult } from "@/shared/desktop-api";
 import { PageShell } from "@/components/app-shell/page-shell";
-import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
 import {
@@ -69,16 +76,30 @@ import { exportToCsv, exportToJson } from "@/lib/exportUtils";
 import { saveTextFile } from "@/lib/save-file";
 import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { useFontZoom } from "@/hooks/use-font-zoom";
-import { ErDiagram } from "@/features/schema/er-diagram";
 import { cn } from "@/lib/utils";
-import { dialectLabel, tableMapFrom } from "@/lib/sql-editor";
+import { dialectLabel, formatSql, tableMapFrom } from "@/lib/sql-editor";
+import { filterDatasetsForEngine } from "@/lib/dataset-from-sql";
 import { ENGINE_CATALOG } from "@/shared/engine-catalog";
+import { splitBatches, splitSqlStatements } from "@/shared/sql";
 import type { EngineOptionId, InstallationRecord } from "@/shared/engines";
 import { errorMessage, waitForJob } from "@/lib/engine-jobs";
 
+const SCHEMA_COLLAPSED_KEY = "logixzen.schemaPanel.collapsed";
+
+const SqlCodeEditor = dynamic(
+  () =>
+    import("@/components/editor/SqlCodeEditor").then((m) => m.SqlCodeEditor),
+  { ssr: false },
+);
+
+const ErDiagram = dynamic(
+  () => import("@/features/schema/er-diagram").then((m) => m.ErDiagram),
+  { ssr: false },
+);
+
 function toEngineChoices(
   records: InstallationRecord[],
-): Array<{ id: EngineOptionId; name: string }> {
+): Array<{ id: EngineOptionId; name: string; status: InstallationRecord["status"] }> {
   return records
     .filter((record) => record.status === "ready" || record.status === "stopped")
     .map((record) => ({
@@ -86,7 +107,18 @@ function toEngineChoices(
       name:
         ENGINE_CATALOG.find((entry) => entry.id === record.optionId)
           ?.displayName ?? record.optionId,
+      status: record.status,
     }));
+}
+
+function extractStatementPreviews(sql: string): string[] {
+  const list: string[] = [];
+  for (const batch of splitBatches(sql)) {
+    for (const stmt of splitSqlStatements(batch.join("\n"))) {
+      list.push(stmt.sql.replace(/\s+/g, " ").trim());
+    }
+  }
+  return list;
 }
 
 export default function PlaygroundPage(): React.ReactElement {
@@ -106,8 +138,9 @@ function Loading(): React.ReactElement {
 }
 
 function PlaygroundInner(): React.ReactElement {
+  const router = useRouter();
   const params = useSearchParams();
-  const databases = usePackStore((state) => state.databases);
+  const allDatabases = usePackStore((state) => state.databases);
   const hydrated = usePackStore((state) => state.hydrated);
   const schema = useSqlStore((state) => state.schema);
   const isLoading = useSqlStore((state) => state.isLoading);
@@ -147,16 +180,32 @@ function PlaygroundInner(): React.ReactElement {
   const [pendingDestructive, setPendingDestructive] = useState<string | null>(
     null,
   );
+  const [executedQueries, setExecutedQueries] = useState<string[]>([]);
   const [diagramOpen, setDiagramOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const schemaPanelRef = usePanelRef();
-  const [schemaCollapsed, setSchemaCollapsed] = useState(false);
-  const collapsedRef = useRef(false);
+  const [schemaCollapsed, setSchemaCollapsed] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.localStorage.getItem(SCHEMA_COLLAPSED_KEY) === "true",
+  );
+  const collapsedRef = useRef(schemaCollapsed);
 
   const activeOptionId = useSqlStore((state) => state.activeOptionId);
+  const activeEngineName = useSqlStore((state) => state.activeEngineName);
+  const connectionStatus = useSqlStore((state) => state.connectionStatus);
   const autoConnect = useSqlStore((state) => state.autoConnect);
+  const databases = useMemo(
+    () => filterDatasetsForEngine(allDatabases, activeOptionId),
+    [allDatabases, activeOptionId],
+  );
   const [readyEngines, setReadyEngines] = useState<
-    Array<{ id: EngineOptionId; name: string }>
+    Array<{
+      id: EngineOptionId;
+      name: string;
+      status: InstallationRecord["status"];
+    }>
   >([]);
   const [isSwitchingEngine, setIsSwitchingEngine] = useState(false);
 
@@ -223,6 +272,7 @@ function PlaygroundInner(): React.ReactElement {
     async (text: string) => {
       clearError();
       setRunError(null);
+      setExecutedQueries(extractStatementPreviews(text));
       await execute(text);
       const state = useSqlStore.getState();
       setResultIndex(0);
@@ -294,10 +344,48 @@ function PlaygroundInner(): React.ReactElement {
     }
   }, [openFileTab]);
 
+  const toggleSchemaPanel = useCallback((): void => {
+    const panel = schemaPanelRef.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) panel.expand();
+    else panel.collapse();
+  }, [schemaPanelRef]);
+
+  const handleFormatSql = useCallback((): void => {
+    if (!activeFile || activeFile.content.trim().length === 0) return;
+    setContent(activeFile.id, formatSql(activeFile.content));
+  }, [activeFile, setContent]);
+
   useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
-      if (!event.ctrlKey || event.altKey) return;
+      if (event.key === "Escape") {
+        setDiagramOpen(false);
+        setHistoryOpen(false);
+        setPendingDestructive(null);
+        return;
+      }
+      if (event.key === "F5") {
+        event.preventDefault();
+        void run();
+        return;
+      }
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod || event.altKey) return;
       const key = event.key.toLowerCase();
+      if (event.shiftKey && key === "c") {
+        if (sql.trim().length > 0) {
+          event.preventDefault();
+          void navigator.clipboard.writeText(sql);
+          setSavedNotice("copied");
+          window.setTimeout(() => setSavedNotice(null), 1200);
+        }
+        return;
+      }
+      if (event.shiftKey && key === "f") {
+        event.preventDefault();
+        handleFormatSql();
+        return;
+      }
       if (key === "s") {
         event.preventDefault();
         void saveSqlFile();
@@ -310,11 +398,33 @@ function PlaygroundInner(): React.ReactElement {
       } else if (key === "o") {
         event.preventDefault();
         void openSqlFile();
+      } else if (key === "h") {
+        event.preventDefault();
+        setHistoryOpen((prev) => !prev);
+      } else if (key === "b" && !event.shiftKey) {
+        event.preventDefault();
+        toggleSchemaPanel();
+      } else if (key === "d" && !event.shiftKey) {
+        if (schema.length > 0) {
+          event.preventDefault();
+          setDiagramOpen((prev) => !prev);
+        }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [saveSqlFile, newFile, closeFile, activeFile, openSqlFile]);
+  }, [
+    saveSqlFile,
+    newFile,
+    closeFile,
+    activeFile,
+    openSqlFile,
+    run,
+    sql,
+    handleFormatSql,
+    toggleSchemaPanel,
+    schema.length,
+  ]);
 
   return (
     <PageShell
@@ -328,6 +438,28 @@ function PlaygroundInner(): React.ReactElement {
       }
       actions={
         <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex h-7 items-center gap-1.5 border border-border bg-surface-alt px-2 text-[10.5px]">
+                <span
+                  className={cn(
+                    "size-1.5",
+                    connectionStatus === "ready"
+                      ? "bg-success"
+                      : connectionStatus === "connecting"
+                        ? "bg-primary animate-pulse"
+                        : "bg-destructive",
+                  )}
+                />
+                <span className="font-mono font-semibold uppercase text-foreground">
+                  {dialectLabel(activeDialect)}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Active engine: {activeEngineName} ({dialectLabel(activeDialect)} dialect)
+            </TooltipContent>
+          </Tooltip>
           {readyEngines.length > 0 ? (
             <Select
               value={activeOptionId ?? ""}
@@ -351,7 +483,22 @@ function PlaygroundInner(): React.ReactElement {
                       value={eng.id}
                       className="text-[11px]"
                     >
-                      {eng.name}
+                      <span className="flex items-center gap-1.5">
+                        <span
+                          className={cn(
+                            "size-1.5",
+                            eng.status === "ready"
+                              ? "bg-success"
+                              : "bg-warning",
+                          )}
+                        />
+                        <span>{eng.name}</span>
+                        {eng.status === "stopped" ? (
+                          <span className="text-[9.5px] text-muted-dim">
+                            (stopped)
+                          </span>
+                        ) : null}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -369,7 +516,13 @@ function PlaygroundInner(): React.ReactElement {
           )}
           <Select
             value={activeDatasetId ?? ""}
-            onValueChange={(value) => void activateDataset(value)}
+            onValueChange={(value) => {
+              if (value === "__new__") {
+                router.push("/schema");
+                return;
+              }
+              void activateDataset(value);
+            }}
           >
             <SelectTrigger
               size="sm"
@@ -390,17 +543,26 @@ function PlaygroundInner(): React.ReactElement {
                     {dataset.name}
                   </SelectItem>
                 ))}
+                <SelectItem
+                  value="__new__"
+                  className="border-t border-border text-primary"
+                >
+                  + New database...
+                </SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
           <ToolIconButton
             label="ER diagram"
+            shortcut="Ctrl+D"
             disabled={schema.length === 0}
             onClick={() => setDiagramOpen(true)}
           >
             <DiagramIcon />
           </ToolIconButton>
           <HistoryDialog
+            open={historyOpen}
+            onOpenChange={setHistoryOpen}
             onPick={(picked) => {
               if (activeFile) setContent(activeFile.id, picked);
             }}
@@ -411,6 +573,14 @@ function PlaygroundInner(): React.ReactElement {
               if (activeFile) setContent(activeFile.id, picked);
             }}
           />
+          <ToolIconButton
+            label="Format SQL"
+            shortcut="Ctrl+Shift+F"
+            disabled={sql.trim().length === 0}
+            onClick={handleFormatSql}
+          >
+            <AlignLeft className="size-3.5" />
+          </ToolIconButton>
           <CopySqlButton sql={sql} />
           <RunButton onClick={() => void run()} isLoading={isLoading} />
         </>
@@ -465,6 +635,7 @@ function PlaygroundInner(): React.ReactElement {
                   {results.length > 1 ? (
                     <ResultTabs
                       results={results}
+                      queries={executedQueries}
                       index={resultIndex}
                       onSelect={setResultIndex}
                     />
@@ -494,7 +665,7 @@ function PlaygroundInner(): React.ReactElement {
           <Separator className="w-px bg-border transition-colors hover:bg-primary/60" />
           <Panel
             id="schema"
-            defaultSize="28%"
+            defaultSize={schemaCollapsed ? "4%" : "28%"}
             minSize="14%"
             collapsible
             collapsedSize="4%"
@@ -506,6 +677,12 @@ function PlaygroundInner(): React.ReactElement {
               if (collapsed !== collapsedRef.current) {
                 collapsedRef.current = collapsed;
                 setSchemaCollapsed(collapsed);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    SCHEMA_COLLAPSED_KEY,
+                    String(collapsed),
+                  );
+                }
               }
             }}
           >
@@ -514,12 +691,7 @@ function PlaygroundInner(): React.ReactElement {
               activeTable={activeTable}
               onSelectTable={setActiveTable}
               collapsed={schemaCollapsed}
-              onToggleCollapsed={() => {
-                const panel = schemaPanelRef.current;
-                if (!panel) return;
-                if (panel.isCollapsed()) panel.expand();
-                else panel.collapse();
-              }}
+              onToggleCollapsed={toggleSchemaPanel}
             />
           </Panel>
         </Group>
@@ -591,11 +763,13 @@ function PlaygroundInner(): React.ReactElement {
 
 function ToolIconButton({
   label,
+  shortcut,
   disabled,
   onClick,
   children,
 }: {
   label: string;
+  shortcut?: string;
   disabled?: boolean;
   onClick: () => void;
   children: React.ReactNode;
@@ -613,7 +787,14 @@ function ToolIconButton({
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
+      <TooltipContent>
+        {label}
+        {shortcut ? (
+          <kbd className="ml-1 font-mono text-[9px] text-background/70">
+            {shortcut}
+          </kbd>
+        ) : null}
+      </TooltipContent>
     </Tooltip>
   );
 }
@@ -790,39 +971,67 @@ function QueryTabBar({
 
 function ResultTabs({
   results,
+  queries,
   index,
   onSelect,
 }: {
   results: SqlResult[];
+  queries: string[];
   index: number;
   onSelect: (index: number) => void;
 }): React.ReactElement {
   return (
     <div className="flex h-7 shrink-0 items-stretch overflow-x-auto border-b border-border bg-surface-alt">
-      {results.map((result, i) => (
-        <button
-          key={i}
-          type="button"
-          onClick={() => onSelect(i)}
-          className={cn(
-            "flex items-center gap-1.5 border-r border-border px-3 text-[11px] transition-colors",
-            i === index
-              ? "bg-surface text-foreground"
-              : "text-muted-dim hover:text-foreground",
-          )}
-        >
-          <span className="font-mono">#{i + 1}</span>
-          {result.error !== undefined ? (
-            <span className="size-1.5 bg-destructive" />
-          ) : result.isSelect ? (
-            <span className="numeric text-muted-dim">{result.rows.length}</span>
-          ) : (
-            <span className="numeric text-muted-dim">
-              {result.rowsAffected}w
-            </span>
-          )}
-        </button>
-      ))}
+      {results.map((result, i) => {
+        const previewText = queries[i] ?? `Statement ${i + 1}`;
+        const shortPreview =
+          previewText.length > 32
+            ? `${previewText.slice(0, 32)}…`
+            : previewText;
+        const duration =
+          result.executionTimeMs !== undefined
+            ? `${Math.round(result.executionTimeMs)}ms`
+            : null;
+        return (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onSelect(i)}
+                className={cn(
+                  "flex max-w-64 shrink-0 items-center gap-1.5 border-r border-border px-2.5 text-[10.5px] transition-colors",
+                  i === index
+                    ? "bg-surface text-foreground"
+                    : "text-muted-dim hover:text-foreground",
+                )}
+              >
+                <span className="font-mono text-muted-dim">#{i + 1}</span>
+                <span className="truncate font-mono">{shortPreview}</span>
+                {result.error !== undefined ? (
+                  <span className="size-1.5 shrink-0 bg-destructive" />
+                ) : result.isSelect ? (
+                  <span className="numeric shrink-0 text-muted-dim">
+                    {result.rows.length}r
+                  </span>
+                ) : (
+                  <span className="numeric shrink-0 text-muted-dim">
+                    {result.rowsAffected}w
+                  </span>
+                )}
+                {duration ? (
+                  <span className="numeric shrink-0 font-mono text-[9.5px] text-muted-dim">
+                    {duration}
+                  </span>
+                ) : null}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm font-mono text-[10.5px]">
+              {previewText}
+              {result.error ? ` — Error: ${result.error}` : ""}
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
     </div>
   );
 }

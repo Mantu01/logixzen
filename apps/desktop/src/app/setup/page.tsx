@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   Database,
+  ExternalLink,
   HardDrive,
   Loader2,
   ShieldAlert,
@@ -18,17 +19,23 @@ import { PageShell } from "@/components/app-shell/page-shell";
 import { EnvironmentSummary } from "@/components/app-shell/environment-summary";
 import { Button } from "@/components/ui/button";
 import { StatusChip, StatusDot } from "@/components/ui/status-chip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { platformOf } from "@/shared/engine-catalog";
 import { formatBytes } from "@/shared/format";
-import type {
-  EngineCatalogEntry,
-  EngineOffer,
-  EngineOptionId,
-  InstallationRecord,
-  Job,
-  PlatformSnapshot,
-  RequirementKind,
-  VerificationResult,
+import {
+  FEATURE_FLAGS,
+  type EngineCatalogEntry,
+  type EngineOffer,
+  type EngineOptionId,
+  type InstallationRecord,
+  type Job,
+  type PlatformSnapshot,
+  type RequirementKind,
+  type VerificationResult,
 } from "@/shared/engines";
 import { errorMessage, isJobFinished, waitForJob } from "@/lib/engine-jobs";
 import { useSqlStore } from "@/sql/useSqlStore";
@@ -52,7 +59,6 @@ const LICENSE_IDS = new Set<string>([
 const REQUIREMENT_LABELS: Record<RequirementKind, string> = {
   platform: "Operating system",
   "os-version": "Windows version",
-  distro: "Linux distribution",
   memory: "Memory",
   disk: "Free disk space",
   "container-runtime": "Container runtime",
@@ -114,14 +120,17 @@ export default function SetupPage(): React.ReactElement {
 }
 
 function SetupContent(): React.ReactElement {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const preselect = searchParams.get("preselect");
-  const [step, setStep] = useState<Step>("select");
+  const engineParam =
+    searchParams.get("engine") ?? searchParams.get("preselect");
+  const directEngineMode = Boolean(engineParam);
+  const [step, setStep] = useState<Step>(engineParam ? "review" : "select");
   const [snapshot, setSnapshot] = useState<PlatformSnapshot | null>(null);
   const [offers, setOffers] = useState<EngineOffer[]>([]);
   const [installations, setInstallations] = useState<InstallationRecord[]>([]);
   const [selectedId, setSelectedId] = useState<EngineOptionId | null>(
-    (preselect as EngineOptionId) || null,
+    (engineParam as EngineOptionId) || null,
   );
   const [licenseAccepted, setLicenseAccepted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -135,33 +144,63 @@ function SetupContent(): React.ReactElement {
   );
   const [installedName, setInstalledName] = useState("");
 
-  const load = useCallback(async (): Promise<void> => {
+  const fetchSetupState = useCallback(async () => {
     const bridge = window.logixzen?.setup;
     if (bridge === undefined) {
-      setLoading(false);
-      return;
+      return {
+        snapshot: null as PlatformSnapshot | null,
+        offers: null as EngineOffer[] | null,
+        installations: null as InstallationRecord[] | null,
+        error: null as string | null,
+      };
     }
+    const [snapshotResult, offerResult, installationResult] = await Promise.all([
+      bridge.snapshot(),
+      bridge.compatibility(),
+      bridge.installations(),
+    ]);
+    return {
+      snapshot: snapshotResult.ok ? snapshotResult.data : null,
+      offers: offerResult.ok ? offerResult.data : null,
+      installations: installationResult.ok ? installationResult.data : null,
+      error: null as string | null,
+    };
+  }, []);
+
+  const load = useCallback(async (): Promise<void> => {
     try {
-      const [snapshotResult, offerResult, installationResult] =
-        await Promise.all([
-          bridge.snapshot(),
-          bridge.compatibility(),
-          bridge.installations(),
-        ]);
-      if (snapshotResult.ok) setSnapshot(snapshotResult.data);
-      if (offerResult.ok) setOffers(offerResult.data);
-      if (installationResult.ok) setInstallations(installationResult.data);
-      setError(null);
+      const next = await fetchSetupState();
+      if (next.snapshot !== null) setSnapshot(next.snapshot);
+      if (next.offers !== null) setOffers(next.offers);
+      if (next.installations !== null) setInstallations(next.installations);
+      setError(next.error);
     } catch (loadError) {
       setError(errorMessage(loadError));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchSetupState]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    void fetchSetupState()
+      .then((next) => {
+        if (cancelled) return;
+        if (next.snapshot !== null) setSnapshot(next.snapshot);
+        if (next.offers !== null) setOffers(next.offers);
+        if (next.installations !== null) setInstallations(next.installations);
+        setError(next.error);
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) setError(errorMessage(loadError));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchSetupState]);
 
   useEffect(() => {
     const bridge = window.logixzen?.setup;
@@ -241,6 +280,7 @@ function SetupContent(): React.ReactElement {
   const canContinue =
     selected !== null &&
     selected.visible &&
+    (FEATURE_FLAGS.docker || selected.entry.method !== "container") &&
     unmetChecks.length === 0;
 
   const canInstall =
@@ -328,7 +368,19 @@ function SetupContent(): React.ReactElement {
     }
   };
 
+  useEffect(() => {
+    if (step !== "done") return;
+    const timer = window.setTimeout(() => {
+      router.push("/databases");
+    }, 1400);
+    return () => window.clearTimeout(timer);
+  }, [step, router]);
+
   const resetToSelect = (): void => {
+    if (directEngineMode) {
+      router.push("/databases");
+      return;
+    }
     setStep("select");
     setSelectedId(null);
     setLicenseAccepted(false);
@@ -344,6 +396,8 @@ function SetupContent(): React.ReactElement {
     <PageShell
       title="Engine setup"
       subtitle="Install one SQL engine and a practice database"
+      showBack
+      breadcrumbs={[{ label: "Databases", href: "/databases" }, { label: "Setup" }]}
     >
       <div className="mx-auto w-full max-w-4xl px-4 py-4 text-[12px]">
         <StepBar step={step} />
@@ -437,6 +491,8 @@ function SetupContent(): React.ReactElement {
                   <div className="divide-y divide-border">
                     {available.map((offer) => {
                       const entry = offer.entry;
+                      const comingSoon =
+                        !FEATURE_FLAGS.docker && entry.method === "container";
                       const isSelected = selectedId === entry.id;
                       const download = downloadBytesFor(entry, snapshot);
                       const blocked = offer.checks.some(
@@ -444,19 +500,21 @@ function SetupContent(): React.ReactElement {
                           check.status === "unmet" ||
                           check.status === "unknown",
                       );
+                      const disabledRow = blocked || comingSoon;
                       return (
                         <button
                           key={entry.id}
                           type="button"
-                          disabled={blocked}
+                          disabled={disabledRow}
                           aria-pressed={isSelected}
                           onClick={() => {
+                            if (comingSoon) return;
                             setSelectedId(entry.id);
                             setLicenseAccepted(false);
                           }}
                           className={cn(
                             "flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left transition-colors",
-                            blocked
+                            disabledRow
                               ? "cursor-not-allowed opacity-55"
                               : "hover:bg-surface-hover/60",
                             isSelected && "bg-surface-hover",
@@ -499,8 +557,20 @@ function SetupContent(): React.ReactElement {
                               </div>
                             </div>
                           </div>
-                          <StatusChip tone={blocked ? "warning" : "neutral"}>
-                            {blocked ? "Unsupported" : "Ready to install"}
+                          <StatusChip
+                            tone={
+                              comingSoon
+                                ? "info"
+                                : blocked
+                                  ? "warning"
+                                  : "neutral"
+                            }
+                          >
+                            {comingSoon
+                              ? "Coming Soon"
+                              : blocked
+                                ? "Unsupported"
+                                : "Ready to install"}
                           </StatusChip>
                         </button>
                       );
@@ -524,91 +594,166 @@ function SetupContent(): React.ReactElement {
           </div>
         ) : null}
 
-        {step === "review" && selected !== null ? (
-          <div className="mt-3 border border-border bg-surface">
-            <header className="flex h-8 items-center border-b border-border px-3">
-              <span className="section-label">Review installation</span>
-            </header>
-            <dl className="divide-y divide-border text-[11.5px]">
-              <ReviewRow
-                label="Engine"
-                value={`${selected.entry.displayName} ${selected.entry.pin}`}
-              />
-              <ReviewRow label="Publisher" value={selected.entry.publisher} />
-              <ReviewRow
-                label="Source"
-                value={selected.entry.sourceUrl}
-                mono
-              />
-              <ReviewRow
-                label="Download"
-                value={
-                  downloadBytesFor(selected.entry, snapshot) > 0
-                    ? formatBytes(downloadBytesFor(selected.entry, snapshot))
-                    : "Bundled with the app"
-                }
-              />
-              <ReviewRow
-                label="Disk after install"
-                value={formatBytes(installedBytesFor(selected.entry, snapshot))}
-              />
-              <ReviewRow
-                label="Practice database"
-                value="Local app data, created and seeded automatically"
-                mono
-              />
-              {selected.entry.elevation === "required" ? (
-                <div className="flex items-start gap-2 px-3 py-2 text-warning">
-                  <ShieldAlert className="mt-px size-3.5 shrink-0" />
-                  <span>
-                    Windows will ask for administrator approval once to install
-                    the Microsoft packages.
-                  </span>
-                </div>
-              ) : null}
-              {requiresLicense ? (
-                <div className="px-3 py-2.5">
-                  <div className="text-muted-dim">License</div>
-                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-foreground">
-                    {selected.entry.license}
-                  </p>
-                  <label className="mt-2 flex items-start gap-2 text-[11.5px]">
-                    <input
-                      type="checkbox"
-                      checked={licenseAccepted}
-                      onChange={(event) =>
-                        setLicenseAccepted(event.target.checked)
-                      }
-                      className="mt-0.5 size-3.5 accent-[var(--primary)]"
-                    />
-                    <span>I accept the license terms of this engine.</span>
-                  </label>
-                </div>
-              ) : null}
-            </dl>
+        {step === "review" && selected === null && loading ? (
+          <div className="mt-3 flex items-center gap-2 border border-border bg-surface px-4 py-8 text-[12px] text-muted-dim">
+            <Loader2 className="size-4 animate-spin text-primary" />
+            Loading engine details...
+          </div>
+        ) : null}
 
-            <div className="flex items-center justify-between border-t border-border px-3 py-2.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1.5 px-2 text-[11px] text-muted-dim hover:text-foreground"
-                onClick={() => setStep("select")}
-              >
-                <ArrowLeft className="size-3" />
-                Back
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-7 gap-1.5 px-3 text-[11.5px]"
-                disabled={!canInstall}
-                onClick={() => void runInstall()}
-              >
-                Install {selected.entry.displayName}
-                <ArrowRight className="size-3" />
-              </Button>
+        {step === "review" && selected !== null ? (
+          <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_340px]">
+            <div className="flex flex-col border border-border bg-surface">
+              <header className="flex h-8 items-center justify-between border-b border-border px-3">
+                <span className="section-label">
+                  Install {selected.entry.displayName}
+                </span>
+                <span className="font-mono text-[10px] text-muted-dim">
+                  {methodLabel(selected.entry)}
+                </span>
+              </header>
+              <dl className="divide-y divide-border text-[11.5px]">
+                <ReviewRow
+                  label="Engine"
+                  value={`${selected.entry.displayName} (${selected.entry.pin})`}
+                />
+                <ReviewRow label="Publisher" value={selected.entry.publisher} />
+                <ReviewRow
+                  label="Download size"
+                  value={
+                    downloadBytesFor(selected.entry, snapshot) > 0
+                      ? formatBytes(downloadBytesFor(selected.entry, snapshot))
+                      : "Bundled with the app"
+                  }
+                />
+                <ReviewRow
+                  label="Disk after install"
+                  value={formatBytes(
+                    installedBytesFor(selected.entry, snapshot),
+                  )}
+                />
+                <ReviewRow
+                  label="Practice database"
+                  value="Local app data, created and seeded automatically"
+                  mono
+                />
+                {selected.checks.length > 0 ? (
+                  <div className="px-3 py-2.5">
+                    <div className="section-label mb-1.5">
+                      System compatibility
+                    </div>
+                    <ul className="space-y-1">
+                      {selected.checks.map((check) => (
+                        <li
+                          key={check.kind}
+                          className="flex items-center justify-between gap-2 text-[11px]"
+                        >
+                          <span className="text-muted">
+                            {REQUIREMENT_LABELS[check.kind]}
+                          </span>
+                          <StatusChip
+                            tone={
+                              check.status === "met"
+                                ? "success"
+                                : check.status === "warn"
+                                  ? "warning"
+                                  : "warning"
+                            }
+                          >
+                            {check.status}
+                          </StatusChip>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {selected.entry.elevation === "required" ? (
+                  <div className="flex items-start gap-2 px-3 py-2 text-warning">
+                    <ShieldAlert className="mt-px size-3.5 shrink-0" />
+                    <span>
+                      Windows will ask for administrator approval once to
+                      install the Microsoft packages.
+                    </span>
+                  </div>
+                ) : null}
+                {requiresLicense ? (
+                  <div className="px-3 py-2.5">
+                    <div className="text-muted-dim">License agreement</div>
+                    <p className="mt-0.5 text-[11.5px] leading-relaxed text-foreground">
+                      {selected.entry.license}
+                    </p>
+                    <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11.5px]">
+                      <input
+                        type="checkbox"
+                        checked={licenseAccepted}
+                        onChange={(event) =>
+                          setLicenseAccepted(event.target.checked)
+                        }
+                        className="mt-0.5 size-3.5 accent-[var(--primary)]"
+                      />
+                      <span>I accept the license terms of this engine.</span>
+                    </label>
+                  </div>
+                ) : null}
+              </dl>
+
+              <div className="mt-auto flex items-center justify-between border-t border-border px-3 py-2.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1.5 px-2 text-[11px] text-muted-dim hover:text-foreground"
+                      onClick={() => {
+                        if (directEngineMode) {
+                          router.push("/databases");
+                        } else {
+                          setStep("select");
+                        }
+                      }}
+                    >
+                      <ArrowLeft className="size-3" />
+                      {directEngineMode ? "Back to Databases" : "Back"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {directEngineMode
+                      ? "Return to Databases page"
+                      : "Choose another engine"}
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-7 gap-1.5 px-3 text-[11.5px]"
+                      disabled={!canInstall}
+                      onClick={() => void runInstall()}
+                    >
+                      Install {selected.entry.displayName}
+                      <ArrowRight className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {!canContinue
+                      ? "Engine cannot be installed on this machine"
+                      : requiresLicense && !licenseAccepted
+                        ? "Accept license agreement before installing"
+                        : `Download and configure ${selected.entry.displayName}`}
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
+
+            <EngineDetails
+              offer={selected}
+              record={installations.find(
+                (item) => item.optionId === selected.entry.id,
+              )}
+              snapshot={snapshot}
+            />
           </div>
         ) : null}
 
@@ -744,9 +889,15 @@ function SetupContent(): React.ReactElement {
 
         {step === "done" ? (
           <div className="mt-3 border border-border bg-surface">
-            <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-              <CheckCircle2 className="size-4 text-success" />
-              <span className="font-semibold">{installedName} is ready</span>
+            <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-success" />
+                <span className="font-semibold">{installedName} is ready</span>
+              </div>
+              <span className="flex items-center gap-1.5 font-mono text-[10.5px] text-muted-dim">
+                <Loader2 className="size-3 animate-spin" />
+                Redirecting to Databases...
+              </span>
             </div>
             <div className="space-y-3 px-3 py-3">
               <p className="text-[11.5px] leading-relaxed text-muted">
@@ -881,17 +1032,32 @@ function EngineDetails({
   const { entry } = offer;
   const download = downloadBytesFor(entry, snapshot);
   const status = statusLabel(record);
+  const capabilities = [
+    entry.capabilities.startStop && "Start / Stop",
+    entry.capabilities.backup && "Backup",
+    entry.capabilities.portConfig && "Port config",
+    entry.capabilities.introspection && "Schema introspection",
+    entry.capabilities.multipleInstances && "Multiple databases",
+  ].filter(Boolean) as string[];
 
   return (
     <aside className="space-y-3 border border-border bg-surface p-3 text-[11.5px]">
       <div>
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-foreground">
-            {entry.displayName}
-          </h2>
+          <div className="flex items-center gap-2">
+            <Database className="size-4 shrink-0 text-primary" />
+            <div>
+              <h2 className="font-semibold text-foreground">
+                {entry.displayName}
+              </h2>
+              <p className="font-mono text-[10px] text-muted-dim">
+                {entry.advancedName}
+              </p>
+            </div>
+          </div>
           <StatusChip tone={status.tone}>{status.label}</StatusChip>
         </div>
-        <p className="mt-1 leading-relaxed text-muted">{entry.purpose}</p>
+        <p className="mt-1.5 leading-relaxed text-muted">{entry.purpose}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-y border-border py-2.5 font-mono text-[10.5px]">
@@ -900,8 +1066,16 @@ function EngineDetails({
           <dd className="text-foreground">{entry.pin}</dd>
         </div>
         <div>
+          <dt className="text-muted-dim">Publisher</dt>
+          <dd className="truncate text-foreground">{entry.publisher}</dd>
+        </div>
+        <div>
           <dt className="text-muted-dim">Method</dt>
           <dd className="text-foreground">{methodLabel(entry)}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-dim">Dialect</dt>
+          <dd className="uppercase text-foreground">{entry.dialect}</dd>
         </div>
         <div>
           <dt className="text-muted-dim">Download</dt>
@@ -910,12 +1084,41 @@ function EngineDetails({
           </dd>
         </div>
         <div>
-          <dt className="text-muted-dim">Min disk</dt>
+          <dt className="text-muted-dim">Min disk / RAM</dt>
           <dd className="text-foreground">
-            {formatBytes(entry.minDiskBytes ?? 0)}
+            {formatBytes(entry.minDiskBytes ?? 0)} /{" "}
+            {entry.minMemoryBytes ? formatBytes(entry.minMemoryBytes) : "Minimal"}
           </dd>
         </div>
       </dl>
+
+      <div>
+        <span className="section-label">Supported platforms</span>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {entry.platforms.map((platform) => (
+            <span
+              key={platform}
+              className="border border-border bg-surface-alt px-1.5 py-0.5 font-mono text-[9.5px] text-muted"
+            >
+              {platform}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="section-label">Capabilities</span>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {capabilities.map((cap) => (
+            <span
+              key={cap}
+              className="border border-border bg-surface-alt px-1.5 py-0.5 text-[10px] text-foreground"
+            >
+              {cap}
+            </span>
+          ))}
+        </div>
+      </div>
 
       <div>
         <span className="section-label">Requirements</span>
@@ -958,14 +1161,27 @@ function EngineDetails({
       </div>
 
       <div>
-        <span className="section-label">Source</span>
-        <p className="mt-1 break-words font-mono text-[10px] text-muted">
-          {entry.sourceUrl}
+        <span className="section-label">Verification check</span>
+        <p className="mt-1 font-mono text-[10px] text-muted">
+          {entry.verification}
         </p>
       </div>
 
+      <div>
+        <span className="section-label">Source</span>
+        <a
+          href={entry.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-1 flex items-center gap-1 break-all font-mono text-[10px] text-primary hover:underline"
+        >
+          <span>{entry.sourceUrl}</span>
+          <ExternalLink className="size-2.5 shrink-0" />
+        </a>
+      </div>
+
       <div className="flex items-center gap-1.5 border-t border-border pt-2 text-[10.5px] text-muted-dim">
-        <HardDrive className="size-3" />
+        <HardDrive className="size-3 shrink-0" />
         Practice data is stored in the app data directory.
       </div>
     </aside>

@@ -193,52 +193,91 @@ export class SqlServerDriver implements EngineDriver {
     if (this.connection === null) {
       throw new Error("SQL Server session is not open.");
     }
-    return this.executeOnConnection(this.connection, sqlText, options);
+    return this.executeOnConnection(this.connection, sqlText, options, true);
   }
 
   private async executeOnConnection(
     connection: SqlConnection,
     sqlText: string,
     options?: SqlOptions,
+    trackDatabase = false,
   ): Promise<SqlResult[]> {
     const started = performance.now();
     const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
-    const { statements } = splitScript(sqlText, "tsql");
-    const batches = statements.length > 0 ? statements : [sqlText];
+    const split = splitScript(sqlText, "tsql");
+    if (split.error !== undefined) {
+      return [emptyResult(0, started, split.error)];
+    }
+    const batches = split.statements.length > 0 ? split.statements : [sqlText];
     const results: SqlResult[] = [];
     const allInfo: string[] = [];
 
     for (const batch of batches) {
-      const result = await connection.promises.query(
-        batch,
-        [],
-        options?.timeoutMs ? { timeoutMs: options.timeoutMs } : undefined,
-      );
-      const elapsed = Math.round(performance.now() - started);
-      const info = result.info ?? [];
-      allInfo.push(...info);
+      const batchStart = performance.now();
+      try {
+        const result = await connection.promises.query(
+          batch,
+          [],
+          options?.timeoutMs ? { timeoutMs: options.timeoutMs } : undefined,
+        );
+        const elapsed = Math.round(performance.now() - batchStart);
+        const info = result.info ?? [];
+        allInfo.push(...info);
 
-      for (let index = 0; index < result.results.length; index += 1) {
-        const rawRows = result.results[index] ?? [];
-        const meta = result.meta[index] ?? [];
-        const columns = meta.map((column: { name: string }) => column.name);
-        const rows = rawRows
-          .slice(0, maxRows)
-          .map((row: unknown) => formatSqlRow(row as Record<string, unknown>));
-        const count = result.counts[index];
-        results.push({
-          columns,
-          rows,
-          rowsAffected: typeof count === "number" ? count : 0,
-          executionTimeMs: elapsed,
-          isSelect: columns.length > 0,
-          statementIndex: results.length,
-          message:
-            columns.length === 0 && info[index] !== undefined
-              ? info[index]
-              : undefined,
-        });
+        if (result.results.length === 0) {
+          results.push(
+            emptyResult(
+              results.length,
+              batchStart,
+              undefined,
+              info.join("\n") || "Statement completed.",
+            ),
+          );
+          continue;
+        }
+
+        for (let index = 0; index < result.results.length; index += 1) {
+          const rawRows = result.results[index] ?? [];
+          const meta = result.meta[index] ?? [];
+          const columns = meta.map((column: { name: string }) => column.name);
+          const rows = rawRows
+            .slice(0, maxRows)
+            .map((row: unknown) => formatSqlRow(row as Record<string, unknown>));
+          const count = result.counts[index];
+          results.push({
+            columns,
+            rows,
+            rowsAffected: typeof count === "number" ? count : 0,
+            executionTimeMs: elapsed,
+            isSelect: columns.length > 0,
+            statementIndex: results.length,
+            message:
+              columns.length === 0 && info[index] !== undefined
+                ? info[index]
+                : undefined,
+          });
+        }
+      } catch (error) {
+        results.push(
+          emptyResult(
+            results.length,
+            batchStart,
+            error instanceof Error ? error.message : String(error),
+          ),
+        );
       }
+    }
+
+    if (trackDatabase && connection === this.connection) {
+      try {
+        const dbRes = await connection.promises.query("SELECT DB_NAME() AS db");
+        const activeDb = (
+          dbRes.results[0]?.[0] as { db?: string } | undefined
+        )?.db;
+        if (typeof activeDb === "string" && activeDb.length > 0) {
+          this.database = activeDb;
+        }
+      } catch {}
     }
 
     if (results.length === 0) {
@@ -261,7 +300,9 @@ export class SqlServerDriver implements EngineDriver {
       await this.admin.promises.query(`CREATE DATABASE [${tempDb}]`);
       tempConn = await sql.promises.open(this.buildConnection(tempDb));
       if (setupSql.trim().length > 0) {
-        await tempConn.promises.query(setupSql);
+        await this.executeOnConnection(tempConn, setupSql, {
+          maxRows: Number.MAX_SAFE_INTEGER,
+        });
       }
       return await this.executeOnConnection(tempConn, sqlText, {
         maxRows: Number.MAX_SAFE_INTEGER,

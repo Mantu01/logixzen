@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { Play, RefreshCw, Square, Terminal } from "lucide-react";
-import type {
-  EngineOffer,
-  EngineOptionId,
-  InstallationRecord,
-  PlatformSnapshot,
+import {
+  FEATURE_FLAGS,
+  type EngineOffer,
+  type EngineOptionId,
+  type InstallationRecord,
+  type PlatformSnapshot,
 } from "@/shared/engines";
 import {
   defaultContainerName,
@@ -53,12 +54,23 @@ export function ContainerEnvironmentsSection({
   const dockerState =
     snapshot?.containerReadiness?.find((runtime) => runtime.runtime === "docker")
       ?.state ?? "unknown";
+  const dockerEnabled = FEATURE_FLAGS.docker;
 
   return (
     <Panel
       title="Container environments"
-      description="Loopback-only containers with persistent volumes."
-      actions={<StatusChip>Docker: {dockerState}</StatusChip>}
+      description={
+        dockerEnabled
+          ? "Loopback-only containers with persistent volumes."
+          : "Containerized database engines are coming soon."
+      }
+      actions={
+        dockerEnabled ? (
+          <StatusChip>Docker: {dockerState}</StatusChip>
+        ) : (
+          <StatusChip tone="info">Coming Soon</StatusChip>
+        )
+      }
     >
       <ul className="divide-y divide-border">
         {offers.map(({ entry }) => {
@@ -82,9 +94,13 @@ export function ContainerEnvironmentsSection({
                   <span className="font-sans text-[12px] font-semibold text-foreground">
                     {entry.displayName}
                   </span>
-                  <StatusChip tone={statusTone(status)}>
-                    {statusLabel(status)}
-                  </StatusChip>
+                  {dockerEnabled ? (
+                    <StatusChip tone={statusTone(status)}>
+                      {statusLabel(status)}
+                    </StatusChip>
+                  ) : (
+                    <StatusChip tone="info">Coming Soon</StatusChip>
+                  )}
                 </div>
                 <div className="mt-0.5 truncate">
                   {containerName}
@@ -98,14 +114,24 @@ export function ContainerEnvironmentsSection({
                 </div>
               </div>
 
-              {installed === undefined ? (
+              {!dockerEnabled ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className="h-7 cursor-not-allowed border-border px-2 text-[11px] opacity-60"
+                >
+                  Coming Soon
+                </Button>
+              ) : installed === undefined ? (
                 <Button
                   asChild
                   variant="outline"
                   size="sm"
                   className="h-7 border-border px-2 text-[11px]"
                 >
-                  <Link href={`/setup?preselect=${entry.id}`}>Provision</Link>
+                  <Link href={`/setup?engine=${entry.id}`}>Provision</Link>
                 </Button>
               ) : (
                 <div className="flex flex-wrap items-center justify-end gap-1">

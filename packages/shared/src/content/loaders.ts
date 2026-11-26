@@ -1,4 +1,3 @@
-// Server-side content reader using fs for Node.js environments
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
@@ -6,7 +5,6 @@ import { DatasetSchema, QuestionSchema } from './schemas'
 import type { Dataset, Topic, Question } from './schemas'
 import { TOPICS_META } from './meta'
 
-// Resolve content path from the package location
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = join(__filename, '..')
 const CONTENT_BASE = join(__dirname, '../../content')
@@ -39,13 +37,11 @@ export function loadAllDatasets(): Dataset[] {
     try {
       results.push(loadDataset(id))
     } catch {
-      // Skip missing datasets
     }
   }
   return results
 }
 
-// Alias used by API routes
 export const loadDatasets = loadAllDatasets
 
 export function loadQuestions(topicId: string): Question[] {

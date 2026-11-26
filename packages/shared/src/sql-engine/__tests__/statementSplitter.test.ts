@@ -70,4 +70,22 @@ describe('splitStatements', () => {
     expect(result[1].index).toBe(1)
     expect(result[2].index).toBe(2)
   })
+
+  test('should handle dollar-quoted strings in PostgreSQL', () => {
+    const sql = 'CREATE FUNCTION f() RETURNS int AS $$ BEGIN RETURN 1; END; $$ LANGUAGE plpgsql; SELECT f();'
+    const result = splitStatements(sql)
+    expect(result).toHaveLength(2)
+  })
+
+  test('should handle backtick and bracket identifiers with semicolons', () => {
+    const sql = 'SELECT `col;a` FROM [tbl;1]; SELECT 2;'
+    const result = splitStatements(sql)
+    expect(result).toHaveLength(2)
+  })
+
+  test('should keep trigger BEGIN END blocks as one statement', () => {
+    const sql = 'CREATE TRIGGER t AFTER INSERT ON a BEGIN INSERT INTO b VALUES (1); UPDATE a SET x = 1; END; SELECT 1;'
+    const result = splitStatements(sql)
+    expect(result).toHaveLength(2)
+  })
 })

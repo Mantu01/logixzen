@@ -25,7 +25,18 @@ import {
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { cn } from "@/lib/utils";
-import { UNCATEGORIZED, questionsInCategory } from "@/lib/categories";
+import {
+  DEFAULT_WORKSPACE_ID,
+  UNCATEGORIZED,
+  questionsInCategory,
+  workspaceCategories,
+  type QuestionCategory,
+} from "@/lib/categories";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Question, Topic } from "@logixzen/shared/content";
 
 type ListSource =
@@ -37,14 +48,34 @@ export function QuestionListContent({
 }: {
   source: ListSource;
 }): React.ReactElement {
-  const questions = usePackStore((state) => state.questions);
+  const allQuestions = usePackStore((state) => state.questions);
   const topics = usePackStore((state) => state.topics);
-  const categories = usePackStore((state) => state.categories);
+  const allCategories = usePackStore((state) => state.categories);
+  const activeWorkspaceId =
+    usePackStore((state) => state.activeWorkspaceId) || DEFAULT_WORKSPACE_ID;
+  const questionWorkspace = usePackStore((state) => state.questionWorkspace);
   const assignments = usePackStore((state) => state.questionCategory);
+  const setQuestionCategory = usePackStore(
+    (state) => state.setQuestionCategory,
+  );
   const databases = usePackStore((state) => state.databases);
   const hydrated = usePackStore((state) => state.hydrated);
   const addQuestion = usePackStore((state) => state.addQuestion);
   const removeQuestion = usePackStore((state) => state.removeQuestion);
+
+  const questions = useMemo(
+    () =>
+      allQuestions.filter(
+        (q) =>
+          (questionWorkspace[q.id] ?? DEFAULT_WORKSPACE_ID) ===
+          activeWorkspaceId,
+      ),
+    [allQuestions, questionWorkspace, activeWorkspaceId],
+  );
+  const categories = useMemo(
+    () => workspaceCategories(allCategories, activeWorkspaceId),
+    [allCategories, activeWorkspaceId],
+  );
   const solved = useProgressStore((state) => state.solvedQuestions);
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState<
@@ -88,6 +119,8 @@ export function QuestionListContent({
       subtitle={
         hydrated ? `${solvedCount}/${sourceQuestions.length} solved` : undefined
       }
+      backHref="/learn"
+      breadcrumbs={[{ label: "Practice", href: "/learn" }, { label: title }]}
       actions={
         <div className="flex items-center gap-2">
           <NewQuestionDialog
@@ -172,6 +205,14 @@ export function QuestionListContent({
               index={index}
               source={source}
               solved={solved.has(question.id)}
+              categories={categories}
+              currentCategoryId={assignments[question.id] ?? UNCATEGORIZED}
+              onMoveCategory={(categoryId) =>
+                setQuestionCategory(
+                  question.id,
+                  categoryId === UNCATEGORIZED ? null : categoryId,
+                )
+              }
               onDelete={() => removeQuestion(question.id)}
             />
           ))}
@@ -198,12 +239,18 @@ function QuestionRow({
   index,
   source,
   solved,
+  categories,
+  currentCategoryId,
+  onMoveCategory,
   onDelete,
 }: {
   question: Question;
   index: number;
   source: ListSource;
   solved: boolean;
+  categories: QuestionCategory[];
+  currentCategoryId: string;
+  onMoveCategory: (categoryId: string) => void;
   onDelete: () => void;
 }): React.ReactElement {
   const practiceHref = `/learn/practice?${
@@ -248,17 +295,50 @@ function QuestionRow({
           {question.points} pts
         </span>
       </Link>
-      <button
-        type="button"
-        aria-label={`Delete question ${question.title}`}
-        onClick={(event) => {
-          event.stopPropagation();
-          onDelete();
-        }}
-        className="flex size-6 shrink-0 items-center justify-center text-muted-dim opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
-      >
-        <Trash2 className="size-3" />
-      </button>
+      {categories.length > 0 ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Select
+                value={currentCategoryId}
+                onValueChange={onMoveCategory}
+              >
+                <SelectTrigger
+                  aria-label={`Category for ${question.title}`}
+                  className="h-6 w-28 border-border bg-surface-alt px-1.5 text-[10.5px] opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNCATEGORIZED}>Uncategorised</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Move question to another category</TooltipContent>
+        </Tooltip>
+      ) : null}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Delete question ${question.title}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
+            className="flex size-6 shrink-0 items-center justify-center text-muted-dim opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
+          >
+            <Trash2 className="size-3" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Delete question</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

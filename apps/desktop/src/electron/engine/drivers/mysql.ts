@@ -27,6 +27,7 @@ import {
 import { getPackage, memoryProfile } from "../catalog";
 import { findFreePort, supervisor } from "../supervisor";
 import { retrieveSecret, storeSecret } from "../../secrets";
+import { splitScript } from "../script-splitter";
 import { formatSqlRow } from "../value-formatter";
 import {
   findExecutable,
@@ -397,7 +398,13 @@ class MysqlFamilyDriver implements EngineDriver {
     allowCancel = false,
   ): Promise<SqlResult[]> {
     const started = performance.now();
+    const split = splitScript(sql, "mysql");
+    if (split.error !== undefined) {
+      return [emptyResult(0, started, split.error)];
+    }
+    const statements = split.statements.length > 0 ? split.statements : [sql];
     const timeoutMs = options?.timeoutMs ?? 0;
+    const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
     let timer: NodeJS.Timeout | null = null;
     if (timeoutMs > 0 && allowCancel) {
       timer = setTimeout(() => {
@@ -405,49 +412,82 @@ class MysqlFamilyDriver implements EngineDriver {
       }, timeoutMs);
     }
 
+    const results: SqlResult[] = [];
+
     try {
-      const [rawResults, rawFields] = await connection.query(sql);
-      const elapsed = Math.round(performance.now() - started);
-      const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
+      for (const statement of statements) {
+        const stmtStart = performance.now();
+        try {
+          const [rawResults, rawFields] = await connection.query(statement);
+          const elapsed = Math.round(performance.now() - stmtStart);
+          const isMulti =
+            Array.isArray(rawResults) &&
+            Array.isArray(rawFields) &&
+            rawFields.some((f) => Array.isArray(f) || f === undefined);
+          const resultSets = isMulti
+            ? (rawResults as unknown[])
+            : [rawResults];
+          const fieldSets = (
+            isMulti ? rawFields : [rawFields]
+          ) as Array<FieldPacket[] | undefined>;
 
-      const isMulti =
-        Array.isArray(rawResults) &&
-        Array.isArray(rawFields) &&
-        rawFields.some((f) => Array.isArray(f) || f === undefined);
-      const resultSets = isMulti ? (rawResults as unknown[]) : [rawResults];
-      const fieldSets = (
-        isMulti ? rawFields : [rawFields]
-      ) as Array<FieldPacket[] | undefined>;
-
-      if (resultSets.length === 0) {
-        return [emptyResult(0, started, undefined, "Statement completed.")];
+          for (let index = 0; index < resultSets.length; index += 1) {
+            const item = resultSets[index];
+            if (Array.isArray(item)) {
+              const rows = item as RowDataPacket[];
+              const columns = (fieldSets[index] ?? []).map(
+                (field) => field.name,
+              );
+              results.push({
+                columns,
+                rows: rows
+                  .slice(0, maxRows)
+                  .map((row) => formatSqlRow(row as Record<string, unknown>)),
+                rowsAffected: 0,
+                executionTimeMs: elapsed,
+                isSelect: true,
+                statementIndex: results.length,
+              });
+            } else {
+              const header = (item ?? {}) as { affectedRows?: number };
+              results.push({
+                columns: [],
+                rows: [],
+                rowsAffected: header.affectedRows ?? 0,
+                executionTimeMs: elapsed,
+                isSelect: false,
+                statementIndex: results.length,
+              });
+            }
+          }
+        } catch (error) {
+          results.push(
+            emptyResult(
+              results.length,
+              stmtStart,
+              error instanceof Error ? error.message : String(error),
+            ),
+          );
+        }
       }
 
-      return resultSets.map((item, index) => {
-        if (Array.isArray(item)) {
-          const rows = item as RowDataPacket[];
-          const columns = (fieldSets[index] ?? []).map((field) => field.name);
-          return {
-            columns,
-            rows: rows
-              .slice(0, maxRows)
-              .map((row) => formatSqlRow(row as Record<string, unknown>)),
-            rowsAffected: 0,
-            executionTimeMs: elapsed,
-            isSelect: true,
-            statementIndex: index,
-          };
-        }
-        const header = (item ?? {}) as { affectedRows?: number };
-        return {
-          columns: [],
-          rows: [],
-          rowsAffected: header.affectedRows ?? 0,
-          executionTimeMs: elapsed,
-          isSelect: false,
-          statementIndex: index,
-        };
-      });
+      if (allowCancel && connection === this.session) {
+        try {
+          const [dbRows] = await connection.query<RowDataPacket[]>(
+            "SELECT DATABASE() AS db",
+          );
+          const activeDb = (dbRows[0] as { db?: string | null } | undefined)
+            ?.db;
+          if (typeof activeDb === "string" && activeDb.length > 0) {
+            this.database = activeDb;
+          }
+        } catch {}
+      }
+
+      if (results.length === 0) {
+        return [emptyResult(0, started, undefined, "Statement completed.")];
+      }
+      return results;
     } finally {
       if (timer !== null) clearTimeout(timer);
     }

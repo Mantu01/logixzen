@@ -23,6 +23,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { BADGE_DEFINITIONS } from "@/features/badges/badgeDefinitions";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { usePackStore } from "@/stores/usePackStore";
@@ -83,24 +88,38 @@ export default function ProgressPage(): React.ReactElement {
       subtitle={`${solved}/${questionTotal || "—"} solved · ${totalPoints} points`}
       actions={
         <>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => void exportFile()}
-          >
-            <Download className="size-3.5" /> Export
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="gap-1.5"
+                onClick={() => void exportFile()}
               >
-                Reset
+                <Download className="size-3.5" /> Export
               </Button>
-            </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Download progress history as JSON
+            </TooltipContent>
+          </Tooltip>
+          <AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Reset
+                  </Button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Clear solved questions, streaks, points, and badges
+              </TooltipContent>
+            </Tooltip>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset all progress?</AlertDialogTitle>
@@ -334,30 +353,39 @@ function Heatmap({
         <div className="relative flex gap-[3px]">
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="flex flex-col gap-[3px]">
-              {week.map((cell) => (
-                <span
-                  key={cell.date}
-                  title={
-                    cell.date === ""
-                      ? undefined
-                      : `${cell.date}: ${cell.count} solved`
-                  }
-                  className={cn(
-                    "size-[11px] border",
-                    cell.future
-                      ? "border-transparent bg-transparent"
-                      : cell.level === 0
-                        ? "border-border/60 bg-surface-alt"
-                        : cn(
-                            "border-transparent",
-                            cell.level === 1 && "bg-primary/25",
-                            cell.level === 2 && "bg-primary/50",
-                            cell.level === 3 && "bg-primary/75",
-                            cell.level === 4 && "bg-primary",
-                          ),
-                  )}
-                />
-              ))}
+              {week.map((cell, dayIndex) => {
+                const box = (
+                  <span
+                    className={cn(
+                      "size-[11px] border",
+                      cell.future
+                        ? "border-transparent bg-transparent"
+                        : cell.level === 0
+                          ? "border-border/60 bg-surface-alt"
+                          : cn(
+                              "border-transparent",
+                              cell.level === 1 && "bg-primary/25",
+                              cell.level === 2 && "bg-primary/50",
+                              cell.level === 3 && "bg-primary/75",
+                              cell.level === 4 && "bg-primary",
+                            ),
+                    )}
+                  />
+                );
+                if (cell.date === "") {
+                  return (
+                    <span key={`empty-${weekIndex}-${dayIndex}`}>{box}</span>
+                  );
+                }
+                return (
+                  <Tooltip key={cell.date}>
+                    <TooltipTrigger asChild>{box}</TooltipTrigger>
+                    <TooltipContent>
+                      {cell.date}: {cell.count} solved
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
             </div>
           ))}
         </div>

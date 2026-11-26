@@ -359,7 +359,10 @@ export default function DatabasesPage(): React.ReactElement {
   const availableOffers = useMemo(() => {
     const installedIds = new Set(installations.map((i) => i.optionId));
     return compatibility.filter(
-      (o) => o.visible && !installedIds.has(o.entry.id),
+      (o) =>
+        o.visible &&
+        !installedIds.has(o.entry.id) &&
+        o.entry.method !== "container",
     );
   }, [compatibility, installations]);
 

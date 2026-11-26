@@ -1,8 +1,8 @@
+"use client";
+
 import {
   ArrowDown,
   ArrowUp,
-  ChevronLeft,
-  ChevronRight,
   ClipboardCopy,
   Download,
   FileJson,
@@ -10,7 +10,7 @@ import {
   Search,
   TableProperties,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { SqlResult } from "@/shared/desktop-api";
 
 interface ResultPanelProps {
@@ -36,6 +41,10 @@ interface ResultPanelProps {
 
 type SortDirection = "asc" | "desc" | null;
 
+const VIRTUAL_ROW_HEIGHT = 29;
+const VIRTUAL_THRESHOLD = 100;
+const OVERSCAN = 12;
+
 export function PlaygroundResultPanel({
   result,
   error,
@@ -48,8 +57,9 @@ export function PlaygroundResultPanel({
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 50;
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(320);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const columns: string[] = result?.columns ?? [];
 
@@ -76,6 +86,16 @@ export function PlaygroundResultPanel({
       if (a === b) return 0;
       if (a === null || a === undefined) return 1;
       if (b === null || b === undefined) return -1;
+      const numA = typeof a === "number" ? a : Number(a);
+      const numB = typeof b === "number" ? b : Number(b);
+      if (
+        !Number.isNaN(numA) &&
+        !Number.isNaN(numB) &&
+        String(a).trim() !== "" &&
+        String(b).trim() !== ""
+      ) {
+        return (numA - numB) * direction;
+      }
       return (
         String(a).localeCompare(String(b), undefined, { numeric: true }) *
         direction
@@ -83,12 +103,23 @@ export function PlaygroundResultPanel({
     });
   }, [result, searchTerm, sortColumn, sortDir]);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-  const safePage = Math.min(currentPage, totalPages);
-  const visibleRows = rows.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const useVirtual = rows.length > VIRTUAL_THRESHOLD;
+  const startIndex = useVirtual
+    ? Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - OVERSCAN)
+    : 0;
+  const endIndex = useVirtual
+    ? Math.min(
+        rows.length,
+        Math.ceil((scrollTop + viewportHeight) / VIRTUAL_ROW_HEIGHT) +
+          OVERSCAN,
+      )
+    : rows.length;
+  const visibleRows = rows.slice(startIndex, endIndex);
+  const topSpacer = useVirtual ? startIndex * VIRTUAL_ROW_HEIGHT : 0;
+  const bottomSpacer = useVirtual
+    ? Math.max(0, (rows.length - endIndex) * VIRTUAL_ROW_HEIGHT)
+    : 0;
+
   const executionTime =
     result?.executionTimeMs !== undefined
       ? `${result.executionTimeMs.toFixed(2)} ms`
@@ -104,7 +135,8 @@ export function PlaygroundResultPanel({
       setSortColumn(null);
       setSortDir(null);
     }
-    setCurrentPage(1);
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+    setScrollTop(0);
   };
 
   if (isLoading) {
@@ -148,12 +180,11 @@ export function PlaygroundResultPanel({
         <p className="text-[13px] font-medium text-success">
           {result.message ?? "Statement executed"}
         </p>
-        {result.message === undefined ? (
-          <p className="text-[11px] text-muted-dim">
-            {result.rowsAffected ?? 0} row
-            {(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
-          </p>
-        ) : null}
+        <p className="text-[11px] text-muted-dim">
+          {result.rowsAffected ?? 0} row
+          {(result.rowsAffected ?? 0) === 1 ? "" : "s"} affected
+          {executionTime ? ` · ${executionTime}` : ""}
+        </p>
       </div>
     );
   }
@@ -164,13 +195,23 @@ export function PlaygroundResultPanel({
         <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-dim">
           Results
         </span>
-        <span className="numeric bg-surface-alt px-1.5 py-0.5 text-[10px] text-muted">
-          {rows.length}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="numeric border border-border bg-surface-alt px-1.5 py-0.5 font-mono text-[10px] text-foreground">
+              {rows.length} {rows.length === 1 ? "row" : "rows"}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Total matching rows returned</TooltipContent>
+        </Tooltip>
         {executionTime !== null ? (
-          <span className="numeric text-[10px] text-muted-dim">
-            {executionTime}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="numeric font-mono text-[10px] text-muted-dim">
+                {executionTime}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Statement execution duration</TooltipContent>
+          </Tooltip>
         ) : null}
 
         <div className="relative ml-auto">
@@ -179,7 +220,8 @@ export function PlaygroundResultPanel({
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value);
-              setCurrentPage(1);
+              setScrollTop(0);
+              if (containerRef.current) containerRef.current.scrollTop = 0;
             }}
             placeholder="Filter rows"
             aria-label="Filter result rows"
@@ -188,37 +230,62 @@ export function PlaygroundResultPanel({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button
-            onClick={() => onCopy(result)}
-            variant="ghost"
-            size="icon-xs"
-            title="Copy results (CSV)"
-            className="text-muted"
-          >
-            <ClipboardCopy />
-          </Button>
-          <Button
-            onClick={() => onExportCsv(result)}
-            variant="ghost"
-            size="icon-xs"
-            title="Export CSV"
-            className="text-muted"
-          >
-            <Download />
-          </Button>
-          <Button
-            onClick={() => onExportJson(result)}
-            variant="ghost"
-            size="icon-xs"
-            title="Export JSON"
-            className="text-muted"
-          >
-            <FileJson />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => onCopy(result)}
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Copy results as CSV"
+                className="text-muted"
+              >
+                <ClipboardCopy />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Copy result rows as CSV</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => onExportCsv(result)}
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Export CSV"
+                className="text-muted"
+              >
+                <Download />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export result grid to .csv</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => onExportJson(result)}
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Export JSON"
+                className="text-muted"
+              >
+                <FileJson />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export result grid to .json</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div
+        ref={containerRef}
+        onScroll={(event) => {
+          const el = event.currentTarget;
+          setScrollTop(el.scrollTop);
+          if (el.clientHeight !== viewportHeight) {
+            setViewportHeight(el.clientHeight);
+          }
+        }}
+        className="min-h-0 flex-1 overflow-auto"
+      >
         <Table className="font-mono" style={{ fontSize }}>
           <TableHeader className="sticky top-0 z-10 bg-surface">
             <TableRow className="border-border hover:bg-transparent">
@@ -227,46 +294,91 @@ export function PlaygroundResultPanel({
               </TableHead>
               {columns.map((column) => (
                 <TableHead key={column} className="whitespace-nowrap p-0">
-                  <button
-                    type="button"
-                    onClick={() => handleSort(column)}
-                    className="flex h-8 w-full items-center gap-1 px-2 text-left font-medium text-muted transition-colors hover:text-foreground"
-                    style={{ fontSize: Math.max(9, fontSize - 1) }}
-                  >
-                    {column}
-                    {sortColumn === column ? (
-                      sortDir === "asc" ? (
-                        <ArrowUp className="size-2.5 text-primary" />
-                      ) : (
-                        <ArrowDown className="size-2.5 text-primary" />
-                      )
-                    ) : null}
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleSort(column)}
+                        className="flex h-8 w-full items-center gap-1 px-2 text-left font-medium text-muted transition-colors hover:text-foreground"
+                        style={{ fontSize: Math.max(9, fontSize - 1) }}
+                      >
+                        {column}
+                        {sortColumn === column ? (
+                          sortDir === "asc" ? (
+                            <ArrowUp className="size-2.5 text-primary" />
+                          ) : (
+                            <ArrowDown className="size-2.5 text-primary" />
+                          )
+                        ) : null}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Sort by {column}</TooltipContent>
+                  </Tooltip>
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visibleRows.map((row, index) => (
-              <TableRow key={index} className="border-border/60">
-                <TableCell className="numeric text-[10px] text-muted-dim">
-                  {(safePage - 1) * pageSize + index + 1}
-                </TableCell>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column}
-                    className="max-w-[280px] truncate py-1.5"
-                    title={String(row[column] ?? "null")}
-                  >
-                    {row[column] === null || row[column] === undefined ? (
-                      <span className="italic text-muted-dim">null</span>
-                    ) : (
-                      String(row[column])
-                    )}
-                  </TableCell>
-                ))}
+            {topSpacer > 0 ? (
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  style={{ height: topSpacer, padding: 0 }}
+                />
               </TableRow>
-            ))}
+            ) : null}
+            {visibleRows.map((row, offset) => {
+              const rowNumber = startIndex + offset + 1;
+              return (
+                <TableRow
+                  key={rowNumber}
+                  className="border-border/60"
+                  style={
+                    useVirtual ? { height: VIRTUAL_ROW_HEIGHT } : undefined
+                  }
+                >
+                  <TableCell className="numeric text-[10px] text-muted-dim">
+                    {rowNumber}
+                  </TableCell>
+                  {columns.map((column) => {
+                    const value = row[column];
+                    const isNull = value === null || value === undefined;
+                    const display = isNull ? "null" : String(value);
+                    return (
+                      <TableCell
+                        key={column}
+                        className="max-w-[280px] truncate py-1.5"
+                      >
+                        {display.length > 36 ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className={isNull ? "italic text-muted-dim" : ""}>
+                                {display}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-md break-all font-mono text-[11px]">
+                              {display}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : isNull ? (
+                          <span className="italic text-muted-dim">null</span>
+                        ) : (
+                          display
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+            {bottomSpacer > 0 ? (
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  style={{ height: bottomSpacer, padding: 0 }}
+                />
+              </TableRow>
+            ) : null}
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -283,32 +395,13 @@ export function PlaygroundResultPanel({
         </Table>
       </div>
 
-      <div className="flex h-8 shrink-0 items-center justify-between border-t border-border bg-surface px-3 text-[10px] text-muted-dim">
+      <div className="flex h-7 shrink-0 items-center justify-between border-t border-border bg-surface px-3 font-mono text-[10px] text-muted-dim">
         <span className="numeric">
-          Page {safePage} of {totalPages} · {rows.length} rows
+          {rows.length} {rows.length === 1 ? "row" : "rows"} · {columns.length}{" "}
+          {columns.length === 1 ? "column" : "columns"}
+          {useVirtual ? ` · showing rows ${startIndex + 1}-${endIndex}` : ""}
         </span>
-        <div className="flex items-center gap-1">
-          <Button
-            onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
-            variant="ghost"
-            size="icon-xs"
-            disabled={safePage === 1}
-            aria-label="Previous page"
-            className="text-muted"
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
-            variant="ghost"
-            size="icon-xs"
-            disabled={safePage === totalPages}
-            aria-label="Next page"
-            className="text-muted"
-          >
-            <ChevronRight />
-          </Button>
-        </div>
+        {executionTime ? <span>{executionTime}</span> : null}
       </div>
     </div>
   );

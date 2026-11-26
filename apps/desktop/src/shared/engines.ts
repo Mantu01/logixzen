@@ -1,3 +1,7 @@
+export const FEATURE_FLAGS = {
+  docker: false,
+} as const;
+
 export type EngineId =
   | "sqlite"
   | "postgres"
@@ -11,7 +15,6 @@ export type InstallMethod =
   | "bundled"
   | "native"
   | "native-windows"
-  | "native-linux"
   | "native-macos"
   | "container";
 
@@ -21,7 +24,7 @@ export type EngineDialect =
   | "mysql"
   | "tsql";
 
-export type OsFamily = "windows" | "macos" | "linux" | "other";
+export type OsFamily = "windows" | "macos" | "other";
 
 export type CpuArch = "x64" | "arm64" | "other";
 
@@ -101,17 +104,6 @@ export interface DiskSpace {
   totalBytes: number;
 }
 
-type ServiceManager = "systemd" | "unknown";
-
-export type PackageManager = "apt" | "dnf" | "zypper" | "unknown";
-
-export interface LinuxEnvironment {
-  distroId: string;
-  versionId: string;
-  serviceManager: ServiceManager;
-  packageManager: PackageManager;
-}
-
 export type VirtualizationState =
   { applicable: false } | { applicable: true; enabled: Probe<boolean> };
 
@@ -168,7 +160,6 @@ export interface ContainerPrerequisites {
   wsl2Supported?: boolean;
   virtualizationEnabled?: boolean;
   socketAccessible?: boolean;
-  inDockerGroup?: boolean;
 }
 
 export interface ContainerResourceCheck {
@@ -262,7 +253,6 @@ export interface PlatformSnapshot {
   wsl: Probe<WslState>;
   containerRuntimes: ContainerRuntimePresence[];
   containerReadiness?: ContainerRuntimeReadiness[];
-  linux: Probe<LinuxEnvironment>;
   existing: DetectedInstallation[];
 }
 
@@ -483,7 +473,6 @@ export interface DiagnosticsSummary {
 export type DocsTopicId =
   | "docker-install-windows"
   | "docker-install-macos"
-  | "docker-install-linux"
   | "sql-server-express"
   | "sql-server-localdb"
   | "sqlite"
@@ -524,9 +513,7 @@ export type CatalogPlatform =
   | "windows-x64"
   | "windows-arm64"
   | "macos-x64"
-  | "macos-arm64"
-  | "linux-x64"
-  | "linux-arm64";
+  | "macos-arm64";
 
 interface PackageSize {
   downloadBytes: number;
@@ -582,7 +569,6 @@ export interface EngineCatalogEntry {
   recommendedMemoryBytes?: number;
   minDiskBytes?: number;
   minWindowsBuild?: number;
-  supportedLinux: boolean;
   elevation: ElevationNeed;
   restart: RestartNeed;
   capabilities: EngineCapabilities;
@@ -593,7 +579,6 @@ export interface EngineCatalogEntry {
 export type RequirementKind =
   | "platform"
   | "os-version"
-  | "distro"
   | "memory"
   | "disk"
   | "container-runtime";

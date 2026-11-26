@@ -20,6 +20,11 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/app-shell/panel";
 import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatBytes } from "@/shared/format";
 import { methodLabel, statusLabel } from "@/lib/engine-status";
 import { cn } from "@/lib/utils";
@@ -72,17 +77,26 @@ export function InstalledEnginesTable({
       title="Installed engines"
       description="Operational state, storage footprint and maintenance actions."
       actions={
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => void onRefreshStorage()}
-          disabled={isStorageLoading}
-          className="h-7 gap-1.5 border-border px-2 text-[11px]"
-        >
-          <HardDrive className={cn("size-3", isStorageLoading && "animate-pulse")} />
-          Storage
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void onRefreshStorage()}
+              disabled={isStorageLoading}
+              className="h-7 gap-1.5 border-border px-2 text-[11px]"
+            >
+              <HardDrive
+                className={cn("size-3", isStorageLoading && "animate-pulse")}
+              />
+              Storage
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Recalculate practice and engine data directory sizes
+          </TooltipContent>
+        </Tooltip>
       }
     >
       <div className="overflow-x-auto">
@@ -154,110 +168,174 @@ export function InstalledEnginesTable({
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap items-center justify-end gap-1">
                       {isActive ? (
-                        <StatusChip tone="info">Active</StatusChip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <StatusChip tone="info">Active</StatusChip>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Currently active practice engine
+                          </TooltipContent>
+                        </Tooltip>
                       ) : isReady ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => void onSwitch(record.optionId)}
-                          disabled={isActionExecuting}
-                          className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                        >
-                          <ArrowRightLeft className="size-2.5" />
-                          Switch
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void onSwitch(record.optionId)}
+                              disabled={isActionExecuting}
+                              className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                            >
+                              <ArrowRightLeft className="size-2.5" />
+                              Switch
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Set as active engine in Playground and Practice
+                          </TooltipContent>
+                        </Tooltip>
                       ) : null}
 
                       {supportsStartStop ? (
                         isStopped ? (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              void onStartStop(record.optionId, "start")
-                            }
-                            disabled={isActionExecuting}
-                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                          >
-                            <Play className="size-2.5" />
-                            Start
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  void onStartStop(record.optionId, "start")
+                                }
+                                disabled={isActionExecuting}
+                                className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                              >
+                                <Play className="size-2.5" />
+                                Start
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Start local database service
+                            </TooltipContent>
+                          </Tooltip>
                         ) : (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              void onStartStop(record.optionId, "stop")
-                            }
-                            disabled={isActionExecuting}
-                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                          >
-                            <Square className="size-2.5" />
-                            Stop
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  void onStartStop(record.optionId, "stop")
+                                }
+                                disabled={isActionExecuting}
+                                className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                              >
+                                <Square className="size-2.5" />
+                                Stop
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Stop running database service
+                            </TooltipContent>
+                          </Tooltip>
                         )
                       ) : null}
 
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void onVerify(record.optionId)}
-                        disabled={isActionExecuting}
-                        className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                      >
-                        <RefreshCw className="size-2.5" />
-                        Verify
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void onVerify(record.optionId)}
+                            disabled={isActionExecuting}
+                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                          >
+                            <RefreshCw className="size-2.5" />
+                            Verify
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Check binary, service health, and connectivity
+                        </TooltipContent>
+                      </Tooltip>
 
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onOpenResetConfirm(record)}
-                        disabled={isActionExecuting}
-                        className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                        title="Reset the practice environment"
-                      >
-                        <RotateCcw className="size-2.5" />
-                        Reset
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onOpenResetConfirm(record)}
+                            disabled={isActionExecuting}
+                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                          >
+                            <RotateCcw className="size-2.5" />
+                            Reset
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Reset the practice environment and recreate sample DB
+                        </TooltipContent>
+                      </Tooltip>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => onOpenDetails(record)}
-                        className="text-muted hover:text-foreground"
-                        aria-label={`Details for ${entry?.displayName ?? record.optionId}`}
-                      >
-                        <Info />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => onOpenUninstallConfirm(record)}
-                        disabled={isActionExecuting}
-                        className="text-muted-dim hover:text-foreground"
-                        aria-label={`Uninstall ${entry?.displayName ?? record.optionId}`}
-                      >
-                        <Trash2 />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => onOpenDeleteDataConfirm(record)}
-                        disabled={isActionExecuting}
-                        className="text-destructive/70 hover:text-destructive"
-                        aria-label={`Delete data for ${entry?.displayName ?? record.optionId}`}
-                      >
-                        <ShieldAlert />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => onOpenDetails(record)}
+                            className="text-muted hover:text-foreground"
+                            aria-label={`Details for ${entry?.displayName ?? record.optionId}`}
+                          >
+                            <Info />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Inspect technical details, paths, and license
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => onOpenUninstallConfirm(record)}
+                            disabled={isActionExecuting}
+                            className="text-muted-dim hover:text-foreground"
+                            aria-label={`Uninstall ${entry?.displayName ?? record.optionId}`}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Uninstall this database engine
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => onOpenDeleteDataConfirm(record)}
+                            disabled={isActionExecuting}
+                            className="text-destructive/70 hover:text-destructive"
+                            aria-label={`Delete data for ${entry?.displayName ?? record.optionId}`}
+                          >
+                            <ShieldAlert />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Delete all stored database files on disk
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

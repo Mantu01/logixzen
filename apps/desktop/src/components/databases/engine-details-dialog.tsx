@@ -4,6 +4,11 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import type { EngineCatalogEntry, InstallationRecord } from "@/shared/engines";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatDate } from "@/shared/format";
 
 interface EngineDetailsDialogProps {
@@ -76,23 +81,31 @@ export function EngineDetailsDialog({
                 <span className="text-[10px] uppercase text-muted-dim">
                   Install Location
                 </span>
-                <span
-                  className="max-w-[260px] truncate text-foreground"
-                  title={record.dataLocation ?? "App Data Directory"}
-                >
-                  {record.dataLocation ?? "App Data Directory"}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="max-w-[260px] truncate text-foreground">
+                      {record.dataLocation ?? "App Data Directory"}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs break-all font-mono text-[11px]">
+                    {record.dataLocation ?? "App Data Directory"}
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <div className="flex justify-between p-2.5">
                 <span className="text-[10px] uppercase text-muted-dim">
                   License
                 </span>
-                <span
-                  className="max-w-[260px] truncate text-foreground"
-                  title={entry.license}
-                >
-                  {entry.license}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="max-w-[260px] truncate text-foreground">
+                      {entry.license}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs break-words text-[11px]">
+                    {entry.license}
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <div className="flex justify-between bg-surface-alt/40 p-2.5">
                 <span className="text-[10px] uppercase text-muted-dim">

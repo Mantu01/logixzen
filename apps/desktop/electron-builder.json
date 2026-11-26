@@ -42,10 +42,5 @@
     "icon": "logo.png",
     "target": "dmg",
     "category": "public.app-category.developer-tools"
-  },
-  "linux": {
-    "icon": "logo.png",
-    "target": "AppImage",
-    "category": "Development"
   }
 }

@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useDesktopBridge } from "@/hooks/use-desktop-bridge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function MinimizeIcon() {
   return (
@@ -82,12 +87,21 @@ export function TitleBar() {
       </div>
 
       <div className="app-no-drag flex h-full items-center">
-        <div className="mr-2 hidden items-center gap-1.5 text-[10.5px] text-muted-dim md:flex">
-          <span
-            className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
-          />
-          {connected ? "Desktop" : "Browser preview"}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="mr-2 hidden items-center gap-1.5 text-[10.5px] text-muted-dim md:flex">
+              <span
+                className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
+              />
+              {connected ? "Desktop" : "Browser preview"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {connected
+              ? "Connected to Electron desktop runtime"
+              : "Browser preview mode — native database installers require the desktop app"}
+          </TooltipContent>
+        </Tooltip>
         {connected ? (
           <>
             <TitleButton
@@ -102,14 +116,19 @@ export function TitleBar() {
             >
               <MaximizeIcon />
             </TitleButton>
-            <button
-              type="button"
-              aria-label="Close window"
-              onClick={() => window.logixzen?.window.close()}
-              className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-destructive hover:text-destructive-foreground"
-            >
-              <CloseIcon />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Close window"
+                  onClick={() => window.logixzen?.window.close()}
+                  className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <CloseIcon />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Close window</TooltipContent>
+            </Tooltip>
           </>
         ) : (
           <div className="h-full w-2" />
@@ -129,13 +148,18 @@ function TitleButton({
   children: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-    >
-      {children}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          onClick={onClick}
+          className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
   );
 }

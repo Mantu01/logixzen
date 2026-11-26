@@ -1,7 +1,8 @@
 import { readdirSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
-import type {
-  BridgeResult,
+import {
+  FEATURE_FLAGS,
+  type BridgeResult,
   ContainerLifecycleAction,
   EngineCatalogEntry,
   EngineOffer,
@@ -280,6 +281,12 @@ class SetupService {
   public async verifyConnection(
     optionId: EngineOptionId,
   ): Promise<BridgeResult<VerificationResult>> {
+    if (!FEATURE_FLAGS.docker && isContainerOption(optionId)) {
+      return failureResult(
+        "prerequisite",
+        "Docker container engines are coming soon and currently disabled.",
+      );
+    }
     const loaded = await loadInstallState();
     const record = loaded.state.installations.find(
       (item) => item.optionId === optionId,
@@ -355,6 +362,16 @@ class SetupService {
   }
 
   public async startJob(request: StartJobRequest): Promise<BridgeResult<Job>> {
+    if (
+      !FEATURE_FLAGS.docker &&
+      isContainerOption(request.optionId) &&
+      request.kind !== "uninstall"
+    ) {
+      return failureResult(
+        "prerequisite",
+        "Docker container engines are coming soon and currently disabled.",
+      );
+    }
     if (jobManager.hasActiveJob(request.optionId)) {
       return failureResult(
         "conflict",
@@ -742,6 +759,12 @@ class SetupService {
     optionId: EngineOptionId,
     action: ContainerLifecycleAction,
   ): Promise<BridgeResult<Job>> {
+    if (!FEATURE_FLAGS.docker) {
+      return failureResult(
+        "prerequisite",
+        "Docker container engines are coming soon and currently disabled.",
+      );
+    }
     if (action === "restart") {
       await restartAppContainer(defaultContainerName(optionId));
     }

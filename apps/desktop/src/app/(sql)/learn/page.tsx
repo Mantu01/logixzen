@@ -7,6 +7,7 @@ import { PageShell } from "@/components/app-shell/page-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CategoriesSection } from "@/features/learn/categories";
+import { DEFAULT_WORKSPACE_ID, workspaceCategories } from "@/lib/categories";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { cn } from "@/lib/utils";
@@ -14,11 +15,28 @@ import { cn } from "@/lib/utils";
 type View = "categories" | "topics";
 
 export default function LearnPage(): React.ReactElement {
-  const questions = usePackStore((state) => state.questions);
-  const categories = usePackStore((state) => state.categories);
+  const allQuestions = usePackStore((state) => state.questions);
+  const allCategories = usePackStore((state) => state.categories);
+  const activeWorkspaceId =
+    usePackStore((state) => state.activeWorkspaceId) || DEFAULT_WORKSPACE_ID;
+  const questionWorkspace = usePackStore((state) => state.questionWorkspace);
   const hydrated = usePackStore((state) => state.hydrated);
   const solved = useProgressStore((state) => state.solvedQuestions);
   const lastPosition = useProgressStore((state) => state.lastPosition);
+
+  const questions = useMemo(
+    () =>
+      allQuestions.filter(
+        (q) =>
+          (questionWorkspace[q.id] ?? DEFAULT_WORKSPACE_ID) ===
+          activeWorkspaceId,
+      ),
+    [allQuestions, questionWorkspace, activeWorkspaceId],
+  );
+  const categories = useMemo(
+    () => workspaceCategories(allCategories, activeWorkspaceId),
+    [allCategories, activeWorkspaceId],
+  );
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "unsolved">("all");

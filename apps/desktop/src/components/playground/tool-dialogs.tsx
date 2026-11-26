@@ -80,28 +80,30 @@ function DialogCloseButton(): React.ReactElement {
 }
 
 export function HistoryDialog({
+  open,
+  onOpenChange,
   onPick,
 }: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onPick: (sql: string) => void;
 }): React.ReactElement {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
+  const setIsOpen = onOpenChange ?? setInternalOpen;
   const history = useQueryHistoryStore((state) => state.history);
   const clearHistory = useQueryHistoryStore((state) => state.clearHistory);
 
   return (
-    <Dialog>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Query history"
-            disabled={history.length === 0}
-          >
-            <History className="size-3.5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Query history</TooltipContent>
-      </Tooltip>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <ToolButton
+        label="Query history"
+        shortcut="Ctrl+H"
+        disabled={history.length === 0}
+        onClick={() => setIsOpen(true)}
+      >
+        <History className="size-3.5" />
+      </ToolButton>
       <DialogContent
         className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0"
         showCloseButton={false}
@@ -127,7 +129,10 @@ export function HistoryDialog({
               <button
                 key={entry.id}
                 type="button"
-                onClick={() => onPick(entry.query)}
+                onClick={() => {
+                  onPick(entry.query);
+                  setIsOpen(false);
+                }}
                 className="flex w-full items-start gap-3 border-b border-border/50 px-4 py-2.5 text-left transition-colors last:border-b-0 hover:bg-surface-hover"
               >
                 <span
@@ -172,6 +177,7 @@ export function SnippetsDialog({
   sql: string;
   onPick: (sql: string) => void;
 }): React.ReactElement {
+  const [open, setOpen] = useState(false);
   const snippets = useSnippetsStore((state) => state.snippets);
   const addSnippet = useSnippetsStore((state) => state.addSnippet);
   const removeSnippet = useSnippetsStore((state) => state.removeSnippet);
@@ -190,15 +196,10 @@ export function SnippetsDialog({
   }, [sql, addSnippet]);
 
   return (
-    <Dialog>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label="Saved snippets">
-            <Star className="size-3.5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Saved snippets</TooltipContent>
-      </Tooltip>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <ToolButton label="Saved snippets" onClick={() => setOpen(true)}>
+        <Star className="size-3.5" />
+      </ToolButton>
       <DialogContent
         className="flex max-h-[80vh] max-w-xl flex-col gap-0 p-0"
         showCloseButton={false}
@@ -227,7 +228,10 @@ export function SnippetsDialog({
               >
                 <button
                   type="button"
-                  onClick={() => onPick(snippet.sql)}
+                  onClick={() => {
+                    onPick(snippet.sql);
+                    setOpen(false);
+                  }}
                   className="min-w-0 flex-1 text-left"
                 >
                   <span className="block truncate text-[12px] font-medium text-foreground/90">
@@ -237,15 +241,20 @@ export function SnippetsDialog({
                     {snippet.sql}
                   </span>
                 </button>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={`Delete snippet ${snippet.title}`}
-                  className="mt-0.5 text-muted-dim opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-                  onClick={() => removeSnippet(snippet.id)}
-                >
-                  <Trash2 className="size-3" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={`Delete snippet ${snippet.title}`}
+                      className="mt-0.5 text-muted-dim opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                      onClick={() => removeSnippet(snippet.id)}
+                    >
+                      <Trash2 className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete snippet</TooltipContent>
+                </Tooltip>
               </div>
             ))
           )}
@@ -296,9 +305,9 @@ export function RunButton({
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        Run all statements
+        Run SQL
         <kbd className="ml-1 font-mono text-[9px] text-background/70">
-          Ctrl+Enter
+          Ctrl+Enter / F5
         </kbd>
       </TooltipContent>
     </Tooltip>
@@ -309,7 +318,8 @@ export function CopySqlButton({ sql }: { sql: string }): React.ReactElement {
   const [copied, setCopied] = useState(false);
   return (
     <ToolButton
-      label="Copy SQL"
+      label={copied ? "Copied" : "Copy SQL"}
+      shortcut="Ctrl+Shift+C"
       disabled={sql.trim().length === 0}
       onClick={() => {
         void navigator.clipboard.writeText(sql);

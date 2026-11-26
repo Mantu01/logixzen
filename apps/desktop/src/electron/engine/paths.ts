@@ -14,19 +14,13 @@ export function getEnginesRootDir(): string {
       join(os.homedir(), "AppData", "Local");
     return join(localAppData, "LogixZen", "engines");
   }
-  if (platform === "darwin") {
-    return join(
-      os.homedir(),
-      "Library",
-      "Application Support",
-      "LogixZen",
-      "engines",
-    );
-  }
-  const xdgData =
-    process.env.XDG_DATA_HOME ||
-    join(os.homedir(), ".local", "share");
-  return join(xdgData, "LogixZen", "engines");
+  return join(
+    os.homedir(),
+    "Library",
+    "Application Support",
+    "LogixZen",
+    "engines",
+  );
 }
 
 export function getCatalogDir(): string {

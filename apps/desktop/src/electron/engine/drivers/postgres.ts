@@ -25,6 +25,8 @@ import {
 import { getPackage, memoryProfile } from "../catalog";
 import { findFreePort, supervisor } from "../supervisor";
 import { retrieveSecret, storeSecret } from "../../secrets";
+import { parseUseStatement } from "../../../shared/sql";
+import { splitScript } from "../script-splitter";
 import { formatSqlRow } from "../value-formatter";
 import {
   findExecutable,
@@ -377,7 +379,14 @@ export class PostgresDriver implements EngineDriver {
     allowCancel = false,
   ): Promise<SqlResult[]> {
     const started = performance.now();
+    const split = splitScript(sql, "postgres");
+    if (split.error !== undefined) {
+      return [emptyResult(0, started, split.error)];
+    }
+
+    const statements = split.statements.length > 0 ? split.statements : [sql];
     const timeoutMs = options?.timeoutMs ?? 0;
+    const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
     let timer: NodeJS.Timeout | null = null;
     if (timeoutMs > 0 && allowCancel) {
       timer = setTimeout(() => {
@@ -385,29 +394,73 @@ export class PostgresDriver implements EngineDriver {
       }, timeoutMs);
     }
 
-    try {
-      const response = await client.query(sql);
-      const elapsed = Math.round(performance.now() - started);
-      const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
-      const batch = Array.isArray(response) ? response : [response];
+    const results: SqlResult[] = [];
+    let currentClient = client;
 
-      if (batch.length === 0) {
-        return [emptyResult(0, started, undefined, "Statement completed.")];
+    try {
+      for (const statement of statements) {
+        const stmtStart = performance.now();
+        const useTarget = allowCancel ? parseUseStatement(statement) : null;
+        if (useTarget !== null) {
+          try {
+            await this.useDatabase(useTarget);
+            if (this.session !== null) {
+              currentClient = this.session;
+            }
+            results.push(
+              emptyResult(
+                results.length,
+                stmtStart,
+                undefined,
+                `Switched database to "${useTarget}".`,
+              ),
+            );
+          } catch (error) {
+            results.push(
+              emptyResult(
+                results.length,
+                stmtStart,
+                error instanceof Error ? error.message : String(error),
+              ),
+            );
+          }
+          continue;
+        }
+
+        try {
+          const response = await currentClient.query(statement);
+          const elapsed = Math.round(performance.now() - stmtStart);
+          const batch = Array.isArray(response) ? response : [response];
+          for (const item of batch) {
+            const columns = item.fields.map(
+              (field: { name: string }) => field.name,
+            );
+            results.push({
+              columns,
+              rows: item.rows
+                .slice(0, maxRows)
+                .map((row: Record<string, unknown>) => formatSqlRow(row)),
+              rowsAffected: item.rowCount ?? 0,
+              executionTimeMs: elapsed,
+              isSelect: columns.length > 0,
+              statementIndex: results.length,
+            });
+          }
+        } catch (error) {
+          results.push(
+            emptyResult(
+              results.length,
+              stmtStart,
+              error instanceof Error ? error.message : String(error),
+            ),
+          );
+        }
       }
 
-      return batch.map((result, index) => {
-        const columns = result.fields.map((field: { name: string }) => field.name);
-        return {
-          columns,
-          rows: result.rows
-            .slice(0, maxRows)
-            .map((row: Record<string, unknown>) => formatSqlRow(row)),
-          rowsAffected: result.rowCount ?? 0,
-          executionTimeMs: elapsed,
-          isSelect: columns.length > 0,
-          statementIndex: index,
-        };
-      });
+      if (results.length === 0) {
+        return [emptyResult(0, started, undefined, "Statement completed.")];
+      }
+      return results;
     } finally {
       if (timer !== null) clearTimeout(timer);
     }
@@ -571,23 +624,22 @@ export class PostgresDriver implements EngineDriver {
 
   public async useDatabase(name: string): Promise<void> {
     if (this.database === name && this.session !== null) return;
-    const previous = this.database;
-    this.database = name;
-    if (this.session === null) return;
-    try {
-      await this.session.end();
-    } catch {}
-    this.session = new Client({
-      ...this.clientOptions(this.database),
+    if (this.session === null) {
+      this.database = name;
+      return;
+    }
+    const nextClient = new Client({
+      ...this.clientOptions(name),
       user: PRACTICE_USER,
       password: this.practicePassword,
     });
+    await nextClient.connect();
+    const previousClient = this.session;
+    this.session = nextClient;
+    this.database = name;
     try {
-      await this.session.connect();
-    } catch (error) {
-      this.database = previous;
-      throw error;
-    }
+      await previousClient.end();
+    } catch {}
   }
 
   public async initializeDatabase(

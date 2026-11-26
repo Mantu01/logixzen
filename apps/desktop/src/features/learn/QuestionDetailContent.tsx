@@ -15,10 +15,10 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import type { Question } from "@logixzen/shared/content";
 import type { SqlResult } from "@/shared/desktop-api";
 import { PageShell } from "@/components/app-shell/page-shell";
-import { SqlCodeEditor } from "@/components/editor/SqlCodeEditor";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
 import { AiActionButtons } from "@/components/learn/AiActionButtons";
 import { Badge } from "@/features/learn/Badge";
@@ -27,11 +27,22 @@ import {
   type GradeResult,
 } from "@/features/learn/hooks/useGrading";
 import { BADGE_DEFINITIONS } from "@/features/badges/badgeDefinitions";
+
+const SqlCodeEditor = dynamic(
+  () =>
+    import("@/components/editor/SqlCodeEditor").then((m) => m.SqlCodeEditor),
+  { ssr: false },
+);
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { useSqlStore } from "@/sql/useSqlStore";
@@ -213,50 +224,91 @@ function QuestionWorkspace({
     <PageShell
       title={question.title}
       subtitle={`${index + 1}/${topicQuestions.length} · ${question.points} pts · ${question.datasetId}`}
+      showBack
+      breadcrumbs={[
+        { label: "Practice", href: "/learn" },
+        activeCategoryId
+          ? {
+              label: activeCategoryName,
+              href: `/learn/category?id=${activeCategoryId}`,
+            }
+          : {
+              label: topicId.replace(/[-_]+/g, " "),
+              href: `/learn/topic?id=${topicId}`,
+            },
+        { label: question.title },
+      ]}
       actions={
         <>
-          <Link
-            href="/databases"
-            title={`Active SQL dialect: ${dialectLabel(dialect)}. Switch in Databases`}
-            className="flex h-7 items-center gap-1.5 border border-border bg-surface px-2.5 text-[11px] text-muted transition-colors hover:border-primary/50 hover:text-foreground"
-          >
-            <span className="size-1.5 bg-primary" />
-            <span className="font-mono font-medium uppercase text-foreground">
-              {dialectLabel(dialect)}
-            </span>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/databases"
+                className="flex h-7 items-center gap-1.5 border border-border bg-surface px-2.5 text-[11px] text-muted transition-colors hover:border-primary/50 hover:text-foreground"
+              >
+                <span className="size-1.5 bg-primary" />
+                <span className="font-mono font-medium uppercase text-foreground">
+                  {dialectLabel(dialect)}
+                </span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Active SQL dialect: {dialectLabel(dialect)}. Switch in Databases
+            </TooltipContent>
+          </Tooltip>
           {alreadySolved ? (
-            <span className="flex items-center gap-1 bg-success/10 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-success">
-              <CheckCircle2 className="size-3" /> Solved
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1 bg-success/10 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-success">
+                  <CheckCircle2 className="size-3" /> Solved
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Question completed and recorded in progress
+              </TooltipContent>
+            </Tooltip>
           ) : null}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => void run()}
-            disabled={isGrading || answer.trim().length === 0 || !isSqlQuestion}
-          >
-            {isGrading ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Play className="size-3.5" />
-            )}{" "}
-            Run
-          </Button>
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => void submit()}
-            disabled={isGrading || answer.trim().length === 0}
-          >
-            {isGrading ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <FlaskConical className="size-3.5" />
-            )}{" "}
-            Submit
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => void run()}
+                disabled={isGrading || answer.trim().length === 0 || !isSqlQuestion}
+              >
+                {isGrading ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Play className="size-3.5" />
+                )}{" "}
+                Run
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Run statement against active practice database
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={() => void submit()}
+                disabled={isGrading || answer.trim().length === 0}
+              >
+                {isGrading ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <FlaskConical className="size-3.5" />
+                )}{" "}
+                Submit
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Grade your solution against test cases
+            </TooltipContent>
+          </Tooltip>
         </>
       }
     >
@@ -341,12 +393,16 @@ function QuestionWorkspace({
                 {isSqlQuestion ? "Your query" : "Your answer"}
               </span>
               {isSqlQuestion ? (
-                <span
-                  title={`${dialectLabel(dialect)} syntax`}
-                  className="border border-border px-1.5 font-mono text-[9px] uppercase tracking-wider text-muted-dim"
-                >
-                  {dialectLabel(dialect)}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="border border-border px-1.5 font-mono text-[9px] uppercase tracking-wider text-muted-dim">
+                      {dialectLabel(dialect)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {dialectLabel(dialect)} syntax highlighting and grading
+                  </TooltipContent>
+                </Tooltip>
               ) : null}
             </span>
             <AiActionButtons
@@ -437,23 +493,37 @@ function QuestionWorkspace({
         ) : null}
 
         <div className="flex items-center justify-between border-t border-border pb-2 pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => navigate(-1)}
-            disabled={index <= 0}
-          >
-            <ArrowLeft className="size-3.5" /> Previous
-          </Button>
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => navigate(1)}
-            disabled={index >= topicQuestions.length - 1}
-          >
-            Next <ArrowRight className="size-3.5" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => navigate(-1)}
+                  disabled={index <= 0}
+                >
+                  <ArrowLeft className="size-3.5" /> Previous
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Previous question in set</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => navigate(1)}
+                  disabled={index >= topicQuestions.length - 1}
+                >
+                  Next <ArrowRight className="size-3.5" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Next question in set</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </PageShell>

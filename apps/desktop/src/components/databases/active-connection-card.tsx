@@ -19,6 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { statusLabel } from "@/lib/engine-status";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface ActiveConnectionCardProps {
@@ -81,24 +86,55 @@ export function ActiveConnectionCard({
       description="Queries in the editor run on this engine and database."
       actions={
         <>
-          <StatusChip tone={statusTone(status)}>{statusLabel(status)}</StatusChip>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void handleTest()}
-            disabled={testing || !activeOptionId}
-            className="h-7 gap-1.5 border-border px-2 text-[11px]"
-          >
-            <RefreshCw className={cn("size-3", testing && "animate-spin")} />
-            Test
-          </Button>
-          <Button asChild size="sm" className="h-7 gap-1.5 px-2.5 text-[11px]">
-            <Link href="/playground">
-              <Terminal className="size-3" />
-              Open editor
-            </Link>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <StatusChip tone={statusTone(status)}>
+                  {statusLabel(status)}
+                </StatusChip>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Current runtime connectivity state
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleTest()}
+                disabled={testing || !activeOptionId}
+                className="h-7 gap-1.5 border-border px-2 text-[11px]"
+              >
+                <RefreshCw
+                  className={cn("size-3", testing && "animate-spin")}
+                />
+                Test
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Test connection to active engine
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                size="sm"
+                className="h-7 gap-1.5 px-2.5 text-[11px]"
+              >
+                <Link href="/playground">
+                  <Terminal className="size-3" />
+                  Open editor
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Open SQL Editor using this connection
+            </TooltipContent>
+          </Tooltip>
         </>
       }
     >
@@ -166,18 +202,25 @@ export function ActiveConnectionCard({
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (switchOption) void onSwitch(switchOption);
-              }}
-              disabled={!switchOption || isSwitching}
-              className="h-7 border-border px-2 text-[11px]"
-            >
-              Switch
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (switchOption) void onSwitch(switchOption);
+                  }}
+                  disabled={!switchOption || isSwitching}
+                  className="h-7 border-border px-2 text-[11px]"
+                >
+                  Switch
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Switch active practice database engine
+              </TooltipContent>
+            </Tooltip>
           </div>
         ) : null}
       </div>

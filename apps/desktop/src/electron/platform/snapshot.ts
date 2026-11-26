@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, statfsSync, statSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, statfsSync, statSync } from "node:fs";
+import { dirname } from "node:path";
 import os from "node:os";
 import type {
   ContainerRuntimeId,
@@ -9,10 +9,8 @@ import type {
   DetectedInstallation,
   DetectedService,
   DiskSpace,
-  LinuxEnvironment,
   LocalDbInstance,
   OsFamily,
-  PackageManager,
   PlatformSnapshot,
   Probe,
   VirtualizationState,
@@ -78,7 +76,6 @@ function attempt<T>(probe: () => T): Probe<T> {
 function osFamily(): OsFamily {
   if (process.platform === "win32") return "windows";
   if (process.platform === "darwin") return "macos";
-  if (process.platform === "linux") return "linux";
   return "other";
 }
 
@@ -108,36 +105,7 @@ function disk(path: string): Probe<DiskSpace> {
   });
 }
 
-function linuxPackageManager(): PackageManager {
-  if (existsSync("/usr/bin/apt-get")) return "apt";
-  if (existsSync("/usr/bin/dnf")) return "dnf";
-  if (existsSync("/usr/bin/zypper")) return "zypper";
-  return "unknown";
-}
-
-function linuxEnvironment(): Probe<LinuxEnvironment> {
-  return attempt(() => {
-    const fields = new Map<string, string>();
-    for (const line of readFileSync("/etc/os-release", "utf8").split(/\r?\n/)) {
-      const match = /^([A-Z_]+)=(.*)$/.exec(line.trim());
-      if (match === null) continue;
-      fields.set(
-        (match[1] ?? "").toUpperCase(),
-        (match[2] ?? "").replace(/^["']|["']$/g, "").trim(),
-      );
-    }
-    const distroId = (fields.get("ID") ?? "").toLowerCase();
-    if (distroId.length === 0) throw new Error("unknown distribution");
-    return {
-      distroId,
-      versionId: fields.get("VERSION_ID") ?? "",
-      serviceManager: existsSync("/run/systemd/system") ? "systemd" : "unknown",
-      packageManager: linuxPackageManager(),
-    };
-  });
-}
-
-function describeOs(linux: LinuxEnvironment | null): {
+function describeOs(): {
   osName: string;
   osVersion: string;
   osBuild: string;
@@ -161,19 +129,14 @@ function describeOs(linux: LinuxEnvironment | null): {
       kernelVersion,
     };
   }
-  if (process.platform === "darwin") {
-    const build = run("sw_vers", ["-buildVersion"]);
-    return {
-      osName: "macOS",
-      osVersion: process.getSystemVersion(),
-      osBuild: build.ok ? build.output.trim() : "",
-      kernelVersion,
-    };
-  }
+  const build = run("sw_vers", ["-buildVersion"]);
   return {
-    osName: linux?.distroId ?? "linux",
-    osVersion: linux?.versionId ?? "",
-    osBuild: "",
+    osName: process.platform === "darwin" ? "macOS" : process.platform,
+    osVersion:
+      typeof process.getSystemVersion === "function"
+        ? process.getSystemVersion()
+        : "",
+    osBuild: build.ok ? build.output.trim() : "",
     kernelVersion,
   };
 }
@@ -189,13 +152,6 @@ function elevation(family: OsFamily): Probe<boolean> {
     ]);
     if (!uac.ok) return { known: false };
     return { known: true, value: /0x1\b/i.test(uac.output) };
-  }
-  if (family === "linux") {
-    return {
-      known: true,
-      value:
-        existsSync("/usr/bin/pkexec") || existsSync("/usr/local/bin/pkexec"),
-    };
   }
   if (family === "macos") return { known: true, value: true };
   return { known: false };
@@ -217,15 +173,6 @@ function virtualization(family: OsFamily): Probe<VirtualizationState> {
         enabled: probe.ok
           ? { known: true, value: /\btrue\b/i.test(probe.output) }
           : { known: false },
-      },
-    };
-  }
-  if (family === "linux") {
-    return {
-      known: true,
-      value: {
-        applicable: true,
-        enabled: { known: true, value: existsSync("/dev/kvm") },
       },
     };
   }
@@ -263,16 +210,8 @@ function containerEndpoints(runtime: ContainerRuntimeId): string[] {
       ? ["\\\\.\\pipe\\docker_engine"]
       : ["\\\\.\\pipe\\podman-machine-default"];
   }
-  const runtimeDir = process.env.XDG_RUNTIME_DIR;
-  const standard =
-    runtime === "docker" ? "/var/run/docker.sock" : "/run/podman/podman.sock";
-  if (runtimeDir === undefined) return [standard];
   return [
-    standard,
-    join(
-      runtimeDir,
-      runtime === "docker" ? "docker.sock" : "podman/podman.sock",
-    ),
+    runtime === "docker" ? "/var/run/docker.sock" : "/run/podman/podman.sock",
   ];
 }
 
@@ -370,18 +309,6 @@ function detectExpressWindows(): DetectedInstallation | null {
   const products = readSqlServerProducts();
   if (services.length === 0 && products.length === 0) return null;
   return { engine: "mssql-express", services, products, packages: [] };
-}
-
-function detectExpressLinux(): DetectedInstallation | null {
-  const installed = existsSync("/opt/mssql/bin/sqlservr");
-  const active = run("systemctl", ["is-active", "mssql-server"]);
-  if (!installed && !active.ok) return null;
-  return {
-    engine: "mssql-express",
-    services: [{ name: "mssql-server", running: active.ok }],
-    products: [],
-    packages: installed ? ["mssql-server"] : [],
-  };
 }
 
 function engineFromContainer(name: string): ContainerEngineId | null {
@@ -495,16 +422,12 @@ function detectExisting(family: OsFamily): DetectedInstallation[] {
     add(detectLocalDb);
     add(detectExpressWindows);
   }
-  if (family === "linux") add(detectExpressLinux);
   if (family !== "other") found.push(...detectContainers());
   return found.sort((left, right) => left.engine.localeCompare(right.engine));
 }
 
 function buildPlatformSnapshot(): PlatformSnapshot {
   const family = osFamily();
-  const linuxProbe: Probe<LinuxEnvironment> =
-    family === "linux" ? linuxEnvironment() : { known: false };
-  const linux = linuxProbe.known ? linuxProbe.value : null;
   const virt = virtualization(family);
   const wslProbe = wsl(family);
   const dataD = disk(dataDir());
@@ -524,7 +447,7 @@ function buildPlatformSnapshot(): PlatformSnapshot {
 
   return {
     osFamily: family,
-    ...describeOs(linux),
+    ...describeOs(),
     arch: archOf(process.arch),
     nativeArch: nativeArch(),
     runtime: {
@@ -541,7 +464,6 @@ function buildPlatformSnapshot(): PlatformSnapshot {
     wsl: wslProbe,
     containerRuntimes: containerRuntimes(),
     containerReadiness: readinessList,
-    linux: linuxProbe,
     existing: detectExisting(family),
   };
 }

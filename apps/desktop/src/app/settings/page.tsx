@@ -70,7 +70,21 @@ export default function SettingsPage(): React.ReactElement {
   );
 
   return (
-    <PageShell title="Settings">
+    <PageShell
+      title="Settings"
+      showBack
+      breadcrumbs={[{ label: "Home", href: "/" }, { label: "Settings" }]}
+      actions={
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="h-7 border-border px-2 text-[11px]"
+        >
+          <Link href="/playground">Open SQL Editor</Link>
+        </Button>
+      }
+    >
       <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4">
         <section>
           <div className="mb-2 flex items-center justify-between">
