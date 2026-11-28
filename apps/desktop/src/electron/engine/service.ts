@@ -3,6 +3,10 @@ import { existsSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { EngineDialect, EngineOptionId } from "../../shared/engines";
+import {
+  adaptSchemaSqlToDialect,
+  looksLikeSqliteSchema,
+} from "../../shared/dialect-sql";
 import type {
   SqlResult,
   TableInfo,
@@ -417,15 +421,21 @@ class EngineService {
     reset = false,
   ): Promise<void> {
     const driver = await this.ensureDriver();
+    const resolvedSql =
+      setupSql !== undefined &&
+      driver.dialect !== "sqlite" &&
+      looksLikeSqliteSchema(setupSql)
+        ? adaptSchemaSqlToDialect(setupSql, driver.dialect)
+        : setupSql;
     if (driver.initializeDatabase !== undefined) {
-      await driver.initializeDatabase(setupSql, name, reset);
+      await driver.initializeDatabase(resolvedSql, name, reset);
       return;
     }
     if (name !== undefined && name.length > 0) {
       await driver.useDatabase(name);
     }
-    if (setupSql !== undefined && setupSql.trim().length > 0) {
-      await driver.execute(setupSql);
+    if (resolvedSql !== undefined && resolvedSql.trim().length > 0) {
+      await driver.execute(resolvedSql);
     }
   }
 
@@ -464,11 +474,15 @@ class EngineService {
     const started = performance.now();
     try {
       const driver = await this.ensureDriver();
+      const resolvedSetup =
+        driver.dialect !== "sqlite" && looksLikeSqliteSchema(setupSql)
+          ? adaptSchemaSqlToDialect(setupSql, driver.dialect)
+          : setupSql;
       if (driver instanceof SqliteDriver) {
-        return isolatedSqliteRun(setupSql, sql);
+        return isolatedSqliteRun(resolvedSetup, sql);
       }
       if (driver.isolatedRun !== undefined) {
-        return await driver.isolatedRun(setupSql, sql);
+        return await driver.isolatedRun(resolvedSetup, sql);
       }
       return [
         emptyResult(

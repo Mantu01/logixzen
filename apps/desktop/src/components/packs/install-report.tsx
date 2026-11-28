@@ -25,7 +25,7 @@ export function InstallReport({
             Unknown error
           </p>
         ) : (
-          <ul className="mt-1.5 space-y-0.5">
+          <ul className="mt-1.5 flex flex-col gap-0.5">
             {status.issues.slice(0, 12).map((issue, index) => (
               <li key={index} className="font-mono text-[10.5px] text-error/85">
                 {issue.path}: {issue.message}

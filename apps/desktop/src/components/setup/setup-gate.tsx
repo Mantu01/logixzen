@@ -9,7 +9,7 @@ export function SetupGate(): React.ReactElement | null {
   const checkedRef = useRef(false);
 
   useEffect(() => {
-    if (checkedRef.current || pathname === "/setup") return;
+    if (checkedRef.current || pathname === "/setup" || pathname === "/") return;
     checkedRef.current = true;
 
     const bridge = window.logixzen?.setup;

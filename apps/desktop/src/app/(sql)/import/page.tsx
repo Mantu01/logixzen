@@ -64,7 +64,7 @@ export default function ImportPage(): React.ReactElement {
       title="Data Hub"
       subtitle="Install curated resources, bring your own content, and keep every reference consistent"
     >
-      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-4">
         <ResourceCta installed={packState.installedResources.length} />
         <ImportSection />
         <InstalledPanel
@@ -200,7 +200,7 @@ function InstalledPanel({
               installed database.
             </p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="flex flex-col gap-1">
               {missing.map((entry) => (
                 <li
                   key={entry.datasetId}

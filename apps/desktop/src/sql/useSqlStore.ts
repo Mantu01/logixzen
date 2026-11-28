@@ -12,6 +12,10 @@ import {
 } from "@/shared/sql";
 import { usePackStore } from "@/stores/usePackStore";
 import {
+  adaptSchemaSqlToDialect,
+  looksLikeSqliteSchema,
+} from "@/shared/dialect-sql";
+import {
   isDatasetForEngine,
   slugify,
   tablesToDatasetTables,
@@ -173,8 +177,16 @@ export const useSqlStore = create<SqlStoreState & SqlStoreActions>()(
         activeDatasetId: datasetId,
       });
       try {
+        const activeDialect = get().activeDialect;
+        const initSql =
+          dataset?.setupSql &&
+          activeDialect !== (dataset.dialect ?? "sqlite") &&
+          ((dataset.dialect ?? "sqlite") === "sqlite" ||
+            looksLikeSqliteSchema(dataset.setupSql))
+            ? adaptSchemaSqlToDialect(dataset.setupSql, activeDialect)
+            : dataset?.setupSql;
         await bridge.initialize(
-          dataset?.setupSql,
+          initSql,
           dataset?.name,
           options?.reset === true,
         );
@@ -310,7 +322,14 @@ async function prepareDatabases(sql: string): Promise<boolean> {
         item.setupSql.trim().length > 0,
     );
     if (dataset === undefined) continue;
-    await bridge.initialize(dataset.setupSql, dataset.name);
+    const activeDialect = useSqlStore.getState().activeDialect;
+    const initSql =
+      activeDialect !== (dataset.dialect ?? "sqlite") &&
+      ((dataset.dialect ?? "sqlite") === "sqlite" ||
+        looksLikeSqliteSchema(dataset.setupSql))
+        ? adaptSchemaSqlToDialect(dataset.setupSql, activeDialect)
+        : dataset.setupSql;
+    await bridge.initialize(initSql, dataset.name);
     loaded.add(key);
     loadedAny = true;
   }

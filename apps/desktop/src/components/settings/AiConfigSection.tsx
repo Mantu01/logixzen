@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -96,7 +97,7 @@ export function AiConfigSection(): React.ReactElement {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label className="text-[11.5px] text-muted">Provider</Label>
           <Select
             value={provider}
@@ -106,16 +107,18 @@ export function AiConfigSection(): React.ReactElement {
               <SelectValue placeholder="Select a provider" />
             </SelectTrigger>
             <SelectContent>
-              {PROVIDERS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                {PROVIDERS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label className="text-[11.5px] text-muted">Model</Label>
           <Input
             value={modelInput}
@@ -127,7 +130,7 @@ export function AiConfigSection(): React.ReactElement {
         </div>
 
         {provider === "custom" ? (
-          <div className="col-span-2 space-y-1.5">
+          <div className="col-span-2 flex flex-col gap-1.5">
             <Label className="flex items-center gap-1 text-[11.5px] text-muted">
               <Link className="size-3" /> Base URL
             </Label>
@@ -141,7 +144,7 @@ export function AiConfigSection(): React.ReactElement {
           </div>
         ) : null}
 
-        <div className="col-span-2 space-y-1.5">
+        <div className="col-span-2 flex flex-col gap-1.5">
           <Label className="flex items-center gap-1 text-[11.5px] text-muted">
             <Key className="size-3" /> API key
           </Label>
@@ -218,7 +221,7 @@ export function AiConfigSection(): React.ReactElement {
         <Label className="mb-2 flex items-center gap-1 text-[11.5px] text-muted">
           <Eye className="size-3" /> Privacy
         </Label>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label className="flex items-center gap-2 text-[12px]">
             <Checkbox
               checked={privacySettings.sendSchemaOnly}

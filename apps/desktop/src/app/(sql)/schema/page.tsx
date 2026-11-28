@@ -173,33 +173,23 @@ export default function SchemaPage(): React.ReactElement {
               onClick={() => setView("diagram")}
               icon={<Network className="size-3.5" />}
               label="ER diagram"
-              tooltip="Interactive entity-relationship diagram"
             />
             <ViewTab
               active={view === "tables"}
               onClick={() => setView("tables")}
               icon={<Grid2x2 className="size-3.5" />}
               label="Tables"
-              tooltip="Inspect table columns and sample rows"
             />
           </div>
           {isInitialized && activeDatasetId !== null ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => void reseed()}
-                  disabled={isLoading}
-                >
-                  <RotateCcw className="size-3.5" /> Reset data
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Reset tables and rows in {activeDataset?.name ?? "database"}
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void reseed()}
+              disabled={isLoading}
+            >
+              <RotateCcw data-icon="inline-start" /> Reset data
+            </Button>
           ) : null}
           {activeDataset ? (
             <AlertDialog>
@@ -212,7 +202,7 @@ export default function SchemaPage(): React.ReactElement {
                       aria-label={`Remove ${activeDataset.name}`}
                       className="text-muted-dim hover:text-destructive"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 />
                     </Button>
                   </AlertDialogTrigger>
                 </TooltipTrigger>
@@ -268,7 +258,7 @@ export default function SchemaPage(): React.ReactElement {
                   {error}
                 </p>
                 <Button variant="outline" size="sm" onClick={() => void reseed()}>
-                  <RotateCcw className="size-3.5" /> Rebuild database
+                  <RotateCcw data-icon="inline-start" /> Rebuild database
                 </Button>
               </div>
             ) : displayTables.length === 0 && hydrated ? (
@@ -298,13 +288,14 @@ export default function SchemaPage(): React.ReactElement {
         <ResizablePanel
           panelRef={schemaPanelRef}
           defaultSize={schemaCollapsed ? 32 : 264}
-          minSize={200}
+          minSize={210}
           maxSize={380}
           collapsible
           collapsedSize={32}
           onResize={handleResize}
         >
           <SchemaPanel
+            side="right"
             tables={displayTables}
             activeTable={selectedTable}
             onSelectTable={setSelectedTable}
@@ -326,34 +317,27 @@ function ViewTab({
   onClick,
   icon,
   label,
-  tooltip,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
-  tooltip: string;
 }): React.ReactElement {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={onClick}
-          aria-pressed={active}
-          className={cn(
-            "flex h-7 items-center gap-1.5 px-2.5 text-[11.5px] transition-colors",
-            active
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
-          )}
-        >
-          {icon}
-          {label}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
-    </Tooltip>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-7 items-center gap-1.5 px-2.5 text-[11.5px] transition-colors",
+        active
+          ? "bg-accent text-accent-foreground"
+          : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 
@@ -431,7 +415,7 @@ function TableInspector({
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="mx-auto max-w-3xl space-y-5">
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
           <div>
             <h2 className="font-mono text-[15px] font-semibold">
               {current.name}
@@ -590,18 +574,11 @@ function NewDatabaseDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5">
-              <Plus className="size-3.5" /> New database
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          Create a new {dialectLabel(dialect)} database script
-        </TooltipContent>
-      </Tooltip>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus data-icon="inline-start" /> New database
+        </Button>
+      </DialogTrigger>
       <DialogContent
         className="flex max-h-[86vh] max-w-2xl flex-col gap-0 p-0"
         showCloseButton={false}
@@ -640,7 +617,13 @@ function NewDatabaseDialog({
               fontSize={12}
               tables={EMPTY_TABLES}
               placeholder={
-                "CREATE DATABASE crm;\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
+                dialect === "tsql"
+                  ? "CREATE DATABASE crm;\nGO\nUSE crm;\nCREATE TABLE customers (id INT IDENTITY(1,1) PRIMARY KEY, name NVARCHAR(100) NOT NULL);"
+                  : dialect === "postgres"
+                    ? "CREATE DATABASE crm;\nUSE crm;\nCREATE TABLE customers (id SERIAL PRIMARY KEY, name TEXT NOT NULL);"
+                    : dialect === "mysql"
+                      ? "CREATE DATABASE crm;\nUSE crm;\nCREATE TABLE customers (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL);"
+                      : "CREATE DATABASE crm;\nUSE crm;\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL);"
               }
               minHeight="260px"
             />

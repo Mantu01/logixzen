@@ -4,11 +4,6 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import type { EngineCatalogEntry, InstallationRecord } from "@/shared/engines";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { formatDate } from "@/shared/format";
 
 interface EngineDetailsDialogProps {
@@ -45,81 +40,65 @@ export function EngineDetailsDialog({
         {record && entry ? (
           <>
             <div className="mt-4 divide-y divide-border border border-border font-mono text-[11.5px]">
-              <div className="flex justify-between bg-surface-alt/40 p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 bg-surface-alt/40 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Install Method
                 </span>
-                <span className="text-foreground">{record.method}</span>
+                <span className="text-right text-foreground">{record.method}</span>
               </div>
-              <div className="flex justify-between p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Version / Pin
                 </span>
-                <span className="text-foreground">
+                <span className="text-right text-foreground">
                   {record.installedVersion ?? entry.pin}
                 </span>
               </div>
-              <div className="flex justify-between bg-surface-alt/40 p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 bg-surface-alt/40 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Dialect
                 </span>
-                <span className="uppercase text-foreground">
+                <span className="text-right uppercase text-foreground">
                   {entry.dialect}
                 </span>
               </div>
-              <div className="flex justify-between p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Target / Port
                 </span>
-                <span className="text-foreground">
+                <span className="text-right text-foreground">
                   {record.port
                     ? `127.0.0.1:${record.port}`
                     : (record.instanceName ?? "Default")}
                 </span>
               </div>
-              <div className="flex justify-between bg-surface-alt/40 p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 bg-surface-alt/40 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Install Location
                 </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="max-w-[260px] truncate text-foreground">
-                      {record.dataLocation ?? "App Data Directory"}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs break-all font-mono text-[11px]">
-                    {record.dataLocation ?? "App Data Directory"}
-                  </TooltipContent>
-                </Tooltip>
+                <span className="break-all text-right text-foreground">
+                  {record.dataLocation ?? "App Data Directory"}
+                </span>
               </div>
-              <div className="flex justify-between p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   License
                 </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="max-w-[260px] truncate text-foreground">
-                      {entry.license}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs break-words text-[11px]">
-                    {entry.license}
-                  </TooltipContent>
-                </Tooltip>
+                <span className="text-right text-foreground">{entry.license}</span>
               </div>
-              <div className="flex justify-between bg-surface-alt/40 p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 bg-surface-alt/40 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Installed Date
                 </span>
-                <span className="text-foreground">
+                <span className="text-right text-foreground">
                   {formatDate(record.createdAt)}
                 </span>
               </div>
-              <div className="flex justify-between p-2.5">
-                <span className="text-[10px] uppercase text-muted-dim">
+              <div className="flex justify-between gap-4 p-2.5">
+                <span className="shrink-0 text-[10px] uppercase text-muted-dim">
                   Last Verification
                 </span>
-                <span className="text-foreground">
+                <span className="text-right text-foreground">
                   {record.lastVerification
                     ? formatDate(record.lastVerification.checkedAt)
                     : "Not verified"}
@@ -142,7 +121,7 @@ export function EngineDetailsDialog({
               </button>
 
               {advancedOpen ? (
-                <div className="mt-2 space-y-1.5 border border-border bg-surface-alt/50 p-2.5 font-mono text-[10.5px] text-muted">
+                <div className="mt-2 flex flex-col gap-1.5 border border-border bg-surface-alt/50 p-2.5 font-mono text-[10.5px] text-muted">
                   <div>
                     <span className="text-muted-dim">Option ID:</span>{" "}
                     {record.optionId}

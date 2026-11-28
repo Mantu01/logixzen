@@ -241,7 +241,12 @@ function SetupContent(): React.ReactElement {
   const available = useMemo(
     () =>
       offers
-        .filter((offer) => offer.visible && !installedIds.has(offer.entry.id))
+        .filter(
+          (offer) =>
+            offer.visible &&
+            !installedIds.has(offer.entry.id) &&
+            (FEATURE_FLAGS.docker || offer.entry.method !== "container"),
+        )
         .sort((left, right) => {
           if (left.entry.method !== right.entry.method) {
             return left.entry.method === "bundled" ? -1 : 1;
@@ -419,7 +424,7 @@ function SetupContent(): React.ReactElement {
 
         {step === "select" ? (
           <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {installed.length > 0 ? (
                 <section className="border border-border bg-surface">
                   <header className="flex h-8 items-center border-b border-border px-3">
@@ -575,6 +580,22 @@ function SetupContent(): React.ReactElement {
                         </button>
                       );
                     })}
+                    {!FEATURE_FLAGS.docker ? (
+                      <div className="flex items-start justify-between gap-3 px-3 py-2.5 opacity-75">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-medium text-foreground">
+                              Docker Container Engines
+                            </span>
+                            <StatusChip tone="info">Coming Soon</StatusChip>
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-muted">
+                            Run or connect any database engine image you choose
+                            inside isolated local Docker containers.
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 )}
               </section>
@@ -642,7 +663,7 @@ function SetupContent(): React.ReactElement {
                     <div className="section-label mb-1.5">
                       System compatibility
                     </div>
-                    <ul className="space-y-1">
+                    <ul className="flex flex-col gap-1">
                       {selected.checks.map((check) => (
                         <li
                           key={check.kind}
@@ -767,7 +788,7 @@ function SetupContent(): React.ReactElement {
                 </span>
               ) : null}
             </header>
-            <div className="space-y-3 px-3 py-3">
+            <div className="flex flex-col gap-3 px-3 py-3">
               <div>
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted">{activity || "Working"}</span>
@@ -899,7 +920,7 @@ function SetupContent(): React.ReactElement {
                 Redirecting to Databases...
               </span>
             </div>
-            <div className="space-y-3 px-3 py-3">
+            <div className="flex flex-col gap-3 px-3 py-3">
               <p className="text-[11.5px] leading-relaxed text-muted">
                 The engine is running on loopback and the practice database has
                 been created. You can start writing SQL now.
@@ -1041,7 +1062,7 @@ function EngineDetails({
   ].filter(Boolean) as string[];
 
   return (
-    <aside className="space-y-3 border border-border bg-surface p-3 text-[11.5px]">
+    <aside className="flex flex-col gap-3 border border-border bg-surface p-3 text-[11.5px]">
       <div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -1122,7 +1143,7 @@ function EngineDetails({
 
       <div>
         <span className="section-label">Requirements</span>
-        <ul className="mt-1.5 space-y-1">
+        <ul className="mt-1.5 flex flex-col gap-1">
           {offer.checks.length === 0 ? (
             <li className="flex items-center gap-1.5 text-success">
               <Check className="size-3" />

@@ -405,7 +405,7 @@ export default function DatabasesPage(): React.ReactElement {
         </div>
       }
     >
-      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 text-[12px]">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4 text-[12px]">
         <EnvironmentSummary
           snapshot={snapshot}
           onRefresh={handleRefreshAll}
@@ -503,17 +503,17 @@ export default function DatabasesPage(): React.ReactElement {
         ) : null}
 
         {loading ? (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <Skeleton className="h-28 w-full" />
             <Skeleton className="h-44 w-full" />
             <Skeleton className="h-32 w-full" />
           </div>
         ) : installations.length === 0 ? (
-          <div className="border border-border bg-surface p-8 text-center space-y-4">
+          <div className="flex flex-col gap-4 border border-border bg-surface p-8 text-center">
             <div className="mx-auto flex size-12 items-center justify-center border border-border bg-surface-alt text-muted-dim">
               <Database className="size-6" />
             </div>
-            <div className="max-w-md mx-auto space-y-1">
+            <div className="mx-auto flex max-w-md flex-col gap-1">
               <h2 className="text-[14px] font-semibold text-foreground">
                 No Database Engines Installed
               </h2>
@@ -527,17 +527,17 @@ export default function DatabasesPage(): React.ReactElement {
               <Button
                 asChild
                 size="sm"
-                className="h-8 text-[12px] font-medium gap-2"
+                className="h-8 text-[12px] font-medium"
               >
                 <Link href="/setup">
-                  <Plus className="size-3.5" />
+                  <Plus data-icon="inline-start" />
                   <span>Launch Engine Setup</span>
                 </Link>
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="flex flex-col gap-5">
             <ActiveConnectionCard
               activeOptionId={activeOptionId}
               activeDatabase={activeDatabase}

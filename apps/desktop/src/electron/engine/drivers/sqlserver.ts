@@ -247,7 +247,7 @@ export class SqlServerDriver implements EngineDriver {
           results.push({
             columns,
             rows,
-            rowsAffected: typeof count === "number" ? count : 0,
+            rowsAffected: typeof count === "number" && count >= 0 ? count : 0,
             executionTimeMs: elapsed,
             isSelect: columns.length > 0,
             statementIndex: results.length,
@@ -300,9 +300,15 @@ export class SqlServerDriver implements EngineDriver {
       await this.admin.promises.query(`CREATE DATABASE [${tempDb}]`);
       tempConn = await sql.promises.open(this.buildConnection(tempDb));
       if (setupSql.trim().length > 0) {
-        await this.executeOnConnection(tempConn, setupSql, {
-          maxRows: Number.MAX_SAFE_INTEGER,
-        });
+        const setupResults = await this.executeOnConnection(
+          tempConn,
+          setupSql,
+          { maxRows: Number.MAX_SAFE_INTEGER },
+        );
+        const setupError = setupResults.find((item) => item.error !== undefined);
+        if (setupError?.error) {
+          return [emptyResult(0, started, setupError.error)];
+        }
       }
       return await this.executeOnConnection(tempConn, sqlText, {
         maxRows: Number.MAX_SAFE_INTEGER,

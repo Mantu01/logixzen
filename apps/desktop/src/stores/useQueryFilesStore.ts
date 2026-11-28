@@ -2,20 +2,23 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { nativeStorage } from "@/lib/native-storage";
 
-interface QueryFile {
+export interface QueryFile {
   id: string;
   name: string;
   content: string;
+  filePath?: string;
+  savedContent?: string;
 }
 
 interface QueryFilesState {
   files: QueryFile[];
   activeId: string | null;
   newFile: (name?: string, content?: string) => string;
-  openFile: (name: string, content: string) => string;
+  openFile: (name: string, content: string, filePath?: string) => string;
   closeFile: (id: string) => void;
   renameFile: (id: string, name: string) => void;
   setContent: (id: string, content: string) => void;
+  markSaved: (id: string, filePath?: string, name?: string) => void;
   setActive: (id: string) => void;
 }
 
@@ -37,24 +40,54 @@ function uniqueName(existing: QueryFile[], base: string): string {
   return `${stem}_${index}${ext}`;
 }
 
+function normalizeSqlName(name: string): string {
+  const trimmed = name.trim();
+  return trimmed.toLowerCase().endsWith(".sql") ? trimmed : `${trimmed}.sql`;
+}
+
 export const useQueryFilesStore = create<QueryFilesState>()(
   persist(
     (set, get) => ({
-      files: [{ id: "q1", name: "query_1.sql", content: "" }],
+      files: [{ id: "q1", name: "query_1.sql", content: "", savedContent: "" }],
       activeId: "q1",
 
       newFile: (name, content = "") => {
         const id = `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const resolvedName = uniqueName(
+          get().files,
+          name !== undefined ? normalizeSqlName(name) : nextName(get().files),
+        );
         const file: QueryFile = {
           id,
-          name: uniqueName(get().files, name ?? nextName(get().files)),
+          name: resolvedName,
           content,
+          savedContent: content,
         };
         set((state) => ({ files: [...state.files, file], activeId: id }));
         return id;
       },
 
-      openFile: (name, content) => get().newFile(name, content),
+      openFile: (name, content, filePath) => {
+        if (filePath !== undefined) {
+          const existing = get().files.find(
+            (file) => file.filePath === filePath,
+          );
+          if (existing !== undefined) {
+            set({ activeId: existing.id });
+            return existing.id;
+          }
+        }
+        const id = `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const file: QueryFile = {
+          id,
+          name: uniqueName(get().files, name),
+          content,
+          filePath,
+          savedContent: content,
+        };
+        set((state) => ({ files: [...state.files, file], activeId: id }));
+        return id;
+      },
 
       closeFile: (id) =>
         set((state) => {
@@ -72,13 +105,14 @@ export const useQueryFilesStore = create<QueryFilesState>()(
         set((state) => {
           const trimmed = name.trim();
           if (trimmed.length === 0) return state;
+          const normalized = normalizeSqlName(trimmed);
           const files = state.files.map((file) =>
             file.id === id
               ? {
                   ...file,
                   name: uniqueName(
                     state.files.filter((f) => f.id !== id),
-                    trimmed.endsWith(".sql") ? trimmed : `${trimmed}.sql`,
+                    normalized,
                   ),
                 }
               : file,
@@ -93,21 +127,50 @@ export const useQueryFilesStore = create<QueryFilesState>()(
           ),
         })),
 
+      markSaved: (id, filePath, name) =>
+        set((state) => ({
+          files: state.files.map((file) => {
+            if (file.id !== id) return file;
+            const nextFileName =
+              name !== undefined
+                ? uniqueName(
+                    state.files.filter((f) => f.id !== id),
+                    name,
+                  )
+                : file.name;
+            return {
+              ...file,
+              name: nextFileName,
+              filePath: filePath ?? file.filePath,
+              savedContent: file.content,
+            };
+          }),
+        })),
+
       setActive: (id) => set({ activeId: id }),
     }),
     {
       name: "logixzen-query-files",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => nativeStorage),
       partialize: (state) => ({ files: state.files, activeId: state.activeId }),
       merge: (persisted, current) => {
         const value = (persisted ?? {}) as Partial<QueryFilesState>;
-        if (!Array.isArray(value.files) || value.files.length === 0)
-          return current;
+        if (!Array.isArray(value.files)) return current;
+        if (value.files.length === 0) {
+          return {
+            ...current,
+            files: [],
+            activeId: null,
+          };
+        }
+        const activeExists = value.files.some(
+          (file) => file.id === value.activeId,
+        );
         return {
           ...current,
           files: value.files,
-          activeId: value.activeId ?? value.files[0].id,
+          activeId: activeExists ? (value.activeId ?? null) : value.files[0].id,
         };
       },
     },

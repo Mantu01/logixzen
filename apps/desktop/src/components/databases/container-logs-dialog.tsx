@@ -78,7 +78,7 @@ export function ContainerLogsDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="container-logs-title"
-        className="w-full max-w-2xl border border-border bg-surface p-5 space-y-3 text-[12px] shadow-lg max-h-[85vh] flex flex-col"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-3 border border-border bg-surface p-5 text-[12px] shadow-lg"
       >
         <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
           <div className="flex items-center gap-2">

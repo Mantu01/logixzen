@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import {
   Check,
-  Copy,
   History,
   Loader2,
   Play,
@@ -60,7 +59,7 @@ function ToolButton({
       <TooltipContent>
         {label}
         {shortcut ? (
-          <kbd className="ml-1 font-mono text-[9px] text-background/70">
+          <kbd className="ml-1.5 border border-background/25 px-1 py-px font-mono text-[9px] text-background/85">
             {shortcut}
           </kbd>
         ) : null}
@@ -72,8 +71,8 @@ function ToolButton({
 function DialogCloseButton(): React.ReactElement {
   return (
     <DialogClose asChild>
-      <Button variant="ghost" size="sm" className="gap-1.5">
-        <X className="size-3.5" /> Close
+      <Button variant="ghost" size="sm">
+        <X data-icon="inline-start" /> Close
       </Button>
     </DialogClose>
   );
@@ -172,12 +171,18 @@ export function HistoryDialog({
 
 export function SnippetsDialog({
   sql,
+  open: controlledOpen,
+  onOpenChange,
   onPick,
 }: {
   sql: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onPick: (sql: string) => void;
 }): React.ReactElement {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const snippets = useSnippetsStore((state) => state.snippets);
   const addSnippet = useSnippetsStore((state) => state.addSnippet);
   const removeSnippet = useSnippetsStore((state) => state.removeSnippet);
@@ -197,7 +202,11 @@ export function SnippetsDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <ToolButton label="Saved snippets" onClick={() => setOpen(true)}>
+      <ToolButton
+        label="Saved snippets"
+        shortcut="Ctrl+Shift+S"
+        onClick={() => setOpen(true)}
+      >
         <Star className="size-3.5" />
       </ToolButton>
       <DialogContent
@@ -283,9 +292,11 @@ export function SnippetsDialog({
 export function RunButton({
   onClick,
   isLoading,
+  disabled = false,
 }: {
   onClick: () => void;
   isLoading: boolean;
+  disabled?: boolean;
 }): React.ReactElement {
   return (
     <Tooltip>
@@ -293,45 +304,23 @@ export function RunButton({
         <Button
           size="sm"
           onClick={onClick}
-          disabled={isLoading}
-          className="gap-1.5"
+          disabled={isLoading || disabled}
+          className="h-7 shrink-0 px-2.5 text-[11px] font-medium"
         >
           {isLoading ? (
-            <Loader2 className="size-3.5 animate-spin" />
+            <Loader2 data-icon="inline-start" className="animate-spin" />
           ) : (
-            <Play className="size-3.5" />
+            <Play data-icon="inline-start" />
           )}
           Run
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         Run SQL
-        <kbd className="ml-1 font-mono text-[9px] text-background/70">
+        <kbd className="ml-1.5 border border-background/25 px-1 py-px font-mono text-[9px] text-background/85">
           Ctrl+Enter / F5
         </kbd>
       </TooltipContent>
     </Tooltip>
-  );
-}
-
-export function CopySqlButton({ sql }: { sql: string }): React.ReactElement {
-  const [copied, setCopied] = useState(false);
-  return (
-    <ToolButton
-      label={copied ? "Copied" : "Copy SQL"}
-      shortcut="Ctrl+Shift+C"
-      disabled={sql.trim().length === 0}
-      onClick={() => {
-        void navigator.clipboard.writeText(sql);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1200);
-      }}
-    >
-      {copied ? (
-        <Check className="size-3.5 text-success" />
-      ) : (
-        <Copy className="size-3.5" />
-      )}
-    </ToolButton>
   );
 }

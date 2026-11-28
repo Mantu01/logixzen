@@ -55,15 +55,8 @@ export default function ProgressPage(): React.ReactElement {
     return Number.isFinite(best) ? best : null;
   }, [solvedQuestions]);
 
-  const calendar = useMemo(() => buildCalendar(activity), [activity]);
-  const activeDays = useMemo(() => {
-    let count = 0;
-    const todayKey = dateKey();
-    for (const [key, value] of activity) {
-      if (value > 0 && key <= todayKey) count += 1;
-    }
-    return count;
-  }, [activity]);
+  const calendar = useMemo(() => buildMonthlyCalendar(activity), [activity]);
+  const activeDays = calendar.activeDays;
 
   const exportFile = async (): Promise<void> => {
     const saved = await saveTextFile(
@@ -88,38 +81,20 @@ export default function ProgressPage(): React.ReactElement {
       subtitle={`${solved}/${questionTotal || "—"} solved · ${totalPoints} points`}
       actions={
         <>
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <Button variant="ghost" size="sm" onClick={() => void exportFile()}>
+            <Download data-icon="inline-start" />
+            Export
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5"
-                onClick={() => void exportFile()}
+                className="text-destructive hover:text-destructive"
               >
-                <Download className="size-3.5" /> Export
+                Reset
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Download progress history as JSON
-            </TooltipContent>
-          </Tooltip>
-          <AlertDialog>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    Reset
-                  </Button>
-                </AlertDialogTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Clear solved questions, streaks, points, and badges
-              </TooltipContent>
-            </Tooltip>
+            </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset all progress?</AlertDialogTitle>
@@ -142,7 +117,7 @@ export default function ProgressPage(): React.ReactElement {
         </>
       }
     >
-      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <Stat
             label="Completion"
@@ -191,27 +166,25 @@ export default function ProgressPage(): React.ReactElement {
         </div>
 
         <section className="border border-border bg-surface">
-          <div className="flex h-9 items-center justify-between border-b border-border px-3">
-            <span className="section-label">Activity</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
+            <span className="section-label">
+              {calendar.totalCount} submissions in the last year
+            </span>
             <span className="numeric text-[10.5px] text-muted-dim">
-              {activeDays} active days · {streak.longestStreak}d longest · last
-              12 months
+              {activeDays} active days · {streak.longestStreak}d longest streak
             </span>
           </div>
-          <div className="overflow-x-auto p-3">
-            <Heatmap
-              weeks={calendar.weeks}
-              monthLabels={calendar.monthLabels}
-            />
+          <div className="overflow-x-auto px-4 py-3.5">
+            <MonthlyHeatmap months={calendar.months} />
           </div>
           <div className="flex items-center justify-end gap-1.5 border-t border-border px-3 py-2 text-[9.5px] text-muted-dim">
-            <span>less</span>
-            <span className="size-[10px] border border-border/60 bg-surface-alt" />
-            <span className="size-[10px] bg-primary/25" />
-            <span className="size-[10px] bg-primary/50" />
-            <span className="size-[10px] bg-primary/75" />
-            <span className="size-[10px] bg-primary" />
-            <span>more</span>
+            <span>Less</span>
+            <span className="size-[11px] border border-border/60 bg-surface-alt" />
+            <span className="size-[11px] bg-primary/25" />
+            <span className="size-[11px] bg-primary/50" />
+            <span className="size-[11px] bg-primary/75" />
+            <span className="size-[11px] bg-primary" />
+            <span>More</span>
           </div>
         </section>
 
@@ -315,132 +288,156 @@ interface HeatmapCell {
   future: boolean;
 }
 
-const CELL = 11;
-const GAP = 3;
-const STEP = CELL + GAP;
+interface MonthBlock {
+  key: string;
+  label: string;
+  isCurrentMonth: boolean;
+  columns: Array<Array<HeatmapCell | null>>;
+}
 
-function Heatmap({
-  weeks,
-  monthLabels,
+function MonthlyHeatmap({
+  months,
 }: {
-  weeks: HeatmapCell[][];
-  monthLabels: Array<{ column: number; label: string }>;
+  months: MonthBlock[];
 }): React.ReactElement {
   return (
-    <div className="flex min-w-fit gap-[3px]">
-      <div className="relative flex flex-col gap-[3px] pt-[14px]">
-        {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-          <span
-            key={`${day}-${index}`}
-            className="flex h-[11px] items-center text-[8.5px] text-muted-dim"
-          >
-            {index % 2 === 1 ? day : ""}
-          </span>
-        ))}
-      </div>
-      <div>
-        <div className="relative h-[14px]">
-          {monthLabels.map((month) => (
-            <span
-              key={`${month.label}-${month.column}`}
-              className="absolute text-[9px] text-muted-dim"
-              style={{ left: `${month.column * STEP}px` }}
-            >
-              {month.label}
-            </span>
-          ))}
-        </div>
-        <div className="relative flex gap-[3px]">
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-[3px]">
-              {week.map((cell, dayIndex) => {
-                const box = (
-                  <span
-                    className={cn(
-                      "size-[11px] border",
-                      cell.future
-                        ? "border-transparent bg-transparent"
-                        : cell.level === 0
-                          ? "border-border/60 bg-surface-alt"
-                          : cn(
-                              "border-transparent",
-                              cell.level === 1 && "bg-primary/25",
-                              cell.level === 2 && "bg-primary/50",
-                              cell.level === 3 && "bg-primary/75",
-                              cell.level === 4 && "bg-primary",
-                            ),
-                    )}
-                  />
-                );
-                if (cell.date === "") {
-                  return (
-                    <span key={`empty-${weekIndex}-${dayIndex}`}>{box}</span>
+    <div className="flex w-full min-w-fit items-start justify-between gap-2.5">
+      {months.map((month) => (
+        <div
+          key={month.key}
+          className="flex flex-col items-center gap-2"
+        >
+          <div className="flex gap-[2px]">
+            {month.columns.map((column, colIndex) => (
+              <div key={colIndex} className="flex flex-col gap-[2px]">
+                {column.map((cell, rowIndex) => {
+                  if (cell === null) {
+                    return (
+                      <span
+                        key={`pad-${colIndex}-${rowIndex}`}
+                        aria-hidden="true"
+                        className="block size-[11px]"
+                      />
+                    );
+                  }
+
+                  const box = (
+                    <span
+                      aria-label={
+                        cell.future
+                          ? `${cell.date} upcoming`
+                          : `${cell.count} ${cell.count === 1 ? "solve" : "solves"} on ${cell.date}`
+                      }
+                      className={cn(
+                        "block size-[11px] border transition-colors",
+                        cell.future
+                          ? "border-border/25 bg-surface-alt/30"
+                          : cell.level === 0
+                            ? "border-border/70 bg-surface-alt hover:border-primary/50"
+                            : cn(
+                                "border-transparent hover:border-foreground/40",
+                                cell.level === 1 && "bg-primary/25",
+                                cell.level === 2 && "bg-primary/50",
+                                cell.level === 3 && "bg-primary/75",
+                                cell.level === 4 && "bg-primary",
+                              ),
+                      )}
+                    />
                   );
-                }
-                return (
-                  <Tooltip key={cell.date}>
-                    <TooltipTrigger asChild>{box}</TooltipTrigger>
-                    <TooltipContent>
-                      {cell.date}: {cell.count} solved
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
-          ))}
+
+                  if (cell.future) {
+                    return <span key={cell.date}>{box}</span>;
+                  }
+
+                  return (
+                    <Tooltip key={cell.date}>
+                      <TooltipTrigger asChild>{box}</TooltipTrigger>
+                      <TooltipContent className="font-mono text-[10.5px]">
+                        {cell.count} {cell.count === 1 ? "solve" : "solves"} on{" "}
+                        {cell.date}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <span
+            className={cn(
+              "font-mono text-[10px] leading-none",
+              month.isCurrentMonth
+                ? "font-semibold text-foreground"
+                : "text-muted-dim",
+            )}
+          >
+            {month.label}
+          </span>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
 
-function buildCalendar(activity: Map<string, number>): {
-  weeks: HeatmapCell[][];
-  monthLabels: Array<{ column: number; label: string }>;
+function buildMonthlyCalendar(activity: Map<string, number>): {
+  months: MonthBlock[];
+  totalCount: number;
+  activeDays: number;
 } {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
-  start.setDate(start.getDate() - start.getDay());
+  const months: MonthBlock[] = [];
+  let totalCount = 0;
+  let activeDays = 0;
 
-  const totalDays =
-    Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1;
-  const weekCount = Math.ceil(totalDays / 7);
+  for (let offset = 11; offset >= 0; offset -= 1) {
+    const monthStart = new Date(
+      today.getFullYear(),
+      today.getMonth() - offset,
+      1,
+    );
+    const year = monthStart.getFullYear();
+    const month = monthStart.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const columnsCount = Math.ceil(daysInMonth / 7);
+    const columns: Array<Array<HeatmapCell | null>> = [];
 
-  const weeks: HeatmapCell[][] = [];
-  const monthLabels: Array<{ column: number; label: string }> = [];
-  let lastMonth = -1;
-
-  for (let week = 0; week < weekCount; week += 1) {
-    const column: HeatmapCell[] = [];
-    for (let day = 0; day < 7; day += 1) {
-      const date = new Date(
-        start.getFullYear(),
-        start.getMonth(),
-        start.getDate() + week * 7 + day,
-      );
-      const future = date.getTime() > today.getTime();
-      const key = dateKey(date);
-      const count = future ? 0 : (activity.get(key) ?? 0);
-      const level =
-        count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
-      column.push({ date: future ? "" : key, count, level, future });
+    for (let col = 0; col < columnsCount; col += 1) {
+      const column: Array<HeatmapCell | null> = [];
+      for (let row = 0; row < 7; row += 1) {
+        const dayNumber = col * 7 + row + 1;
+        if (dayNumber > daysInMonth) {
+          column.push(null);
+          continue;
+        }
+        const date = new Date(year, month, dayNumber);
+        const future = date.getTime() > today.getTime();
+        const key = dateKey(date);
+        const count = future ? 0 : (activity.get(key) ?? 0);
+        if (!future && count > 0) {
+          totalCount += count;
+          activeDays += 1;
+        }
+        const level =
+          count === 0 ? 0 : count < 2 ? 1 : count < 4 ? 2 : count < 8 ? 3 : 4;
+        column.push({ date: key, count, level, future });
+      }
+      columns.push(column);
     }
-    const month =
-      column[0].date === "" ? -1 : Number(column[0].date.slice(5, 7)) - 1;
-    if (column[0].date !== "" && month !== lastMonth) {
-      monthLabels.push({
-        column: week,
-        label: new Date(`${column[0].date}T00:00:00`).toLocaleString(
-          undefined,
-          { month: "short" },
-        ),
-      });
-      lastMonth = month;
-    }
-    weeks.push(column);
+
+    const shortMonth = monthStart.toLocaleString("en-US", { month: "short" });
+    const label =
+      month === 0 || offset === 11
+        ? `${shortMonth} '${String(year).slice(-2)}`
+        : shortMonth;
+
+    months.push({
+      key: `${year}-${String(month + 1).padStart(2, "0")}`,
+      label,
+      isCurrentMonth: offset === 0,
+      columns,
+    });
   }
 
-  return { weeks, monthLabels };
+  return { months, totalCount, activeDays };
 }

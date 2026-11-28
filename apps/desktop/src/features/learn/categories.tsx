@@ -101,9 +101,9 @@ export function CategoriesSection(): React.ReactElement {
       <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
         No questions in this workspace yet.{" "}
         <Link href="/import/resources" className="text-primary hover:underline">
-          Install a resource
+          Browse resources
         </Link>{" "}
-        to start grouping them.
+        to install a pack.
       </p>
     );
   }
@@ -191,22 +191,24 @@ function CategoryRowItem({
           {String(index + 1).padStart(2, "0")}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13.5px] font-medium">{name}</span>
-          <span className="numeric mt-0.5 block text-[10.5px] text-muted-dim">
-            {row.count} questions · {row.solved} solved
+          <span className="block truncate text-[13px] font-medium text-foreground">
+            {name}
+          </span>
+          <span className="numeric mt-0.5 block font-mono text-[10.5px] text-muted-dim">
+            {row.solved}/{row.count} solved
           </span>
         </span>
-        <span className="flex w-40 shrink-0 items-center gap-2">
-          <span className="h-1 flex-1 bg-surface-hover">
+        <span className="flex w-36 shrink-0 items-center gap-2">
+          <span className="h-1.5 flex-1 bg-surface-alt">
             <span
               className={cn(
-                "block h-full",
+                "block h-full transition-[width] duration-300",
                 percent === 100 ? "bg-success" : "bg-primary",
               )}
               style={{ width: `${percent}%` }}
             />
           </span>
-          <span className="numeric w-8 text-right text-[10.5px] text-muted-dim">
+          <span className="numeric w-9 text-right font-mono text-[10.5px] text-muted-dim">
             {percent}%
           </span>
         </span>
@@ -288,7 +290,7 @@ function NewCategoryRow(): React.ReactElement {
         onKeyDown={(event) => {
           if (event.key === "Enter") submit();
         }}
-        placeholder="New category name — e.g. SQL basics"
+        placeholder="New category name — e.g. Joins & Subqueries"
         aria-label="New category name"
         className="h-7 flex-1 border-0 bg-transparent px-0 text-[12.5px] focus-visible:ring-0"
       />

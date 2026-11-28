@@ -43,7 +43,7 @@ export function ConfirmActionDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-action-title"
-        className="w-full max-w-md border border-border bg-surface p-5 space-y-4 text-[12px] shadow-lg"
+        className="flex w-full max-w-md flex-col gap-4 border border-border bg-surface p-5 text-[12px] shadow-lg"
       >
         <div className="flex items-start gap-3">
           <div className="flex size-8 shrink-0 items-center justify-center border border-warning/30 bg-warning/10 text-warning">

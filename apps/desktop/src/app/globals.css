@@ -41,6 +41,15 @@
   --chart-4: #1d4ed8;
   --chart-5: #6d28d9;
 
+  --er-1: #0e7490;
+  --er-2: #1d4ed8;
+  --er-3: #15803d;
+  --er-4: #b45309;
+  --er-5: #7e22ce;
+  --er-6: #be123c;
+  --er-7: #0f766e;
+  --er-8: #c2410c;
+
   --sidebar: #fafbfc;
   --sidebar-foreground: #3d4450;
   --sidebar-border: #dfe2e8;
@@ -90,6 +99,15 @@
   --chart-3: #f5b83d;
   --chart-4: #6ea8fe;
   --chart-5: #c084fc;
+
+  --er-1: #2dd4bf;
+  --er-2: #60a5fa;
+  --er-3: #4ade80;
+  --er-4: #fbbf24;
+  --er-5: #c084fc;
+  --er-6: #fb7185;
+  --er-7: #34d399;
+  --er-8: #fb923c;
 
   --sidebar: #0c0f14;
   --sidebar-foreground: #8d95a3;
@@ -169,6 +187,13 @@
 @keyframes edge-flow {
   from { stroke-dashoffset: 24; }
   to { stroke-dashoffset: 0; }
+}
+
+@keyframes edge-dot {
+  0% { offset-distance: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
 }
 
 @layer base {
@@ -287,6 +312,33 @@
   .animate-rise-in {
     animation: rise-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  .animate-edge-dot {
+    animation: edge-dot 1.35s linear infinite;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 38%, transparent) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--muted-foreground) 38%, transparent);
+    border: 0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--primary) 70%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -327,8 +379,8 @@
 }
 
 .react-flow__minimap-node {
-  fill: color-mix(in oklab, var(--muted-foreground) 55%, transparent) !important;
-  stroke: transparent !important;
+  fill: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+  stroke: transparent;
 }
 
 .react-flow__minimap-mask {

@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Eye,
   FlaskConical,
   Lightbulb,
@@ -16,8 +18,16 @@ import {
   XCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import {
+  Group,
+  Panel,
+  Separator,
+  usePanelRef,
+  type PanelSize,
+} from "react-resizable-panels";
 import type { Question } from "@logixzen/shared/content";
 import type { SqlResult } from "@/shared/desktop-api";
+import { dialectLabel } from "@/shared/dialect-sql";
 import { PageShell } from "@/components/app-shell/page-shell";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
 import { AiActionButtons } from "@/components/learn/AiActionButtons";
@@ -27,33 +37,30 @@ import {
   type GradeResult,
 } from "@/features/learn/hooks/useGrading";
 import { BADGE_DEFINITIONS } from "@/features/badges/badgeDefinitions";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { usePackStore } from "@/stores/usePackStore";
+import { useProgressStore } from "@/stores/useProgressStore";
+import { useSqlStore } from "@/sql/useSqlStore";
+import { tableMapFrom } from "@/lib/sql-editor";
+import { cn } from "@/lib/utils";
 
 const SqlCodeEditor = dynamic(
   () =>
     import("@/components/editor/SqlCodeEditor").then((m) => m.SqlCodeEditor),
   { ssr: false },
 );
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { usePackStore } from "@/stores/usePackStore";
-import { useProgressStore } from "@/stores/useProgressStore";
-import { useSqlStore } from "@/sql/useSqlStore";
-import { dialectLabel, tableMapFrom } from "@/lib/sql-editor";
-import { cn } from "@/lib/utils";
 
 interface QuestionDetailProps {
   topicId: string;
   questionId: string;
   categoryId?: string;
 }
+
+type DrawerTab = "output" | "tests";
 
 export function QuestionDetailContent({
   topicId,
@@ -66,7 +73,9 @@ export function QuestionDetailContent({
   const question = useMemo<Question | null>(
     () =>
       questions.find(
-        (item) => item.id === questionId && (item.topicId === topicId || topicId === ""),
+        (item) =>
+          item.id === questionId &&
+          (item.topicId === topicId || topicId === ""),
       ) ?? null,
     [questions, questionId, topicId],
   );
@@ -83,11 +92,18 @@ export function QuestionDetailContent({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
         <p className="text-[13px] text-muted">Question not found</p>
-        <Link href={categoryId ? `/learn/category?id=${categoryId}` : `/learn/topic?id=${topicId}`}>
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="size-3.5" /> Back to list
-          </Button>
-        </Link>
+        <Button asChild variant="outline" size="sm">
+          <Link
+            href={
+              categoryId
+                ? `/learn/category?id=${categoryId}`
+                : `/learn/topic?id=${topicId}`
+            }
+          >
+            <ArrowLeft data-icon="inline-start" />
+            Back to list
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -118,8 +134,12 @@ function QuestionWorkspace({
   const solvedMap = useProgressStore((state) => state.solvedQuestions);
   const schema = useSqlStore((state) => state.schema);
   const dialect = useSqlStore((state) => state.activeDialect);
+  const activeEngineName = useSqlStore((state) => state.activeEngineName);
   const editorFontSize = useProgressStore(
     (state) => state.settings.editorFontSize,
+  );
+  const resultFontSize = useProgressStore(
+    (state) => state.settings.resultFontSize,
   );
 
   const activeCategoryId = categoryId ?? assignments[question.id];
@@ -139,7 +159,10 @@ function QuestionWorkspace({
   const [answer, setAnswer] = useState("");
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
   const [runResults, setRunResults] = useState<SqlResult[]>([]);
-  const [showResult, setShowResult] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<DrawerTab>("output");
+  const [drawerCollapsed, setDrawerCollapsed] = useState(true);
+  const drawerCollapsedRef = useRef(true);
+  const drawerRef = usePanelRef();
   const [hintsRevealed, setHintsRevealed] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
@@ -150,19 +173,41 @@ function QuestionWorkspace({
 
   const alreadySolved = solvedMap.has(question.id);
 
+  const expandDrawer = useCallback((): void => {
+    const panel = drawerRef.current;
+    if (panel?.isCollapsed()) panel.expand();
+    drawerCollapsedRef.current = false;
+    setDrawerCollapsed(false);
+  }, [drawerRef]);
+
+  const toggleDrawer = useCallback((): void => {
+    const panel = drawerRef.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) {
+      panel.expand();
+      drawerCollapsedRef.current = false;
+      setDrawerCollapsed(false);
+    } else {
+      panel.collapse();
+      drawerCollapsedRef.current = true;
+      setDrawerCollapsed(true);
+    }
+  }, [drawerRef]);
+
   const run = useCallback(async (): Promise<void> => {
     if (answer.trim().length === 0) return;
+    expandDrawer();
+    setDrawerTab("output");
     const results = await runAnswer(answer);
     setRunResults(results);
-    setShowResult(true);
-    setGradeResult(null);
-  }, [answer, runAnswer]);
+  }, [answer, runAnswer, expandDrawer]);
 
   const submit = useCallback(async (): Promise<void> => {
     if (answer.trim().length === 0) return;
+    expandDrawer();
+    setDrawerTab("tests");
     const result = await grade(answer);
     setGradeResult(result);
-    setShowResult(false);
     if (!result.passed) return;
 
     const progress = useProgressStore.getState();
@@ -202,14 +247,16 @@ function QuestionWorkspace({
         void window.logixzen.notifications.streak(streak);
       }
     }
-  }, [question, answer, grade, hintsRevealed]);
+  }, [question, answer, grade, hintsRevealed, expandDrawer]);
 
   const navigate = useCallback(
     (offset: number) => {
       const target = topicQuestions[index + offset];
       if (target === undefined) return;
       const catParam = categoryId ? `&category=${categoryId}` : "";
-      router.push(`/learn/practice?topic=${topicId}&q=${target.id}${catParam}`);
+      router.push(
+        `/learn/practice?topic=${topicId}&q=${target.id}${catParam}`,
+      );
     },
     [router, topicQuestions, index, topicId, categoryId],
   );
@@ -220,10 +267,12 @@ function QuestionWorkspace({
     question.type === "predict-output" ||
     question.type === "dml-check";
 
+  const lastRun = runResults[runResults.length - 1] ?? null;
+
   return (
     <PageShell
       title={question.title}
-      subtitle={`${index + 1}/${topicQuestions.length} · ${question.points} pts · ${question.datasetId}`}
+      subtitle={`${index + 1}/${topicQuestions.length} · ${question.points} pts · db:${question.datasetId}`}
       showBack
       breadcrumbs={[
         { label: "Practice", href: "/learn" },
@@ -239,293 +288,358 @@ function QuestionWorkspace({
         { label: question.title },
       ]}
       actions={
-        <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                href="/databases"
-                className="flex h-7 items-center gap-1.5 border border-border bg-surface px-2.5 text-[11px] text-muted transition-colors hover:border-primary/50 hover:text-foreground"
-              >
-                <span className="size-1.5 bg-primary" />
-                <span className="font-mono font-medium uppercase text-foreground">
-                  {dialectLabel(dialect)}
-                </span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Active SQL dialect: {dialectLabel(dialect)}. Switch in Databases
-            </TooltipContent>
-          </Tooltip>
-          {alreadySolved ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex items-center gap-1 bg-success/10 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-success">
-                  <CheckCircle2 className="size-3" /> Solved
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Question completed and recorded in progress
-              </TooltipContent>
-            </Tooltip>
-          ) : null}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => void run()}
-                disabled={isGrading || answer.trim().length === 0 || !isSqlQuestion}
-              >
-                {isGrading ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Play className="size-3.5" />
-                )}{" "}
-                Run
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Run statement against active practice database
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="sm"
-                className="gap-1.5"
-                onClick={() => void submit()}
-                disabled={isGrading || answer.trim().length === 0}
-              >
-                {isGrading ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <FlaskConical className="size-3.5" />
-                )}{" "}
-                Submit
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Grade your solution against test cases
-            </TooltipContent>
-          </Tooltip>
-        </>
-      }
-    >
-      <div className="mx-auto max-w-4xl space-y-5 px-5 py-5">
-        <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-dim">
-          <Link href="/" className="hover:text-foreground">
-            Workspace
-          </Link>
-          <span>/</span>
-          <Link href="/learn" className="hover:text-foreground">
-            Categories
-          </Link>
-          <span>/</span>
+        <div className="flex items-center gap-1.5">
           <Link
-            href={
-              activeCategoryId
-                ? `/learn/category?id=${activeCategoryId}`
-                : `/learn/topic?id=${topicId}`
-            }
-            className="hover:text-foreground"
+            href="/databases"
+            className="flex h-7 items-center gap-1.5 border border-border bg-surface-alt px-2.5 text-[10.5px] text-muted transition-colors hover:border-primary/50 hover:text-foreground"
           >
-            {activeCategoryName}
+            <span className="size-1.5 bg-primary" />
+            <span className="font-mono font-semibold uppercase text-foreground">
+              {dialectLabel(dialect)}
+            </span>
           </Link>
-          <span>/</span>
-          <span className="font-medium text-foreground">{question.title}</span>
-        </div>
-        <section className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={
-                question.difficulty === "easy"
-                  ? "success"
-                  : question.difficulty === "medium"
-                    ? "warning"
-                    : "error"
-              }
-            >
-              {question.difficulty}
-            </Badge>
-            <span className="text-[10.5px] text-muted-dim">
-              {question.tags.join(" · ")}
+          {alreadySolved ? (
+            <span className="flex h-7 items-center gap-1 border border-success/40 bg-success/10 px-2 text-[10px] font-medium uppercase tracking-wider text-success">
+              <CheckCircle2 className="size-3" /> Solved
             </span>
-          </div>
-          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-muted">
-            {question.description}
-          </p>
-          {question.type === "debug-query" ? (
-            <pre className="border border-error/30 bg-error/5 p-3 font-mono text-[12px] text-foreground">
-              {question.brokenQuery}
-            </pre>
           ) : null}
-          {question.type === "dml-check" ? (
-            <div className="border border-border bg-surface-alt p-3">
-              <div className="section-label mb-1">Statement to write</div>
-              <pre className="font-mono text-[12px]">
-                {question.dmlStatement}
-              </pre>
-              <p className="mt-1 text-[11px] text-muted-dim">
-                Expected rows affected:{" "}
-                <span className="numeric text-foreground">
-                  {question.expectedChanges}
-                </span>
-              </p>
-            </div>
-          ) : null}
-          {question.type === "predict-output" &&
-          question.expectedOutput.length > 0 ? (
-            <div className="border border-border bg-surface-alt p-3">
-              <div className="section-label mb-1">Expected shape</div>
-              <p className="font-mono text-[11.5px] text-muted-dim">
-                {Object.keys(question.expectedOutput[0]).join(" · ")} —{" "}
-                {question.expectedOutput.length} rows
-              </p>
-            </div>
-          ) : null}
-        </section>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-border text-[11px]"
+            onClick={() => navigate(-1)}
+            disabled={index <= 0}
+          >
+            <ArrowLeft data-icon="inline-start" />
+            Prev
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-border text-[11px]"
+            onClick={() => navigate(1)}
+            disabled={index >= topicQuestions.length - 1}
+          >
+            Next
+            <ArrowRight data-icon="inline-end" />
+          </Button>
+        </div>
+      }
+      bodyClassName="overflow-hidden"
+    >
+      <Group orientation="horizontal" id="practice-split" className="h-full min-h-0">
+        <Panel id="prompt" defaultSize="42%" minSize="26%" maxSize="60%">
+          <div className="flex h-full min-h-0 flex-col bg-surface">
+            <div className="min-h-0 flex-1 overflow-y-auto p-5">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant={
+                      question.difficulty === "easy"
+                        ? "success"
+                        : question.difficulty === "medium"
+                          ? "warning"
+                          : "error"
+                    }
+                  >
+                    {question.difficulty}
+                  </Badge>
+                  <span className="numeric border border-border bg-surface-alt px-1.5 py-0.5 font-mono text-[10px] text-muted">
+                    {question.points} pts
+                  </span>
+                  <span className="text-[10.5px] text-muted-dim">
+                    {question.tags.join(" · ")}
+                  </span>
+                </div>
 
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <span className="section-label">
-                {isSqlQuestion ? "Your query" : "Your answer"}
-              </span>
-              {isSqlQuestion ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="border border-border px-1.5 font-mono text-[9px] uppercase tracking-wider text-muted-dim">
-                      {dialectLabel(dialect)}
+                <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground/90">
+                  {question.description}
+                </p>
+
+                {question.type === "debug-query" ? (
+                  <div className="border border-error/30 bg-error/5 p-3">
+                    <div className="section-label mb-1 text-error">
+                      Query to fix
+                    </div>
+                    <pre className="overflow-x-auto font-mono text-[12px] text-foreground">
+                      {question.brokenQuery}
+                    </pre>
+                  </div>
+                ) : null}
+
+                {question.type === "dml-check" ? (
+                  <div className="border border-border bg-surface-alt p-3">
+                    <div className="section-label mb-1">Statement to verify</div>
+                    <pre className="overflow-x-auto font-mono text-[12px]">
+                      {question.dmlStatement}
+                    </pre>
+                    <p className="mt-1.5 text-[11px] text-muted-dim">
+                      Expected rows affected:{" "}
+                      <span className="numeric font-mono text-foreground">
+                        {question.expectedChanges}
+                      </span>
+                    </p>
+                  </div>
+                ) : null}
+
+                {question.type === "predict-output" &&
+                question.expectedOutput.length > 0 ? (
+                  <div className="border border-border bg-surface-alt p-3">
+                    <div className="section-label mb-1">Expected shape</div>
+                    <p className="font-mono text-[11.5px] text-muted">
+                      {Object.keys(question.expectedOutput[0]).join(" · ")} —{" "}
+                      {question.expectedOutput.length} rows
+                    </p>
+                  </div>
+                ) : null}
+
+                <HintPanel
+                  hints={question.hints}
+                  revealed={hintsRevealed}
+                  onReveal={() => setHintsRevealed((value) => value + 1)}
+                />
+
+                {gradeResult?.passed === true || showSolution ? (
+                  <SolutionPanel
+                    question={question}
+                    open={showSolution}
+                    onOpen={() => setShowSolution(true)}
+                  />
+                ) : null}
+
+                {aiOutput !== null ? (
+                  <section className="border border-primary/40 bg-primary/5 p-3">
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <Sparkles className="size-3 text-primary" />
+                      <span className="section-label">AI assistant</span>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        className="ml-auto"
+                        onClick={() => setAiOutput(null)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                    <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-muted">
+                      {aiOutput}
+                    </p>
+                  </section>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        <Separator className="w-px bg-border transition-colors hover:bg-primary/60" />
+
+        <Panel id="workspace" defaultSize="58%" minSize="38%">
+          <Group orientation="vertical" id="practice-workspace-vertical">
+            <Panel id="answer" minSize="25%">
+              <div className="flex h-full min-h-0 flex-col bg-background">
+                <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-3">
+                  <div className="flex items-center gap-2">
+                    <span className="section-label">
+                      {isSqlQuestion ? "Query editor" : "Answer"}
                     </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {dialectLabel(dialect)} syntax highlighting and grading
-                  </TooltipContent>
-                </Tooltip>
-              ) : null}
-            </span>
-            <AiActionButtons
-              question={question}
-              studentAnswer={answer}
-              hintsRevealed={hintsRevealed}
-              errorMessage={
-                gradeResult !== null && !gradeResult.passed
-                  ? (gradeResult.testCases.find((testCase) => !testCase.passed)
-                      ?.message ?? "Query failed")
-                  : null
-              }
-              onHint={setAiOutput}
-              onExplainError={setAiOutput}
-              onExplainQuery={setAiOutput}
-            />
-          </div>
-          {isSqlQuestion ? (
-            <div className="h-64 border border-border bg-editor">
-              <SqlCodeEditor
-                value={answer}
-                onChange={setAnswer}
-                onRun={() => void run()}
-                onSubmit={() => void submit()}
-                fontSize={editorFontSize}
-                dialect={dialect}
-                tables={tableMap}
-                placeholder="Write your statement…"
-                minHeight="100%"
-              />
-            </div>
-          ) : (
-            <AnswerInputs
-              question={question}
-              answer={answer}
-              onChange={setAnswer}
-            />
-          )}
-        </section>
+                    {isSqlQuestion ? (
+                      <span className="border border-border bg-surface-alt px-1.5 py-0.5 font-mono text-[9.5px] uppercase text-primary">
+                        {dialectLabel(dialect)} · {activeEngineName}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <AiActionButtons
+                      question={question}
+                      studentAnswer={answer}
+                      hintsRevealed={hintsRevealed}
+                      errorMessage={
+                        gradeResult !== null && !gradeResult.passed
+                          ? (gradeResult.testCases.find(
+                              (testCase) => !testCase.passed,
+                            )?.message ?? "Query failed")
+                          : null
+                      }
+                      onHint={setAiOutput}
+                      onExplainError={setAiOutput}
+                      onExplainQuery={setAiOutput}
+                    />
+                    {isSqlQuestion ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 border-border text-[11px]"
+                        onClick={() => void run()}
+                        disabled={isGrading || answer.trim().length === 0}
+                      >
+                        {isGrading ? (
+                          <Loader2
+                            data-icon="inline-start"
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <Play data-icon="inline-start" />
+                        )}
+                        Run
+                      </Button>
+                    ) : null}
+                    <Button
+                      size="sm"
+                      className="h-7 text-[11px]"
+                      onClick={() => void submit()}
+                      disabled={isGrading || answer.trim().length === 0}
+                    >
+                      {isGrading ? (
+                        <Loader2
+                          data-icon="inline-start"
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <FlaskConical data-icon="inline-start" />
+                      )}
+                      Submit
+                    </Button>
+                  </div>
+                </div>
 
-        {aiOutput !== null ? (
-          <section className="border border-primary/40 bg-primary/5 p-3">
-            <div className="mb-1 flex items-center gap-1.5">
-              <Sparkles className="size-3 text-primary" />
-              <span className="section-label">AI assistant</span>
-              <Button
-                variant="ghost"
-                size="xs"
-                className="ml-auto"
-                onClick={() => setAiOutput(null)}
-              >
-                Dismiss
-              </Button>
-            </div>
-            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-muted">
-              {aiOutput}
-            </p>
-          </section>
-        ) : null}
+                <div className="min-h-0 flex-1 overflow-auto">
+                  {isSqlQuestion ? (
+                    <SqlCodeEditor
+                      value={answer}
+                      onChange={setAnswer}
+                      onRun={() => void run()}
+                      onSubmit={() => void submit()}
+                      fontSize={editorFontSize}
+                      dialect={dialect}
+                      tables={tableMap}
+                      placeholder={`Write your ${dialectLabel(dialect)} solution…`}
+                      minHeight="100%"
+                    />
+                  ) : (
+                    <div className="p-4">
+                      <AnswerInputs
+                        question={question}
+                        answer={answer}
+                        onChange={setAnswer}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
 
-        {runResults.length > 0 && showResult ? (
-          <section className="h-80 border border-border">
-            <PlaygroundResultPanel
-              result={runResults[runResults.length - 1] ?? null}
-              onCopy={() => undefined}
-              onExportCsv={() => undefined}
-              onExportJson={() => undefined}
-            />
-          </section>
-        ) : null}
+            <Separator className="h-px bg-border transition-colors hover:bg-primary/60" />
 
-        {gradeResult !== null ? (
-          <GradeReport result={gradeResult} points={question.points} />
-        ) : null}
+            <Panel
+              id="drawer"
+              panelRef={drawerRef}
+              defaultSize={32}
+              minSize={130}
+              maxSize="75%"
+              collapsible
+              collapsedSize={32}
+              onResize={(size: PanelSize) => {
+                const collapsed =
+                  drawerRef.current?.isCollapsed() ?? size.inPixels <= 40;
+                if (collapsed !== drawerCollapsedRef.current) {
+                  drawerCollapsedRef.current = collapsed;
+                  setDrawerCollapsed(collapsed);
+                }
+              }}
+            >
+              <div className="flex h-full min-h-0 flex-col bg-surface">
+                <div className="flex h-8 shrink-0 items-center gap-1 border-b border-border bg-surface px-2.5">
+                  <button
+                    type="button"
+                    onClick={toggleDrawer}
+                    aria-label={
+                      drawerCollapsed ? "Expand drawer" : "Collapse drawer"
+                    }
+                    className="flex h-6 items-center gap-1 px-1 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-dim hover:text-foreground"
+                  >
+                    {drawerCollapsed ? (
+                      <ChevronUp className="size-3.5" />
+                    ) : (
+                      <ChevronDown className="size-3.5" />
+                    )}
+                    <span>Results</span>
+                  </button>
 
-        <HintPanel
-          hints={question.hints}
-          revealed={hintsRevealed}
-          onReveal={() => setHintsRevealed((value) => value + 1)}
-        />
+                  {isSqlQuestion ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrawerTab("output");
+                        expandDrawer();
+                      }}
+                      className={cn(
+                        "h-6 border px-2 text-[10.5px] transition-colors",
+                        drawerTab === "output" && !drawerCollapsed
+                          ? "border-primary/40 bg-accent text-accent-foreground"
+                          : "border-transparent text-muted-dim hover:text-foreground",
+                      )}
+                    >
+                      Query output
+                    </button>
+                  ) : null}
 
-        {gradeResult?.passed === true || showSolution ? (
-          <SolutionPanel
-            question={question}
-            open={showSolution}
-            onOpen={() => setShowSolution(true)}
-          />
-        ) : null}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrawerTab("tests");
+                      expandDrawer();
+                    }}
+                    className={cn(
+                      "flex h-6 items-center gap-1.5 border px-2 text-[10.5px] transition-colors",
+                      drawerTab === "tests" && !drawerCollapsed
+                        ? "border-primary/40 bg-accent text-accent-foreground"
+                        : "border-transparent text-muted-dim hover:text-foreground",
+                    )}
+                  >
+                    <span>Test cases</span>
+                    {gradeResult ? (
+                      <span
+                        className={cn(
+                          "size-1.5",
+                          gradeResult.passed ? "bg-success" : "bg-error",
+                        )}
+                      />
+                    ) : null}
+                  </button>
+                </div>
 
-        <div className="flex items-center justify-between border-t border-border pb-2 pt-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => navigate(-1)}
-                  disabled={index <= 0}
-                >
-                  <ArrowLeft className="size-3.5" /> Previous
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Previous question in set</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => navigate(1)}
-                  disabled={index >= topicQuestions.length - 1}
-                >
-                  Next <ArrowRight className="size-3.5" />
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Next question in set</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+                {!drawerCollapsed ? (
+                  <div className="min-h-0 flex-1 overflow-auto">
+                    {drawerTab === "tests" ? (
+                      <div className="p-3">
+                        {gradeResult ? (
+                          <GradeReport
+                            result={gradeResult}
+                            points={question.points}
+                          />
+                        ) : (
+                          <p className="py-6 text-center text-[12px] text-muted-dim">
+                            Click Submit to validate against test cases.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <PlaygroundResultPanel
+                        result={lastRun}
+                        error={lastRun?.error}
+                        fontSize={resultFontSize}
+                        onCopy={() => undefined}
+                        onExportCsv={() => undefined}
+                        onExportJson={() => undefined}
+                      />
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </Panel>
+          </Group>
+        </Panel>
+      </Group>
     </PageShell>
   );
 }
@@ -547,7 +661,7 @@ function AnswerInputs({
     const multiple = question.type === "mcq-multi";
     const selected = new Set(answer.split(",").filter(Boolean));
     return (
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         {multiple ? (
           question.options.map((option) => {
             const checked = selected.has(option.id);
@@ -768,7 +882,7 @@ function SolutionPanel({
         ) : null}
       </div>
       {open ? (
-        <div className="space-y-2 p-3">
+        <div className="flex flex-col gap-2 p-3">
           {solution !== "" ? (
             <pre className="overflow-x-auto border border-border bg-editor p-3 font-mono text-[12px] text-foreground">
               {solution}

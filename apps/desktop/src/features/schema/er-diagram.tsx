@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -22,6 +22,7 @@ import {
   Link2,
   Maximize,
   Network,
+  RotateCcw,
   Table2,
   ZoomIn,
   ZoomOut,
@@ -34,12 +35,23 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const NODE_WIDTH = 272;
-const HEADER_HEIGHT = 36;
+const NODE_WIDTH = 276;
+const HEADER_HEIGHT = 38;
 const ROW_HEIGHT = 22;
-const X_GAP = 116;
-const Y_GAP = 60;
+const X_GAP = 132;
+const Y_GAP = 64;
 const HANDLE_SIZE = 8;
+
+const TABLE_ACCENTS = [
+  "var(--er-1)",
+  "var(--er-2)",
+  "var(--er-3)",
+  "var(--er-4)",
+  "var(--er-5)",
+  "var(--er-6)",
+  "var(--er-7)",
+  "var(--er-8)",
+];
 
 type CardinalityKind = "1:1" | "1:N" | "M:N";
 
@@ -60,8 +72,13 @@ interface ColumnData {
 
 interface TableData extends Record<string, unknown> {
   label: string;
+  accentColor: string;
+  order: number;
   columns: ColumnData[];
   dimmed: boolean;
+  focused: boolean;
+  hoveredColumn: string | null;
+  onColumnHover?: (column: string | null) => void;
 }
 
 type TableNode = Node<TableData, "erTable">;
@@ -71,7 +88,9 @@ interface RelationData extends Record<string, unknown> {
   childColumn: string;
   parentTable: string;
   parentColumn: string;
+  accentColor: string;
   cardinality: CardinalityKind;
+  isSelf: boolean;
   active: boolean;
   showInfo: boolean;
   dimmed: boolean;
@@ -97,15 +116,26 @@ export function ErDiagram({
   onTableClick,
 }: ErDiagramProps): React.ReactElement {
   const graph = useMemo(() => buildGraph(tables), [tables]);
+
   if (tables.length === 0) {
-    return <ErEmptyState />;
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+        <span className="flex size-10 items-center justify-center border border-border bg-surface-alt">
+          <Network className="size-4 text-muted-dim" />
+        </span>
+        <p className="text-[13px] font-medium text-muted">No schema loaded</p>
+        <p className="text-[11.5px] text-muted-dim">
+          Activate a database or create tables to inspect relationships.
+        </p>
+      </div>
+    );
   }
+
   return (
     <ReactFlowProvider>
-      <ErFlow
-        key={graph.nodes.map((node) => node.id).join("|")}
-        nodes={graph.nodes}
-        edges={graph.edges}
+      <ErCanvas
+        initialNodes={graph.nodes}
+        initialEdges={graph.edges}
         highlightTable={highlightTable ?? null}
         onTableClick={onTableClick}
       />
@@ -113,36 +143,61 @@ export function ErDiagram({
   );
 }
 
-function ErEmptyState(): React.ReactElement {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-      <Network className="size-8 text-muted-dim" />
-      <p className="text-[13px] font-medium">Nothing to diagram yet</p>
-      <p className="max-w-xs text-[11.5px] leading-relaxed text-muted-dim">
-        Activate a database with tables to see its entity relationships.
-      </p>
-    </div>
-  );
-}
-
-function ErFlow({
-  nodes: initialNodes,
-  edges: initialEdges,
+function ErCanvas({
+  initialNodes,
+  initialEdges,
   highlightTable,
   onTableClick,
 }: {
-  nodes: TableNode[];
-  edges: RelationEdgeType[];
+  initialNodes: TableNode[];
+  initialEdges: RelationEdgeType[];
   highlightTable: string | null;
   onTableClick?: (table: string) => void;
 }): React.ReactElement {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [hoveredColumn, setHoveredColumn] = useState<{
+    table: string;
+    column: string;
+  } | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
   const focus = hovered ?? highlightTable;
 
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes, setNodes]);
+
+  const matchingColumnEdgeIds = useMemo(() => {
+    if (hoveredColumn === null) return null;
+    const matched = new Set<string>();
+    for (const edge of initialEdges) {
+      const data = edge.data;
+      if (!data) continue;
+      const hitSource =
+        data.childTable === hoveredColumn.table &&
+        data.childColumn === hoveredColumn.column;
+      const hitTarget =
+        data.parentTable === hoveredColumn.table &&
+        data.parentColumn === hoveredColumn.column;
+      if (hitSource || hitTarget) {
+        matched.add(edge.id);
+      }
+    }
+    return matched.size > 0 ? matched : null;
+  }, [initialEdges, hoveredColumn]);
+
   const neighbors = useMemo(() => {
+    if (matchingColumnEdgeIds !== null) {
+      const set = new Set<string>();
+      for (const edge of initialEdges) {
+        if (matchingColumnEdgeIds.has(edge.id)) {
+          set.add(edge.source);
+          set.add(edge.target);
+        }
+      }
+      return set;
+    }
     if (focus !== null) {
       const set = new Set<string>([focus]);
       for (const edge of initialEdges) {
@@ -158,7 +213,7 @@ function ErFlow({
       }
     }
     return null;
-  }, [initialEdges, focus, hoveredEdge]);
+  }, [initialEdges, focus, hoveredEdge, matchingColumnEdgeIds]);
 
   const fit = useCallback(
     (duration = 200) => {
@@ -167,6 +222,11 @@ function ErFlow({
     [fitView],
   );
 
+  const resetLayout = useCallback(() => {
+    setNodes(initialNodes);
+    window.requestAnimationFrame(() => fit(220));
+  }, [initialNodes, setNodes, fit]);
+
   const styledNodes = useMemo<TableNode[]>(
     () =>
       nodes.map((node) => ({
@@ -174,25 +234,39 @@ function ErFlow({
         data: {
           ...node.data,
           dimmed: neighbors !== null && !neighbors.has(node.id),
+          focused:
+            focus === node.id || (neighbors !== null && neighbors.has(node.id)),
+          hoveredColumn:
+            hoveredColumn?.table === node.id ? hoveredColumn.column : null,
+          onColumnHover: (col: string | null) =>
+            setHoveredColumn(col === null ? null : { table: node.id, column: col }),
         },
       })),
-    [nodes, neighbors],
+    [nodes, neighbors, focus, hoveredColumn],
   );
 
   const styledEdges = useMemo<RelationEdgeType[]>(
     () =>
       initialEdges.map((edge) => {
+        const hitColumn = matchingColumnEdgeIds?.has(edge.id) ?? false;
         const edgeMatchesHover =
           hovered !== null &&
           (edge.source === hovered || edge.target === hovered);
-        const showInfo = edgeMatchesHover || hoveredEdge === edge.id;
+        const showInfo =
+          hitColumn || edgeMatchesHover || hoveredEdge === edge.id;
         const active =
-          (focus !== null &&
-            (edge.source === focus || edge.target === focus)) ||
-          hoveredEdge === edge.id;
+          hitColumn ||
+          (matchingColumnEdgeIds === null &&
+            ((focus !== null &&
+              (edge.source === focus || edge.target === focus)) ||
+              hoveredEdge === edge.id));
         const dimmed =
-          (focus !== null && !active) ||
-          (focus === null && hoveredEdge !== null && hoveredEdge !== edge.id);
+          (matchingColumnEdgeIds !== null && !hitColumn) ||
+          (matchingColumnEdgeIds === null && focus !== null && !active) ||
+          (matchingColumnEdgeIds === null &&
+            focus === null &&
+            hoveredEdge !== null &&
+            hoveredEdge !== edge.id);
         return {
           ...edge,
           data: {
@@ -200,7 +274,9 @@ function ErFlow({
             childColumn: edge.data?.childColumn ?? "",
             parentTable: edge.data?.parentTable ?? "",
             parentColumn: edge.data?.parentColumn ?? "",
+            accentColor: edge.data?.accentColor ?? "var(--primary)",
             cardinality: edge.data?.cardinality ?? "1:N",
+            isSelf: edge.data?.isSelf ?? false,
             active,
             showInfo,
             dimmed,
@@ -212,7 +288,7 @@ function ErFlow({
           zIndex: showInfo ? 20 : active ? 10 : dimmed ? 0 : 1,
         };
       }),
-    [initialEdges, focus, hovered, hoveredEdge],
+    [initialEdges, focus, hovered, hoveredEdge, matchingColumnEdgeIds],
   );
 
   return (
@@ -222,7 +298,10 @@ function ErFlow({
         edges={styledEdges}
         onNodesChange={onNodesChange}
         onNodeMouseEnter={(_, node) => setHovered(node.id)}
-        onNodeMouseLeave={() => setHovered(null)}
+        onNodeMouseLeave={() => {
+          setHovered(null);
+          setHoveredColumn(null);
+        }}
         onEdgeMouseEnter={(_, edge) => setHoveredEdge(edge.id)}
         onEdgeMouseLeave={() => setHoveredEdge(null)}
         onNodeClick={(_, node) => onTableClick?.(node.id)}
@@ -240,7 +319,7 @@ function ErFlow({
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={26}
+          gap={24}
           size={1.1}
           color="color-mix(in oklab, var(--muted-foreground) 22%, transparent)"
         />
@@ -249,74 +328,53 @@ function ErFlow({
           zoomable
           className="bottom-3! right-3!"
           style={{
-            width: 152,
-            height: 104,
+            width: 156,
+            height: 106,
             background: "var(--surface-alt)",
             border: "1px solid var(--border)",
           }}
-          maskColor="color-mix(in oklab, var(--background) 55%, transparent)"
-          nodeColor={() => "var(--border)"}
-          nodeStrokeColor={() => "var(--muted-foreground)"}
+          maskColor="color-mix(in oklab, var(--background) 62%, transparent)"
+          nodeColor={(node) => {
+            const data = node.data as TableData | undefined;
+            return data?.accentColor ?? "var(--primary)";
+          }}
+          nodeStrokeColor={(node) => {
+            const data = node.data as TableData | undefined;
+            return data?.accentColor ?? "var(--border)";
+          }}
           nodeStrokeWidth={1}
         />
       </ReactFlow>
 
-      <div className="pointer-events-auto absolute left-3 top-3 flex flex-wrap items-center gap-2 border border-border bg-surface px-2.5 py-1.5 text-[10.5px] text-muted-dim">
+      <div className="pointer-events-auto absolute left-3 top-3 flex flex-wrap items-center gap-2 border border-border bg-surface/95 px-2.5 py-1.5 text-[10.5px] text-muted-dim backdrop-blur-xs">
         <span className="flex items-center gap-1.5">
           <Table2 className="size-3 text-primary" />
-          <span className="numeric">{initialNodes.length} tables</span>
+          <span className="numeric font-medium text-foreground">
+            {initialNodes.length} tables
+          </span>
         </span>
         <span className="text-border">·</span>
         <span className="numeric">{initialEdges.length} relations</span>
         <span className="text-border">·</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex cursor-help items-center gap-1">
-              <KeyRound className="size-2.5 text-warning" />
-              <span>pk</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>Primary Key column</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex cursor-help items-center gap-1">
-              <Link2 className="size-2.5 text-primary" />
-              <span>fk</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>Foreign Key column</TooltipContent>
-        </Tooltip>
+        <span className="flex items-center gap-1">
+          <KeyRound className="size-2.5 text-warning" />
+          <span>PK</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <Link2 className="size-2.5 text-primary" />
+          <span>FK → PK</span>
+        </span>
         <span className="text-border">·</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex cursor-help items-center gap-1 font-mono text-success">
-              1:1
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>One-to-One relation</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex cursor-help items-center gap-1 font-mono text-primary">
-              1:N
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>One-to-Many relation</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex cursor-help items-center gap-1 font-mono text-warning">
-              M:N
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>Join-table Many-to-Many link</TooltipContent>
-        </Tooltip>
+        <span className="font-mono text-success">1:1</span>
+        <span className="font-mono text-primary">1:N</span>
+        <span className="font-mono text-warning">M:N</span>
         <span className="text-border">·</span>
         <span className="text-muted">
-          {hovered
-            ? `Showing relations for ${hovered}`
-            : "Hover a table to inspect relations"}
+          {hoveredColumn
+            ? `${hoveredColumn.table}.${hoveredColumn.column}`
+            : hovered
+              ? `Relations for ${hovered}`
+              : "Hover a table, column or edge"}
         </span>
       </div>
 
@@ -327,6 +385,14 @@ function ErFlow({
           onClick={() => fit()}
         >
           <Maximize className="size-3" />
+        </FlowButton>
+        <FlowButton
+          aria-label="Reset layout"
+          tooltip="Reset table layout"
+          className="border-t border-border"
+          onClick={resetLayout}
+        >
+          <RotateCcw className="size-3" />
         </FlowButton>
         <FlowButton
           aria-label="Zoom in"
@@ -415,114 +481,171 @@ function TableCard({
   data,
   selected,
 }: NodeProps<TableNode>): React.ReactElement {
+  const accent = data.accentColor;
+  const activeBorder = selected || data.focused;
+
   return (
     <div
       className={cn(
-        "animate-rise-in bg-surface transition-[opacity,outline-color] duration-200",
-        selected
-          ? "outline outline-1 outline-primary"
-          : "outline outline-1 outline-border hover:outline-primary/70",
-        data.dimmed && "opacity-25",
+        "animate-rise-in bg-surface transition-[opacity,transform,box-shadow,outline-color] duration-200",
+        data.dimmed ? "opacity-25" : "hover:-translate-y-0.5",
       )}
-      style={{ width: NODE_WIDTH, boxShadow: "var(--shadow-panel)" }}
+      style={{
+        width: NODE_WIDTH,
+        animationDelay: `${Math.min(data.order * 35, 280)}ms`,
+        outline: activeBorder
+          ? `1.5px solid ${accent}`
+          : `1px solid color-mix(in oklab, ${accent} 34%, var(--border))`,
+        boxShadow: activeBorder
+          ? `0 0 0 1px color-mix(in oklab, ${accent} 25%, transparent), 0 8px 20px -10px color-mix(in oklab, ${accent} 40%, transparent)`
+          : "var(--shadow-panel)",
+      }}
     >
-      <div className="flex h-[36px] items-center gap-2 border-b border-border bg-surface-alt px-2.5">
+      <div
+        className="h-[3px] w-full"
+        style={{ background: accent }}
+        aria-hidden="true"
+      />
+      <div
+        className="flex h-[34px] items-center gap-2 border-b border-border px-2.5"
+        style={{
+          background: `color-mix(in oklab, ${accent} 10%, var(--surface-alt))`,
+        }}
+      >
         <span
-          className="h-3.5 w-[2px] shrink-0 bg-primary"
+          className="size-2 shrink-0"
+          style={{ background: accent }}
           aria-hidden="true"
         />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="min-w-0 flex-1 truncate font-mono text-[12px] font-semibold text-foreground">
-              {data.label}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            {data.label} ({data.columns.length} columns)
-          </TooltipContent>
-        </Tooltip>
-        <span className="numeric border border-border bg-surface px-1 text-[9px] text-muted-dim">
+        <span className="min-w-0 flex-1 truncate font-mono text-[12px] font-semibold text-foreground">
+          {data.label}
+        </span>
+        <span
+          className="numeric border px-1.5 py-px font-mono text-[9px] font-medium"
+          style={{
+            borderColor: `color-mix(in oklab, ${accent} 42%, var(--border))`,
+            background: "var(--surface)",
+            color: accent,
+          }}
+        >
           {data.columns.length}
         </span>
       </div>
       <div>
-        {data.columns.map((column) => (
-          <Tooltip key={column.name}>
-            <TooltipTrigger asChild>
-              <div className="relative flex h-[22px] items-center gap-1.5 border-b border-border/30 px-2.5 last:border-b-0 hover:bg-surface-hover">
-                {column.source ? (
-                  <>
-                    <RowHandle
-                      side="left"
-                      id={`l-out-${column.name}`}
-                      color="var(--primary)"
-                    />
-                    <RowHandle
-                      side="right"
-                      id={`r-out-${column.name}`}
-                      color="var(--primary)"
-                    />
-                  </>
+        {data.columns.map((column) => {
+          const isHoveredCol = data.hoveredColumn === column.name;
+          return (
+            <div
+              key={column.name}
+              onMouseEnter={() => data.onColumnHover?.(column.name)}
+              onMouseLeave={() => data.onColumnHover?.(null)}
+              className={cn(
+                "relative flex h-[22px] items-center gap-1.5 border-b border-border/40 px-2.5 transition-colors last:border-b-0",
+                isHoveredCol ? "bg-surface-hover" : "hover:bg-surface-hover/70",
+              )}
+              style={
+                isHoveredCol
+                  ? {
+                      boxShadow: `inset 2px 0 0 ${accent}`,
+                    }
+                  : undefined
+              }
+            >
+              {column.source ? (
+                <>
+                  <RowHandle
+                    side="left"
+                    id={`l-out-${column.name}`}
+                    color={accent}
+                  />
+                  <RowHandle
+                    side="right"
+                    id={`r-out-${column.name}`}
+                    color={accent}
+                  />
+                </>
+              ) : null}
+              {column.target ? (
+                <>
+                  <RowHandle
+                    side="left"
+                    id={`l-in-${column.name}`}
+                    color={
+                      column.pk ? "var(--warning)" : "var(--muted-foreground)"
+                    }
+                  />
+                  <RowHandle
+                    side="right"
+                    id={`r-in-${column.name}`}
+                    color={
+                      column.pk ? "var(--warning)" : "var(--muted-foreground)"
+                    }
+                  />
+                </>
+              ) : null}
+              <span className="flex w-3 shrink-0 justify-center">
+                {column.pk ? (
+                  <KeyRound className="size-2.5 text-warning" />
+                ) : column.fk ? (
+                  <Link2 className="size-2.5" style={{ color: accent }} />
                 ) : null}
-                {column.target ? (
-                  <>
-                    <RowHandle
-                      side="left"
-                      id={`l-in-${column.name}`}
-                      color={
-                        column.pk ? "var(--warning)" : "var(--muted-foreground)"
-                      }
-                    />
-                    <RowHandle
-                      side="right"
-                      id={`r-in-${column.name}`}
-                      color={
-                        column.pk ? "var(--warning)" : "var(--muted-foreground)"
-                      }
-                    />
-                  </>
-                ) : null}
-                <span className="flex w-3 shrink-0 justify-center">
-                  {column.pk ? (
-                    <KeyRound className="size-2.5 text-warning" />
-                  ) : column.fk ? (
-                    <Link2 className="size-2.5 text-primary" />
-                  ) : null}
-                </span>
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 truncate font-mono text-[10.5px]",
-                    column.pk
-                      ? "font-semibold text-foreground"
+              </span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate font-mono text-[10.5px]",
+                  column.pk
+                    ? "font-semibold text-foreground"
+                    : column.fk
+                      ? "font-medium text-foreground/95"
                       : "text-foreground/85",
-                  )}
-                >
-                  {column.name}
-                </span>
-                <span className="shrink-0 font-mono text-[9px] uppercase text-muted-dim">
-                  {column.type}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {column.name}: {column.type}
-              {column.pk ? " (PK)" : ""}
-              {column.fk ? " (FK)" : ""}
-            </TooltipContent>
-          </Tooltip>
-        ))}
+                )}
+              >
+                {column.name}
+              </span>
+              <span className="shrink-0 font-mono text-[9px] uppercase text-muted-dim">
+                {column.type}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function edgeStrokeColor(cardinality: CardinalityKind, active: boolean): string {
+function edgeStrokeColor(
+  cardinality: CardinalityKind,
+  active: boolean,
+  accentColor: string,
+): string {
   if (!active) {
-    return "color-mix(in oklab, var(--muted-foreground) 38%, transparent)";
+    return `color-mix(in oklab, ${accentColor} 48%, var(--muted-foreground))`;
   }
   if (cardinality === "1:1") return "var(--success)";
   if (cardinality === "M:N") return "var(--warning)";
-  return "var(--primary)";
+  return accentColor;
+}
+
+function directionalArrowPath(
+  targetX: number,
+  targetY: number,
+  targetPosition: Position,
+): string {
+  const dir = targetPosition === Position.Left ? -1 : 1;
+  const tipX = targetX + dir * 2;
+  const backX = targetX + dir * 10;
+  return `M ${backX} ${targetY - 4} L ${tipX} ${targetY} L ${backX} ${targetY + 4} Z`;
+}
+
+function selfLoopPath(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+): [string, number, number] {
+  const loopX = Math.max(sourceX, targetX) + 52;
+  const path = `M ${sourceX} ${sourceY} L ${loopX} ${sourceY} L ${loopX} ${targetY} L ${targetX} ${targetY}`;
+  return [path, loopX, (sourceY + targetY) / 2];
 }
 
 function RelationEdge({
@@ -536,55 +659,93 @@ function RelationEdge({
   data,
   selected,
 }: EdgeProps<RelationEdgeType>): React.ReactElement {
-  const [path, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-    borderRadius: 0,
-    offset: 24,
-  });
   const edgeData = data ?? {
     childTable: "",
     childColumn: "",
     parentTable: "",
     parentColumn: "",
+    accentColor: "var(--primary)",
     cardinality: "1:N" as CardinalityKind,
+    isSelf: false,
     active: false,
     showInfo: false,
     dimmed: false,
   };
+
+  const [path, labelX, labelY] = edgeData.isSelf
+    ? selfLoopPath(sourceX, sourceY, targetX, targetY)
+    : getSmoothStepPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        sourcePosition,
+        targetPosition,
+        borderRadius: 0,
+        offset: 26,
+      });
+
   const showInfo = edgeData.showInfo || selected === true;
   const active = edgeData.active || showInfo;
-  const opacity = edgeData.dimmed ? 0.14 : active ? 1 : 0.7;
-  const stroke = edgeStrokeColor(edgeData.cardinality, active);
-  const strokeWidth = active ? 2 : 1.2;
+  const opacity = edgeData.dimmed ? 0.14 : active ? 1 : 0.82;
+  const stroke = edgeStrokeColor(
+    edgeData.cardinality,
+    active,
+    edgeData.accentColor,
+  );
+  const strokeWidth = active ? 2 : 1.35;
   const spread = 5;
-  const reach = 9;
+  const reach = 11;
   const sourceOut = sourcePosition === Position.Right ? 1 : -1;
   const targetOut = targetPosition === Position.Left ? -1 : 1;
 
   const foot = `M ${sourceX} ${sourceY - spread} L ${sourceX + sourceOut * reach} ${sourceY} L ${sourceX} ${sourceY + spread}`;
   const oneBar = `M ${targetX + targetOut * reach} ${targetY - spread} L ${targetX + targetOut * reach} ${targetY + spread}`;
+  const arrowHead = directionalArrowPath(targetX, targetY, targetPosition);
 
   return (
     <>
+      {active ? (
+        <path
+          d={path}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={6}
+          opacity={0.2}
+          className="pointer-events-none"
+        />
+      ) : null}
       <BaseEdge
         id={id}
         path={path}
-        interactionWidth={16}
+        interactionWidth={18}
         style={{
           stroke,
           strokeWidth,
           opacity,
           fill: "none",
           strokeDasharray: active ? "6 4" : undefined,
-          animation: active ? "edge-flow 1.2s linear infinite" : undefined,
+          animation: active ? "edge-flow 1.1s linear infinite" : undefined,
           transition: "opacity 180ms ease, stroke-width 180ms ease",
         }}
       />
+      <path
+        d={arrowHead}
+        fill={stroke}
+        opacity={edgeData.dimmed ? 0.14 : active ? 1 : 0.88}
+        className="pointer-events-none transition-opacity duration-150"
+      />
+      {!edgeData.dimmed ? (
+        <circle
+          r={active ? 3 : 2}
+          fill={stroke}
+          className="animate-edge-dot pointer-events-none"
+          style={{
+            offsetPath: `path("${path}")`,
+            opacity: active ? 1 : 0.45,
+          }}
+        />
+      ) : null}
       {showInfo ? (
         <>
           <path
@@ -636,35 +797,29 @@ function RelationEdge({
                 zIndex: 30,
               }}
             >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="animate-rise-in flex items-center gap-1.5 border border-primary bg-surface px-2 py-0.5 font-mono text-[10px] text-foreground ring-1 ring-primary/40 shadow-sm select-none">
-                    <span className="font-semibold text-primary">
-                      {edgeData.childTable}.{edgeData.childColumn}
-                    </span>
-                    <span
-                      className={cn(
-                        "px-1 py-px text-[9px] font-semibold",
-                        edgeData.cardinality === "1:1"
-                          ? "bg-success/15 text-success"
-                          : edgeData.cardinality === "M:N"
-                            ? "bg-warning/15 text-warning"
-                            : "bg-primary/15 text-primary",
-                      )}
-                    >
-                      {edgeData.cardinality}
-                    </span>
-                    <span className="font-semibold text-warning">
-                      {edgeData.parentTable}.{edgeData.parentColumn}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  JOIN {edgeData.parentTable} ON {edgeData.childTable}.
-                  {edgeData.childColumn} = {edgeData.parentTable}.
-                  {edgeData.parentColumn}
-                </TooltipContent>
-              </Tooltip>
+              <div
+                className="animate-rise-in flex select-none items-center gap-1.5 border bg-surface px-2 py-0.5 font-mono text-[10px] text-foreground shadow-sm"
+                style={{ borderColor: stroke }}
+              >
+                <span className="font-semibold" style={{ color: stroke }}>
+                  {edgeData.childTable}.{edgeData.childColumn}
+                </span>
+                <span
+                  className={cn(
+                    "px-1 py-px text-[9px] font-semibold",
+                    edgeData.cardinality === "1:1"
+                      ? "bg-success/15 text-success"
+                      : edgeData.cardinality === "M:N"
+                        ? "bg-warning/15 text-warning"
+                        : "bg-primary/15 text-primary",
+                  )}
+                >
+                  {edgeData.cardinality}
+                </span>
+                <span className="font-semibold text-warning">
+                  {edgeData.parentTable}.{edgeData.parentColumn}
+                </span>
+              </div>
             </div>
           </EdgeLabelRenderer>
         </>
@@ -706,7 +861,9 @@ function Cardinality({
 }
 
 function inferCardinality(child: TableInfo, childColumn: string): CardinalityKind {
-  const pkCols = child.primaryKey ?? child.columns.filter((c) => c.primaryKey).map((c) => c.name);
+  const pkCols =
+    child.primaryKey ??
+    child.columns.filter((c) => c.primaryKey).map((c) => c.name);
   if (child.foreignKeys.length >= 2 && pkCols.includes(childColumn)) {
     return "M:N";
   }
@@ -723,6 +880,17 @@ function buildGraph(tables: TableInfo[]): {
   const byName = new Map(
     tables.map((table) => [table.name.toLowerCase(), table]),
   );
+  const accentByName = new Map<string, string>();
+  const sortedForPalette = [...tables].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  sortedForPalette.forEach((table, idx) => {
+    accentByName.set(
+      table.name,
+      TABLE_ACCENTS[idx % TABLE_ACCENTS.length]!,
+    );
+  });
+
   const heights = new Map<string, number>();
   for (const table of tables) {
     heights.set(
@@ -736,7 +904,7 @@ function buildGraph(tables: TableInfo[]): {
   for (const table of tables) {
     for (const key of table.foreignKeys) {
       const parent = byName.get(key.table.toLowerCase());
-      if (parent === undefined || parent.name === table.name) continue;
+      if (parent === undefined) continue;
       if (parent.columns.some((column) => column.name === key.to) === false)
         continue;
       const dedupe = `${table.name}.${key.from}>${parent.name}.${key.to}`;
@@ -777,6 +945,7 @@ function buildGraph(tables: TableInfo[]): {
 
   const parentsOf = new Map<string, Relation[]>();
   for (const relation of relations) {
+    if (relation.child === relation.parent) continue;
     parentsOf.set(relation.child, [
       ...(parentsOf.get(relation.child) ?? []),
       relation,
@@ -836,8 +1005,9 @@ function buildGraph(tables: TableInfo[]): {
       for (const name of names) {
         const related = relations.filter(
           (relation) =>
-            (relation.child === name && positions.has(relation.parent)) ||
-            (relation.parent === name && positions.has(relation.child)),
+            relation.child !== relation.parent &&
+            ((relation.child === name && positions.has(relation.parent)) ||
+              (relation.parent === name && positions.has(relation.child))),
         );
         if (related.length === 0) {
           centers.set(name, positions.get(name)?.y ?? 0);
@@ -875,16 +1045,21 @@ function buildGraph(tables: TableInfo[]): {
     relations.map((relation) => `${relation.parent}:${relation.parentColumn}`),
   );
 
-  const nodes: TableNode[] = tables.map((table) => {
+  const nodes: TableNode[] = tables.map((table, index) => {
     const pkSet = new Set(table.primaryKey ?? []);
     const fkSet = new Set(table.foreignKeys.map((key) => key.from));
+    const accentColor = accentByName.get(table.name) ?? "var(--primary)";
     return {
       id: table.name,
       type: "erTable",
       position: positions.get(table.name) ?? { x: 0, y: 0 },
       data: {
         label: table.name,
+        accentColor,
+        order: index,
         dimmed: false,
+        focused: false,
+        hoveredColumn: null,
         columns: table.columns.map((column) => ({
           name: column.name,
           type: column.type || "text",
@@ -898,22 +1073,31 @@ function buildGraph(tables: TableInfo[]): {
   });
 
   const edges: RelationEdgeType[] = relations.map((relation) => {
+    const isSelf = relation.child === relation.parent;
     const childX = positions.get(relation.child)?.x ?? 0;
     const parentX = positions.get(relation.parent)?.x ?? 0;
-    const childLeft = childX <= parentX;
+    const childLeft = isSelf ? false : childX <= parentX;
+    const accentColor =
+      accentByName.get(relation.child) ?? "var(--primary)";
     return {
       id: `${relation.child}.${relation.childColumn}->${relation.parent}.${relation.parentColumn}`,
       type: "relation",
       source: relation.child,
       target: relation.parent,
-      sourceHandle: `${childLeft ? "r" : "l"}-out-${relation.childColumn}`,
-      targetHandle: `${childLeft ? "l" : "r"}-in-${relation.parentColumn}`,
+      sourceHandle: isSelf
+        ? `r-out-${relation.childColumn}`
+        : `${childLeft ? "r" : "l"}-out-${relation.childColumn}`,
+      targetHandle: isSelf
+        ? `r-in-${relation.parentColumn}`
+        : `${childLeft ? "l" : "r"}-in-${relation.parentColumn}`,
       data: {
         childTable: relation.child,
         childColumn: relation.childColumn,
         parentTable: relation.parent,
         parentColumn: relation.parentColumn,
+        accentColor,
         cardinality: relation.cardinality,
+        isSelf,
         active: false,
         showInfo: false,
         dimmed: false,

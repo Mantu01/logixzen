@@ -44,7 +44,7 @@ export default function ResourcesPage(): React.ReactElement {
         </Link>
       }
     >
-      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4">
         <p className="mb-5 max-w-2xl text-[12.5px] leading-relaxed text-muted">
           Every track ships its seeded database together with its questions and
           study notes. The script runs against the SQL engine, the schema is

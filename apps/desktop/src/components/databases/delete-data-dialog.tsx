@@ -45,7 +45,7 @@ export function DeleteDataDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-data-title"
-        className="w-full max-w-md border border-destructive/50 bg-surface p-5 space-y-4 text-[12px] shadow-lg"
+        className="flex w-full max-w-md flex-col gap-4 border border-destructive/50 bg-surface p-5 text-[12px] shadow-lg"
       >
         <div className="flex items-start gap-3">
           <div className="flex size-8 shrink-0 items-center justify-center border border-destructive/30 bg-destructive/10 text-destructive">
@@ -66,7 +66,7 @@ export function DeleteDataDialog({
           </div>
         </div>
 
-        <div className="space-y-1.5 pt-1">
+        <div className="flex flex-col gap-1.5 pt-1">
           <label
             htmlFor="confirm-input"
             className="block text-[11px] text-muted"

@@ -50,8 +50,8 @@ export function MaintenanceProgress({
   };
 
   return (
-    <div className="space-y-3 text-[11.5px]">
-      <div className="space-y-1.5">
+    <div className="flex flex-col gap-3 text-[11.5px]">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between font-mono text-[10.5px]">
           <span className="font-medium text-foreground">
             {STATE_TITLES[job.state] ?? currentStage?.label ?? "Processing"}
@@ -66,7 +66,7 @@ export function MaintenanceProgress({
       <JobStageList job={job} />
 
       {job.state === "waiting-for-user" ? (
-        <div className="space-y-2 border border-warning/40 bg-warning/10 p-2.5">
+        <div className="flex flex-col gap-2 border border-warning/40 bg-warning/10 p-2.5">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
             <div className="min-w-0">
@@ -93,7 +93,7 @@ export function MaintenanceProgress({
       ) : null}
 
       {job.state === "failed" && job.failure ? (
-        <div className="space-y-2.5 border border-destructive/40 bg-destructive/10 p-2.5">
+        <div className="flex flex-col gap-2.5 border border-destructive/40 bg-destructive/10 p-2.5">
           <div className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
             <div className="min-w-0">

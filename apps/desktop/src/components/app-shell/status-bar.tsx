@@ -95,11 +95,13 @@ export function StatusBar(): React.ReactElement {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="border-l border-border pl-3 text-muted">
-              {datasetName ?? "practice"}
+              {datasetName ?? "No database"}
             </span>
           </TooltipTrigger>
           <TooltipContent side="top">
-            Active database schema in practice workspace
+            {datasetName
+              ? `Active database: ${datasetName}`
+              : "No active database selected"}
           </TooltipContent>
         </Tooltip>
 

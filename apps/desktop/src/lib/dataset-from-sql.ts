@@ -1,5 +1,6 @@
 import type { Dataset } from "@logixzen/shared/content";
 import type { TableInfo } from "@/shared/desktop-api";
+import { adaptSchemaSqlToDialect } from "@/shared/dialect-sql";
 import type { EngineDialect, EngineOptionId } from "@/shared/engines";
 
 export function slugify(value: string): string {
@@ -92,22 +93,36 @@ export function tablesFromDataset(
 export async function buildDatasetFromSql(
   name: string,
   sql: string,
-  engine?: { engineId?: EngineOptionId; dialect?: EngineDialect },
+  engine?: {
+    engineId?: EngineOptionId;
+    dialect?: EngineDialect;
+    sourceDialect?: EngineDialect;
+    sharedAcrossEngines?: boolean;
+  },
 ): Promise<Dataset> {
   const bridge = window.logixzen?.database;
   if (bridge === undefined)
     throw new Error("Desktop bridge unavailable. Run the Electron app.");
   const trimmed = name.trim() || "imported-db";
-  await bridge.initialize(sql, trimmed);
+  const sourceDialect = engine?.sourceDialect ?? "sqlite";
+  const activeDialect = engine?.dialect ?? sourceDialect;
+  const initSql =
+    sourceDialect === "sqlite" && activeDialect !== "sqlite"
+      ? adaptSchemaSqlToDialect(sql, activeDialect)
+      : sql;
+  await bridge.initialize(initSql, trimmed);
   const tables = await bridge.getSchema();
   const baseSlug = slugify(trimmed);
   return {
-    id: engine?.engineId ? `${engine.engineId}-${baseSlug}` : baseSlug,
+    id:
+      engine?.engineId && !engine?.sharedAcrossEngines
+        ? `${engine.engineId}-${baseSlug}`
+        : baseSlug,
     name: trimmed,
     description: "Imported from a SQL file.",
     setupSql: sql,
     tables: tablesToDatasetTables(tables),
-    engineId: engine?.engineId,
-    dialect: engine?.dialect,
+    engineId: engine?.sharedAcrossEngines ? undefined : engine?.engineId,
+    dialect: sourceDialect,
   };
 }

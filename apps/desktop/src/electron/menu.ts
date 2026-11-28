@@ -47,19 +47,14 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
       label: "Go",
       submenu: [
         {
-          label: "Home",
+          label: "Editor",
           accelerator: "CmdOrCtrl+1",
-          click: () => navigate("/"),
-        },
-        {
-          label: "Playground",
-          accelerator: "CmdOrCtrl+2",
           click: () => navigate("/playground"),
         },
         {
           label: "Practice",
           accelerator: "CmdOrCtrl+3",
-          click: () => navigate("/learn"),
+          click: () => navigate("/learn?workspace=sql"),
         },
         {
           label: "Databases",
@@ -79,7 +74,7 @@ export function buildApplicationMenu(navigate: (path: string) => void): void {
         {
           label: "Notes",
           accelerator: "CmdOrCtrl+6",
-          click: () => navigate("/notes"),
+          click: () => navigate("/notes?workspace=sql"),
         },
       ],
     },

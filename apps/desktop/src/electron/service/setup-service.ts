@@ -1,5 +1,6 @@
-import { readdirSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, rmSync, statSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import {
   FEATURE_FLAGS,
   type BridgeResult,
@@ -30,7 +31,12 @@ import {
   updateInstallationStatus,
 } from "../state/store";
 import { engineService } from "../engine/service";
-import { getInstanceDataDir } from "../engine/paths";
+import { getPackage } from "../engine/catalog";
+import {
+  getInstanceDataDir,
+  getInstanceDir,
+  getPacksDir,
+} from "../engine/paths";
 import { sqlitePracticeFile } from "../paths";
 import {
   initializePracticeEnvironment,
@@ -234,6 +240,89 @@ function stagesForKind(
       return [{ id: "update", label: "Updating container", weight: 2 }];
     default:
       return [{ id: "task", label: "Working", weight: 1 }];
+  }
+}
+
+function localDbInstanceDir(): string {
+  if (process.platform !== "win32") return "";
+  const localAppData =
+    process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
+  return join(
+    localAppData,
+    "Microsoft",
+    "Microsoft SQL Server Local DB",
+    "Instances",
+    "LogixZenPractice",
+  );
+}
+
+function sumDistinctPaths(paths: Array<string | undefined>): number {
+  const resolved = Array.from(
+    new Set(
+      paths
+        .filter((value): value is string => value !== undefined && value.length > 0)
+        .map((value) => resolve(value)),
+    ),
+  ).sort((a, b) => a.length - b.length);
+  const roots: string[] = [];
+  for (const candidate of resolved) {
+    if (
+      !roots.some(
+        (root) =>
+          candidate === root ||
+          candidate.startsWith(`${root}\\`) ||
+          candidate.startsWith(`${root}/`),
+      )
+    ) {
+      roots.push(candidate);
+    }
+  }
+  return roots.reduce((total, target) => total + bytesAt(target), 0);
+}
+
+const cachedUsage = new Map<EngineOptionId, EngineStorageUsage>();
+
+async function measureActivePracticeBytes(
+  optionId: EngineOptionId,
+): Promise<number | undefined> {
+  if (engineService.activeEngineId() !== optionId) return undefined;
+  try {
+    if (optionId === "postgres") {
+      const res = await engineService.runSql(
+        "SELECT pg_database_size('practice') AS size_bytes;",
+      );
+      const val = Number(res[0]?.rows?.[0]?.size_bytes ?? NaN);
+      return Number.isFinite(val) && val >= 0 ? val : undefined;
+    }
+    if (optionId === "mysql") {
+      const res = await engineService.runSql(
+        "SELECT COALESCE(SUM(data_length + index_length), 0) AS size_bytes FROM information_schema.tables WHERE table_schema = 'practice';",
+      );
+      const val = Number(res[0]?.rows?.[0]?.size_bytes ?? NaN);
+      return Number.isFinite(val) && val > 0 ? val : undefined;
+    }
+    if (optionId === "sqlserver") {
+      const res = await engineService.runSql(
+        "SELECT COALESCE(SUM(CAST(size AS BIGINT)) * 8192, 0) AS size_bytes FROM sys.master_files WHERE DB_NAME(database_id) = 'practice';",
+      );
+      const val = Number(res[0]?.rows?.[0]?.size_bytes ?? NaN);
+      return Number.isFinite(val) && val > 0 ? val : undefined;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+function measureSqlServerPracticeDiskBytes(): number {
+  const dir = localDbInstanceDir();
+  if (!dir || !existsSync(dir)) return 0;
+  try {
+    return readdirSync(dir)
+      .filter((name) => /^practice.*\.(mdf|ldf)$/i.test(name))
+      .reduce((sum, name) => sum + bytesAt(join(dir, name)), 0);
+  } catch {
+    return 0;
   }
 }
 
@@ -743,14 +832,65 @@ class SetupService {
     const loaded = await loadInstallState();
     const usage: Record<string, EngineStorageUsage> = {};
     for (const record of loaded.state.installations) {
-      usage[record.optionId] = {
-        dataBytes:
-          record.optionId === "sqlite"
-            ? bytesAt(sqlitePracticeFile())
-            : record.dataLocation === undefined
-              ? undefined
-              : bytesAt(record.dataLocation),
+      if (record.optionId === "sqlite") {
+        const dbFile = sqlitePracticeFile();
+        const practiceBytes =
+          bytesAt(dbFile) + bytesAt(`${dbFile}-wal`) + bytesAt(`${dbFile}-shm`);
+        const dataBytes = sumDistinctPaths([
+          dirname(dbFile),
+          getInstanceDir("sqlite"),
+          record.dataLocation,
+        ]);
+        const entryUsage: EngineStorageUsage = {
+          practiceBytes,
+          dataBytes: Math.max(dataBytes, practiceBytes),
+        };
+        cachedUsage.set("sqlite", entryUsage);
+        usage.sqlite = entryUsage;
+        continue;
+      }
+
+      const pkg = getPackage(record.optionId);
+      const version = record.installedVersion ?? pkg?.version;
+      const packDir =
+        version !== undefined ? getPacksDir(record.optionId, version) : undefined;
+      const instanceDir = getInstanceDir(record.optionId);
+      const dataDir = record.dataLocation ?? getInstanceDataDir(record.optionId);
+      const localDbDir =
+        record.optionId === "sqlserver" ? localDbInstanceDir() : undefined;
+
+      let practiceBytes = await measureActivePracticeBytes(record.optionId);
+      if (practiceBytes === undefined) {
+        if (record.optionId === "mysql") {
+          const mysqlPracticeDir = join(dataDir, "practice");
+          const onDisk = bytesAt(mysqlPracticeDir);
+          practiceBytes = onDisk > 0 ? onDisk : cachedUsage.get("mysql")?.practiceBytes;
+        } else if (record.optionId === "sqlserver") {
+          const onDisk = measureSqlServerPracticeDiskBytes();
+          practiceBytes =
+            onDisk > 0 ? onDisk : cachedUsage.get("sqlserver")?.practiceBytes;
+        } else {
+          practiceBytes = cachedUsage.get(record.optionId)?.practiceBytes;
+        }
+      }
+
+      const rawDataBytes = sumDistinctPaths([
+        instanceDir,
+        dataDir,
+        packDir,
+        localDbDir,
+      ]);
+      const dataBytes =
+        practiceBytes !== undefined
+          ? Math.max(rawDataBytes, practiceBytes)
+          : rawDataBytes;
+
+      const entryUsage: EngineStorageUsage = {
+        practiceBytes,
+        dataBytes: dataBytes > 0 ? dataBytes : undefined,
       };
+      cachedUsage.set(record.optionId, entryUsage);
+      usage[record.optionId] = entryUsage;
     }
     return { ok: true, data: usage };
   }

@@ -1,7 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Group,
   Panel as ResizablePanel,
@@ -29,12 +37,14 @@ import {
   X,
 } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
+import { WorkspaceSwitcher } from "@/components/learn/WorkspaceSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -77,14 +87,36 @@ import { cn, errorMessage } from "@/lib/utils";
 
 const NOTES_SIDEBAR_KEY = "logixzen.notesSidebar.collapsed";
 
-export default function NotesPage(): React.ReactElement {
+function NotesContent(): React.ReactElement {
+  const searchParams = useSearchParams();
+  const workspaceParam = searchParams.get("workspace");
   const workspaces = usePackStore((state) => state.workspaces);
   const activeWorkspaceId =
     usePackStore((state) => state.activeWorkspaceId) || DEFAULT_WORKSPACE_ID;
+  const setActiveWorkspace = usePackStore((state) => state.setActiveWorkspace);
   const allNotes = usePackStore((state) => state.notes);
   const noteWorkspace = usePackStore((state) => state.noteWorkspace);
   const allNoteCategories = usePackStore((state) => state.noteCategories);
   const hydrated = usePackStore((state) => state.hydrated);
+
+  useEffect(() => {
+    if (!workspaceParam || !hydrated) return;
+    const direct = workspaces.find((w) => w.id === workspaceParam);
+    if (direct) {
+      if (direct.id !== activeWorkspaceId) setActiveWorkspace(direct.id);
+      return;
+    }
+    const active = workspaces.find((w) => w.id === activeWorkspaceId);
+    if (active && active.subjectId === workspaceParam) return;
+    const bySubject = workspaces.find((w) => w.subjectId === workspaceParam);
+    if (bySubject) setActiveWorkspace(bySubject.id);
+  }, [
+    workspaceParam,
+    hydrated,
+    workspaces,
+    activeWorkspaceId,
+    setActiveWorkspace,
+  ]);
   const addNote = usePackStore((state) => state.addNote);
   const updateNote = usePackStore((state) => state.updateNote);
   const removeNote = usePackStore((state) => state.removeNote);
@@ -225,6 +257,7 @@ export default function NotesPage(): React.ReactElement {
         subtitle="Study notes from your imported packs"
         actions={
           <div className="flex items-center gap-2">
+            <WorkspaceSwitcher />
             <NewNoteDialog
               categories={[]}
               onAdd={(n) => addNote(n, activeWorkspaceId)}
@@ -265,6 +298,7 @@ export default function NotesPage(): React.ReactElement {
       }
       actions={
         <div className="flex items-center gap-2">
+          <WorkspaceSwitcher />
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-muted-dim" />
             <input
@@ -445,7 +479,7 @@ export default function NotesPage(): React.ReactElement {
                       </div>
                     ) : null}
                   </header>
-                  <div className="space-y-4 pt-5">
+                  <div className="flex flex-col gap-4 pt-5">
                     {blocks.map((block, index) => (
                       <NoteBlock
                         key={index}
@@ -768,6 +802,14 @@ export default function NotesPage(): React.ReactElement {
   );
 }
 
+export default function NotesPage(): React.ReactElement {
+  return (
+    <Suspense fallback={null}>
+      <NotesContent />
+    </Suspense>
+  );
+}
+
 function NoteInlineEditor({
   note,
   categories,
@@ -817,7 +859,7 @@ function NoteInlineEditor({
         </div>
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 flex flex-col gap-4">
         <div>
           <label className="section-label mb-1 block">Title</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -987,7 +1029,7 @@ function ImportNotesButton({
             </DialogDescription>
           </DialogHeader>
           {pendingNotes ? (
-            <div className="space-y-3 p-4 text-[12px]">
+            <div className="flex flex-col gap-3 p-4 text-[12px]">
               <div className="border border-border bg-surface-alt px-3 py-2">
                 <span className="font-semibold text-foreground">
                   {pendingNotes.length} notes
@@ -995,8 +1037,8 @@ function ImportNotesButton({
                 ready to import into{" "}
                 <span className="font-mono text-primary">{workspaceName}</span>
               </div>
-              <div className="space-y-1">
-                <label className="section-label block">
+              <div className="flex flex-col gap-1">
+                <label className="section-label">
                   Category mapping
                 </label>
                 <Select
@@ -1007,14 +1049,16 @@ function ImportNotesButton({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__preserve__">
-                      Preserve original note categories
-                    </SelectItem>
-                    {existingCategories.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        Assign all to: {c}
+                    <SelectGroup>
+                      <SelectItem value="__preserve__">
+                        Preserve original note categories
                       </SelectItem>
-                    ))}
+                      {existingCategories.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          Assign all to: {c}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1115,9 +1159,9 @@ function NewNoteDialog({
         <DialogHeader className="border-b border-border bg-surface-alt px-4 py-3">
           <DialogTitle className="text-[13px]">Create Note</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 p-4">
-          <div>
-            <label className="section-label mb-1 block">Title</label>
+        <div className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-1">
+            <label className="section-label">Title</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -1126,20 +1170,23 @@ function NewNoteDialog({
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="section-label mb-1 block">Category</label>
+            <div className="flex flex-col gap-1">
+              <label className="section-label">Category</label>
               {categories.length > 0 ? (
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="h-8 w-full border border-border bg-surface px-2 text-[12px] outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger size="sm" className="w-full text-[12px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               ) : (
                 <Input
                   value={category}
@@ -1306,7 +1353,7 @@ function CategoryEditor({
             Pick an existing category or type a new one — it is created on save.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 px-4 py-4">
+        <div className="flex flex-col gap-3 px-4 py-4">
           <Input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -1518,7 +1565,7 @@ function NoteBlock({
       );
     case "list":
       return block.ordered ? (
-        <ol className="space-y-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
+        <ol className="flex flex-col gap-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
           {block.items.map((item, index) => (
             <li key={index} className="flex gap-2.5">
               <span className="numeric shrink-0 font-mono text-[11px] text-primary">
@@ -1531,7 +1578,7 @@ function NoteBlock({
           ))}
         </ol>
       ) : (
-        <ul className="space-y-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
+        <ul className="flex flex-col gap-1.5 pl-1 text-[12.5px] leading-relaxed text-muted">
           {block.items.map((item, index) => (
             <li key={index} className="flex gap-2.5">
               <span

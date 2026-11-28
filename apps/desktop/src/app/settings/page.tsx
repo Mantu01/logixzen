@@ -63,7 +63,7 @@ export default function SettingsPage(): React.ReactElement {
     <div className="border border-border bg-editor p-3">
       <pre className="font-mono" style={{ fontSize: editorFontSize }}>
         {
-          "SELECT u.name, COUNT(o.id) AS orders\nFROM users u\nJOIN orders o ON o.user_id = u.id\nGROUP BY u.id\nORDER BY orders DESC;"
+          "SELECT u.name, COUNT(o.id) AS orders\nFROM users u\nJOIN orders o ON o.user_id = u.id\nGROUP BY u.id, u.name\nORDER BY orders DESC;"
         }
       </pre>
     </div>
@@ -73,7 +73,7 @@ export default function SettingsPage(): React.ReactElement {
     <PageShell
       title="Settings"
       showBack
-      breadcrumbs={[{ label: "Home", href: "/" }, { label: "Settings" }]}
+      breadcrumbs={[{ label: "Editor", href: "/playground" }, { label: "Settings" }]}
       actions={
         <Button
           asChild
@@ -85,7 +85,7 @@ export default function SettingsPage(): React.ReactElement {
         </Button>
       }
     >
-      <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-4">
         <section>
           <div className="mb-2 flex items-center justify-between">
             <span className="section-label">Appearance</span>

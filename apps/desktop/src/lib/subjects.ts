@@ -52,7 +52,7 @@ export const SUBJECT_REGISTRY: SubjectDefinition[] = [
       "Query, aggregate and shape real datasets. Graded exercises, hints, notes and an ER diagram of every relation.",
     state: "available",
     routePrefix: "/playground",
-    href: "/learn",
+    href: "/playground",
     scriptExtension: ".sql",
     features: {
       editor: true,

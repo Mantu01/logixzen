@@ -8,12 +8,14 @@ import type {
   EngineOptionId,
   InstallationRecord,
 } from "@/shared/engines";
+import { dialectLabel } from "@/shared/dialect-sql";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/app-shell/panel";
 import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -70,6 +72,11 @@ export function ActiveConnectionCard({
     readyAlternates[0]?.optionId ??
     "";
 
+  const targetValue =
+    activeRecord?.port !== undefined
+      ? `127.0.0.1:${activeRecord.port}`
+      : (activeRecord?.dataLocation ?? "—");
+
   const handleTest = async (): Promise<void> => {
     if (!activeOptionId) return;
     setTesting(true);
@@ -86,55 +93,29 @@ export function ActiveConnectionCard({
       description="Queries in the editor run on this engine and database."
       actions={
         <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <StatusChip tone={statusTone(status)}>
-                  {statusLabel(status)}
-                </StatusChip>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Current runtime connectivity state
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void handleTest()}
-                disabled={testing || !activeOptionId}
-                className="h-7 gap-1.5 border-border px-2 text-[11px]"
-              >
-                <RefreshCw
-                  className={cn("size-3", testing && "animate-spin")}
-                />
-                Test
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Test connection to active engine
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                size="sm"
-                className="h-7 gap-1.5 px-2.5 text-[11px]"
-              >
-                <Link href="/playground">
-                  <Terminal className="size-3" />
-                  Open editor
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Open SQL Editor using this connection
-            </TooltipContent>
-          </Tooltip>
+          <StatusChip tone={statusTone(status)}>
+            {statusLabel(status)}
+          </StatusChip>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void handleTest()}
+            disabled={testing || !activeOptionId}
+            className="h-7 border-border px-2 text-[11px]"
+          >
+            <RefreshCw
+              data-icon="inline-start"
+              className={cn(testing && "animate-spin")}
+            />
+            Test
+          </Button>
+          <Button asChild size="sm" className="h-7 px-2.5 text-[11px]">
+            <Link href="/playground">
+              <Terminal data-icon="inline-start" />
+              Open editor
+            </Link>
+          </Button>
         </>
       }
     >
@@ -143,14 +124,17 @@ export function ActiveConnectionCard({
           {activeEntry?.displayName ?? activeOptionId ?? "None"}
         </Meta>
         <Meta label="Database" mono>
-          {activeDatabase ?? "practice"}
+          {activeDatabase ?? "—"}
         </Meta>
-        <Meta label="Target" mono>
-          {activeRecord?.dataLocation ??
-            (activeRecord?.port ? `127.0.0.1:${activeRecord.port}` : "—")}
+        <Meta
+          label="Target"
+          mono
+          tooltip={targetValue !== "—" ? targetValue : undefined}
+        >
+          {targetValue}
         </Meta>
         <Meta label="Dialect" mono>
-          {activeEntry?.dialect ?? "—"}
+          {activeEntry ? dialectLabel(activeEntry.dialect) : "—"}
         </Meta>
       </dl>
 
@@ -190,37 +174,32 @@ export function ActiveConnectionCard({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {readyAlternates.map((alternate) => (
-                  <SelectItem
-                    key={alternate.optionId}
-                    value={alternate.optionId}
-                    className="text-[11.5px]"
-                  >
-                    {catalog.find((entry) => entry.id === alternate.optionId)
-                      ?.displayName ?? alternate.optionId}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {readyAlternates.map((alternate) => (
+                    <SelectItem
+                      key={alternate.optionId}
+                      value={alternate.optionId}
+                      className="text-[11.5px]"
+                    >
+                      {catalog.find((entry) => entry.id === alternate.optionId)
+                        ?.displayName ?? alternate.optionId}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (switchOption) void onSwitch(switchOption);
-                  }}
-                  disabled={!switchOption || isSwitching}
-                  className="h-7 border-border px-2 text-[11px]"
-                >
-                  Switch
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Switch active practice database engine
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (switchOption) void onSwitch(switchOption);
+              }}
+              disabled={!switchOption || isSwitching}
+              className="h-7 border-border px-2 text-[11px]"
+            >
+              Switch
+            </Button>
           </div>
         ) : null}
       </div>
@@ -231,25 +210,40 @@ export function ActiveConnectionCard({
 function Meta({
   label,
   mono = false,
+  tooltip,
   children,
 }: {
   label: string;
   mono?: boolean;
+  tooltip?: string;
   children: React.ReactNode;
 }): React.ReactElement {
+  const valueNode = (
+    <dd
+      className={cn(
+        "mt-0.5 truncate text-[11.5px] text-foreground",
+        mono && "font-mono",
+      )}
+    >
+      {children}
+    </dd>
+  );
+
   return (
     <div className="min-w-0 px-3 py-2">
       <dt className="text-[9.5px] font-medium uppercase tracking-wider text-muted-dim">
         {label}
       </dt>
-      <dd
-        className={cn(
-          "mt-0.5 truncate text-[11.5px] text-foreground",
-          mono && "font-mono",
-        )}
-      >
-        {children}
-      </dd>
+      {tooltip ? (
+        <Tooltip>
+          <TooltipTrigger asChild>{valueNode}</TooltipTrigger>
+          <TooltipContent className="max-w-sm break-all font-mono text-[11px]">
+            {tooltip}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        valueNode
+      )}
     </div>
   );
 }

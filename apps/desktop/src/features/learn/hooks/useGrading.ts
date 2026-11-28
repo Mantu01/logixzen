@@ -1,7 +1,14 @@
 import { useCallback, useState } from "react";
 import { compareResults } from "@logixzen/shared/sql-engine";
+import {
+  adaptReferenceSqlForDialect,
+  adaptSchemaSqlToDialect,
+  looksLikeSqliteSchema,
+} from "@/shared/dialect-sql";
+import type { EngineDialect } from "@/shared/engines";
 import type { SqlResult } from "@/shared/desktop-api";
 import type { Question } from "@logixzen/shared/content";
+import { useSqlStore } from "@/sql/useSqlStore";
 import { usePackStore } from "@/stores/usePackStore";
 
 export interface TestCaseResult {
@@ -47,7 +54,9 @@ export function useGrading(question: Question | null): {
     async (answer: string): Promise<SqlResult[]> => {
       const dataset = findDataset(question);
       if (!dataset || window.logixzen === undefined) return [];
-      return window.logixzen.database.isolatedRun(dataset.setupSql, answer);
+      const activeDialect = useSqlStore.getState().activeDialect;
+      const setupSql = resolvedSetupSql(dataset.setupSql, dataset.dialect, activeDialect);
+      return window.logixzen.database.isolatedRun(setupSql, answer);
     },
     [question],
   );
@@ -72,6 +81,24 @@ function findDataset(question: Question | null) {
   if (!question) return null;
   const databases = usePackStore.getState().databases;
   return databases.find((item) => item.id === question.datasetId) ?? null;
+}
+
+function resolvedSetupSql(
+  setupSql: string,
+  sourceDialect: EngineDialect | undefined,
+  activeDialect: EngineDialect,
+): string {
+  const origin = sourceDialect ?? "sqlite";
+  if (activeDialect !== origin && (origin === "sqlite" || looksLikeSqliteSchema(setupSql))) {
+    return adaptSchemaSqlToDialect(setupSql, activeDialect);
+  }
+  return setupSql;
+}
+
+function resolvedRefSql(sql: string, activeDialect: EngineDialect): string {
+  return activeDialect === "sqlite"
+    ? sql
+    : adaptReferenceSqlForDialect(sql, activeDialect);
 }
 
 async function gradeQuestion(
@@ -165,10 +192,19 @@ async function gradeQuestion(
     );
   }
 
+  const activeDialect = useSqlStore.getState().activeDialect;
+  const setupSql = resolvedSetupSql(
+    dataset.setupSql,
+    dataset.dialect,
+    activeDialect,
+  );
+
   if (question.type === "dml-check") {
+    const dmlSql = resolvedRefSql(question.dmlStatement, activeDialect);
+    const verifySql = resolvedRefSql(question.verificationQuery, activeDialect);
     const results = await bridge.database.isolatedRun(
-      dataset.setupSql,
-      `${stripTrailingSemicolon(question.dmlStatement)};\n${question.verificationQuery}`,
+      setupSql,
+      `${stripTrailingSemicolon(dmlSql)};\n${verifySql}`,
     );
     const affected = results.reduce(
       (total, result) => total + result.rowsAffected,
@@ -203,7 +239,7 @@ async function gradeQuestion(
 
   if (question.type === "predict-output") {
     const actual = pickResult(
-      await bridge.database.isolatedRun(dataset.setupSql, answer),
+      await bridge.database.isolatedRun(setupSql, answer),
     );
     const expectedColumns = Object.keys(question.expectedOutput[0] ?? {});
     const expected: SqlResult = {
@@ -254,10 +290,7 @@ async function gradeQuestion(
     let expected: SqlResult;
     let failure: string | undefined;
 
-    const answerResults = await bridge.database.isolatedRun(
-      dataset.setupSql,
-      answer,
-    );
+    const answerResults = await bridge.database.isolatedRun(setupSql, answer);
     const answerError = answerResults.find(
       (result) => result.error !== undefined,
     );
@@ -267,8 +300,8 @@ async function gradeQuestion(
       failure = answerError.error;
     } else if (testCase.expected.type === "fromSolution") {
       const solutionResults = await bridge.database.isolatedRun(
-        dataset.setupSql,
-        typed.solutionSql,
+        setupSql,
+        resolvedRefSql(typed.solutionSql, activeDialect),
       );
       const solutionError = solutionResults.find(
         (result) => result.error !== undefined,

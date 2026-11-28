@@ -34,6 +34,7 @@ export function createTray(
         click: () => {
           const window = getWindow();
           window?.show();
+          window?.focus();
           onNavigate("/playground");
         },
       },
@@ -42,7 +43,17 @@ export function createTray(
         click: () => {
           const window = getWindow();
           window?.show();
+          window?.focus();
           onNavigate("/learn");
+        },
+      },
+      {
+        label: "Settings",
+        click: () => {
+          const window = getWindow();
+          window?.show();
+          window?.focus();
+          onNavigate("/settings");
         },
       },
       { type: "separator" },

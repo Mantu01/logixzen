@@ -484,7 +484,16 @@ export class PostgresDriver implements EngineDriver {
       });
       await tempClient.connect();
       if (setupSql.trim().length > 0) {
-        await tempClient.query(setupSql);
+        const setupResults = await this.executeOnClient(
+          tempClient,
+          setupSql,
+          { maxRows: Number.MAX_SAFE_INTEGER },
+          false,
+        );
+        const setupError = setupResults.find((item) => item.error !== undefined);
+        if (setupError?.error) {
+          return [emptyResult(0, started, setupError.error)];
+        }
       }
       return await this.executeOnClient(tempClient, sql, {
         maxRows: Number.MAX_SAFE_INTEGER,

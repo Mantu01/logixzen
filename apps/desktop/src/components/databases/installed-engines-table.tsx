@@ -77,39 +77,32 @@ export function InstalledEnginesTable({
       title="Installed engines"
       description="Operational state, storage footprint and maintenance actions."
       actions={
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void onRefreshStorage()}
-              disabled={isStorageLoading}
-              className="h-7 gap-1.5 border-border px-2 text-[11px]"
-            >
-              <HardDrive
-                className={cn("size-3", isStorageLoading && "animate-pulse")}
-              />
-              Storage
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            Recalculate practice and engine data directory sizes
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => void onRefreshStorage()}
+          disabled={isStorageLoading}
+          className="h-7 border-border px-2 text-[11px]"
+        >
+          <HardDrive
+            data-icon="inline-start"
+            className={cn(isStorageLoading && "animate-pulse")}
+          />
+          Recalculate storage
+        </Button>
       }
     >
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-[11.5px]">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full table-auto border-collapse text-left text-[11.5px]">
           <thead>
-            <tr className="border-b border-border bg-surface-alt/60 font-mono text-[9.5px] uppercase tracking-wider text-muted-dim">
-              <th className="px-3 py-1.5 font-medium">Engine</th>
-              <th className="px-3 py-1.5 font-medium">Method</th>
-              <th className="px-3 py-1.5 font-medium">Version</th>
-              <th className="px-3 py-1.5 font-medium">Target</th>
-              <th className="px-3 py-1.5 font-medium">Status</th>
-              <th className="px-3 py-1.5 font-medium">Storage</th>
-              <th className="px-3 py-1.5 text-right font-medium">Actions</th>
+            <tr className="border-b border-border bg-surface-alt/70 font-mono text-[9.5px] uppercase tracking-wider text-muted-dim">
+              <th className="px-3 py-2 font-medium">Engine</th>
+              <th className="px-3 py-2 font-medium">Runtime</th>
+              <th className="px-3 py-2 font-medium">Target</th>
+              <th className="px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium">Storage</th>
+              <th className="px-3 py-2 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -120,222 +113,211 @@ export function InstalledEnginesTable({
               const isStopped = record.status === "stopped";
               const storage = storageUsage[record.optionId];
               const supportsStartStop = entry?.capabilities.startStop ?? false;
+              const targetText =
+                record.port !== undefined
+                  ? `127.0.0.1:${record.port}`
+                  : (record.dataLocation ?? "—");
 
               return (
-                <tr key={record.optionId} className="hover:bg-surface-alt/40">
-                  <td className="px-3 py-2">
-                    <div className="font-medium text-foreground">
-                      {entry?.displayName ?? record.optionId}
+                <tr
+                  key={record.optionId}
+                  className={cn(
+                    "transition-colors hover:bg-surface-alt/40",
+                    isActive && "bg-primary/[0.03]",
+                  )}
+                >
+                  <td className="px-3 py-2.5 align-middle">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">
+                        {entry?.displayName ?? record.optionId}
+                      </span>
+                      {isActive ? (
+                        <StatusChip tone="info">Active</StatusChip>
+                      ) : null}
                     </div>
-                    <div className="font-mono text-[10px] text-muted-dim">
+                    <div className="mt-0.5 font-mono text-[10px] text-muted-dim">
                       {record.optionId}
                     </div>
                   </td>
 
-                  <td className="px-3 py-2 text-muted">
-                    {methodLabel(record.method)}
+                  <td className="whitespace-nowrap px-3 py-2.5 align-middle">
+                    <div className="text-foreground/90">
+                      {methodLabel(record.method)}
+                    </div>
+                    <div className="numeric mt-0.5 font-mono text-[10px] text-muted-dim">
+                      v{record.installedVersion ?? entry?.pin ?? "—"}
+                    </div>
                   </td>
 
-                  <td className="px-3 py-2 font-mono text-muted">
-                    {record.installedVersion ?? entry?.pin ?? "—"}
+                  <td className="max-w-[180px] px-3 py-2.5 align-middle font-mono text-[11px] text-muted-dim">
+                    {targetText !== "—" ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="block truncate">{targetText}</span>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-md break-all font-mono text-[11px]">
+                          {record.port !== undefined && record.dataLocation
+                            ? `127.0.0.1:${record.port} · ${record.dataLocation}`
+                            : targetText}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      "—"
+                    )}
                   </td>
 
-                  <td className="max-w-44 truncate px-3 py-2 font-mono text-muted-dim">
-                    {record.port !== undefined
-                      ? `127.0.0.1:${record.port}`
-                      : (record.dataLocation ?? "—")}
-                  </td>
-
-                  <td className="px-3 py-2">
+                  <td className="whitespace-nowrap px-3 py-2.5 align-middle">
                     <StatusChip tone={statusTone(record.status)}>
                       {statusLabel(record.status)}
                     </StatusChip>
                   </td>
 
-                  <td className="px-3 py-2 font-mono">
-                    <div className="text-foreground">
-                      {storage?.practiceBytes !== undefined
-                        ? formatBytes(storage.practiceBytes)
-                        : "—"}
+                  <td className="numeric whitespace-nowrap px-3 py-2.5 align-middle font-mono">
+                    <div className="flex items-baseline gap-1.5 text-[11px] text-foreground">
+                      <span className="text-[9.5px] uppercase text-muted-dim">
+                        DB
+                      </span>
+                      <span>
+                        {storage?.practiceBytes !== undefined
+                          ? formatBytes(storage.practiceBytes)
+                          : "—"}
+                      </span>
                     </div>
-                    <div className="text-[10px] text-muted-dim">
-                      {storage?.dataBytes !== undefined
-                        ? formatBytes(storage.dataBytes)
-                        : "—"}
+                    <div className="mt-0.5 flex items-baseline gap-1.5 text-[10px] text-muted-dim">
+                      <span className="text-[9px] uppercase">Total</span>
+                      <span>
+                        {storage?.dataBytes !== undefined
+                          ? formatBytes(storage.dataBytes)
+                          : "—"}
+                      </span>
                     </div>
                   </td>
 
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap items-center justify-end gap-1">
-                      {isActive ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>
-                              <StatusChip tone="info">Active</StatusChip>
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Currently active practice engine
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : isReady ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => void onSwitch(record.optionId)}
-                              disabled={isActionExecuting}
-                              className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                            >
-                              <ArrowRightLeft className="size-2.5" />
-                              Switch
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Set as active engine in Playground and Practice
-                          </TooltipContent>
-                        </Tooltip>
+                  <td className="whitespace-nowrap px-3 py-2.5 align-middle">
+                    <div className="flex items-center justify-end gap-1">
+                      {!isActive && isReady ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void onSwitch(record.optionId)}
+                          disabled={isActionExecuting}
+                          className="h-6 border-border px-1.5 text-[10.5px]"
+                        >
+                          <ArrowRightLeft data-icon="inline-start" />
+                          Switch
+                        </Button>
                       ) : null}
 
                       {supportsStartStop ? (
                         isStopped ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  void onStartStop(record.optionId, "start")
-                                }
-                                disabled={isActionExecuting}
-                                className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                              >
-                                <Play className="size-2.5" />
-                                Start
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Start local database service
-                            </TooltipContent>
-                          </Tooltip>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              void onStartStop(record.optionId, "start")
+                            }
+                            disabled={isActionExecuting}
+                            className="h-6 border-border px-1.5 text-[10.5px]"
+                          >
+                            <Play data-icon="inline-start" />
+                            Start
+                          </Button>
                         ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  void onStartStop(record.optionId, "stop")
-                                }
-                                disabled={isActionExecuting}
-                                className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                              >
-                                <Square className="size-2.5" />
-                                Stop
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Stop running database service
-                            </TooltipContent>
-                          </Tooltip>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              void onStartStop(record.optionId, "stop")
+                            }
+                            disabled={isActionExecuting}
+                            className="h-6 border-border px-1.5 text-[10.5px]"
+                          >
+                            <Square data-icon="inline-start" />
+                            Stop
+                          </Button>
                         )
                       ) : null}
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => void onVerify(record.optionId)}
-                            disabled={isActionExecuting}
-                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                          >
-                            <RefreshCw className="size-2.5" />
-                            Verify
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Check binary, service health, and connectivity
-                        </TooltipContent>
-                      </Tooltip>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void onVerify(record.optionId)}
+                        disabled={isActionExecuting}
+                        className="h-6 border-border px-1.5 text-[10.5px]"
+                      >
+                        <RefreshCw data-icon="inline-start" />
+                        Verify
+                      </Button>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onOpenResetConfirm(record)}
-                            disabled={isActionExecuting}
-                            className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
-                          >
-                            <RotateCcw className="size-2.5" />
-                            Reset
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Reset the practice environment and recreate sample DB
-                        </TooltipContent>
-                      </Tooltip>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onOpenResetConfirm(record)}
+                        disabled={isActionExecuting}
+                        className="h-6 border-border px-1.5 text-[10.5px]"
+                      >
+                        <RotateCcw data-icon="inline-start" />
+                        Reset
+                      </Button>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => onOpenDetails(record)}
-                            className="text-muted hover:text-foreground"
-                            aria-label={`Details for ${entry?.displayName ?? record.optionId}`}
-                          >
-                            <Info />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Inspect technical details, paths, and license
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => onOpenUninstallConfirm(record)}
-                            disabled={isActionExecuting}
-                            className="text-muted-dim hover:text-foreground"
-                            aria-label={`Uninstall ${entry?.displayName ?? record.optionId}`}
-                          >
-                            <Trash2 />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Uninstall this database engine
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => onOpenDeleteDataConfirm(record)}
-                            disabled={isActionExecuting}
-                            className="text-destructive/70 hover:text-destructive"
-                            aria-label={`Delete data for ${entry?.displayName ?? record.optionId}`}
-                          >
-                            <ShieldAlert />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Delete all stored database files on disk
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="ml-0.5 flex items-center border-l border-border pl-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => onOpenDetails(record)}
+                              className="text-muted hover:text-foreground"
+                              aria-label={`Details for ${entry?.displayName ?? record.optionId}`}
+                            >
+                              <Info />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Technical details & paths
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => onOpenUninstallConfirm(record)}
+                              disabled={isActionExecuting}
+                              className="text-muted-dim hover:text-foreground"
+                              aria-label={`Uninstall ${entry?.displayName ?? record.optionId}`}
+                            >
+                              <Trash2 />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Uninstall engine</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => onOpenDeleteDataConfirm(record)}
+                              disabled={isActionExecuting}
+                              className="text-destructive/75 hover:text-destructive"
+                              aria-label={`Delete data for ${entry?.displayName ?? record.optionId}`}
+                            >
+                              <ShieldAlert />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Delete all stored database files
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                   </td>
                 </tr>

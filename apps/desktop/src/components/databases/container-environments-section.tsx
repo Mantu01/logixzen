@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Play, RefreshCw, Square, Terminal } from "lucide-react";
+import { Box, Play, RefreshCw, Square, Terminal } from "lucide-react";
 import {
   FEATURE_FLAGS,
   type EngineOffer,
@@ -49,28 +49,49 @@ export function ContainerEnvironmentsSection({
   onViewLogs,
   isActionExecuting = false,
 }: ContainerEnvironmentsSectionProps): React.ReactElement | null {
-  if (offers.length === 0) return null;
-
   const dockerState =
     snapshot?.containerReadiness?.find((runtime) => runtime.runtime === "docker")
       ?.state ?? "unknown";
   const dockerEnabled = FEATURE_FLAGS.docker;
 
+  if (!dockerEnabled) {
+    return (
+      <Panel
+        title="Container environments"
+        description="Docker support for any database engine."
+        actions={<StatusChip tone="info">Coming Soon</StatusChip>}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 px-3 py-3.5">
+          <div className="flex min-w-0 items-start gap-2.5">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center border border-border bg-surface-alt text-primary">
+              <Box className="size-3.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-[12px] font-semibold text-foreground">
+                Bring any database engine via Docker
+              </div>
+              <p className="mt-0.5 max-w-2xl text-[11px] leading-relaxed text-muted">
+                Container orchestration will let you spin up or attach any SQL
+                engine image you want with isolated storage, automatic port
+                binding, and direct schema introspection.
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 font-mono text-[10.5px] text-muted-dim">
+            Runtime: {dockerState}
+          </span>
+        </div>
+      </Panel>
+    );
+  }
+
+  if (offers.length === 0) return null;
+
   return (
     <Panel
       title="Container environments"
-      description={
-        dockerEnabled
-          ? "Loopback-only containers with persistent volumes."
-          : "Containerized database engines are coming soon."
-      }
-      actions={
-        dockerEnabled ? (
-          <StatusChip>Docker: {dockerState}</StatusChip>
-        ) : (
-          <StatusChip tone="info">Coming Soon</StatusChip>
-        )
-      }
+      description="Loopback-only containers with persistent volumes."
+      actions={<StatusChip>Docker: {dockerState}</StatusChip>}
     >
       <ul className="divide-y divide-border">
         {offers.map(({ entry }) => {
@@ -94,13 +115,9 @@ export function ContainerEnvironmentsSection({
                   <span className="font-sans text-[12px] font-semibold text-foreground">
                     {entry.displayName}
                   </span>
-                  {dockerEnabled ? (
-                    <StatusChip tone={statusTone(status)}>
-                      {statusLabel(status)}
-                    </StatusChip>
-                  ) : (
-                    <StatusChip tone="info">Coming Soon</StatusChip>
-                  )}
+                  <StatusChip tone={statusTone(status)}>
+                    {statusLabel(status)}
+                  </StatusChip>
                 </div>
                 <div className="mt-0.5 truncate">
                   {containerName}
@@ -114,17 +131,7 @@ export function ContainerEnvironmentsSection({
                 </div>
               </div>
 
-              {!dockerEnabled ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  className="h-7 cursor-not-allowed border-border px-2 text-[11px] opacity-60"
-                >
-                  Coming Soon
-                </Button>
-              ) : installed === undefined ? (
+              {installed === undefined ? (
                 <Button
                   asChild
                   variant="outline"
@@ -143,12 +150,12 @@ export function ContainerEnvironmentsSection({
                       void onLifecycle(entry.id, isStopped ? "start" : "stop")
                     }
                     disabled={isActionExecuting}
-                    className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                    className="h-6 border-border px-1.5 text-[10.5px]"
                   >
                     {isStopped ? (
-                      <Play className="size-2.5" />
+                      <Play data-icon="inline-start" />
                     ) : (
-                      <Square className="size-2.5" />
+                      <Square data-icon="inline-start" />
                     )}
                     {isStopped ? "Start" : "Stop"}
                   </Button>
@@ -158,9 +165,9 @@ export function ContainerEnvironmentsSection({
                     size="sm"
                     onClick={() => void onRestart(entry.id)}
                     disabled={isActionExecuting}
-                    className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                    className="h-6 border-border px-1.5 text-[10.5px]"
                   >
-                    <RefreshCw className="size-2.5" />
+                    <RefreshCw data-icon="inline-start" />
                     Restart
                   </Button>
                   <Button
@@ -168,9 +175,9 @@ export function ContainerEnvironmentsSection({
                     variant="outline"
                     size="sm"
                     onClick={() => onViewLogs(entry.id)}
-                    className="h-6 gap-1 border-border px-1.5 text-[10.5px]"
+                    className="h-6 border-border px-1.5 text-[10.5px]"
                   >
-                    <Terminal className="size-2.5" />
+                    <Terminal data-icon="inline-start" />
                     Logs
                   </Button>
                   <Button

@@ -133,8 +133,33 @@ function unquoteIdentifier(name: string): string {
   return value;
 }
 
+export function stripLeadingComments(sql: string): string {
+  let index = 0;
+  const length = sql.length;
+
+  while (index < length) {
+    while (index < length && /\s/.test(sql[index] ?? "")) {
+      index += 1;
+    }
+    if (sql[index] === "-" && sql[index + 1] === "-") {
+      const newline = sql.indexOf("\n", index + 2);
+      index = newline === -1 ? length : newline + 1;
+      continue;
+    }
+    if (sql[index] === "/" && sql[index + 1] === "*") {
+      const close = sql.indexOf("*/", index + 2);
+      index = close === -1 ? length : close + 2;
+      continue;
+    }
+    break;
+  }
+
+  return sql.slice(index);
+}
+
 export function parseUseStatement(sql: string): string | null {
-  const match = /^USE\s+(.+)$/i.exec(sql.trim().replace(/;+\s*$/, ""));
+  const cleaned = stripLeadingComments(sql).trim().replace(/;+\s*$/, "");
+  const match = /^USE\s+(.+)$/i.exec(cleaned);
   if (match === null) return null;
   const name = unquoteIdentifier(match[1] ?? "");
   return name.length > 0 ? name : null;
@@ -154,7 +179,7 @@ function parseDatabaseTarget(
   sql: string,
   regex: RegExp,
 ): DatabaseTarget | null {
-  const match = regex.exec(sql.trim());
+  const match = regex.exec(stripLeadingComments(sql).trim());
   if (match === null) return null;
   const name = unquoteIdentifier(match[2] ?? "");
   if (name.length === 0) return null;

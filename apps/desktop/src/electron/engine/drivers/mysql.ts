@@ -506,7 +506,16 @@ class MysqlFamilyDriver implements EngineDriver {
         this.connectionOptions("root", this.rootPassword, tempDb),
       );
       if (setupSql.trim().length > 0) {
-        await tempConn.query(setupSql);
+        const setupResults = await this.executeOnConnection(
+          tempConn,
+          setupSql,
+          { maxRows: Number.MAX_SAFE_INTEGER },
+          false,
+        );
+        const setupError = setupResults.find((item) => item.error !== undefined);
+        if (setupError?.error) {
+          return [emptyResult(0, started, setupError.error)];
+        }
       }
       return await this.executeOnConnection(tempConn, sql, {
         maxRows: Number.MAX_SAFE_INTEGER,

@@ -1,10 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
 import {
   parseCreateDatabase,
   parseDropDatabase,
   parseUseStatement,
+  stripLeadingComments,
 } from "../../../shared/sql";
 import type {
   SqlResult,
@@ -37,7 +38,7 @@ function safetyError(sql: string): string | null {
 }
 
 function returnsRows(sql: string): boolean {
-  const trimmed = sql.trim().toUpperCase();
+  const trimmed = stripLeadingComments(sql).trim().toUpperCase();
   return (
     trimmed.startsWith("SELECT") ||
     trimmed.startsWith("WITH") ||
@@ -89,6 +90,7 @@ class SqliteEngine {
     setupSql: string | undefined,
     name: string,
     reset: boolean,
+    filePath?: string,
   ): void {
     const key = name.toLowerCase();
     if (this.databases.has(key) && !reset) {
@@ -96,6 +98,25 @@ class SqliteEngine {
       return;
     }
     this.close(key);
+    if (filePath !== undefined && key === PRACTICE_DATABASE) {
+      if (reset) {
+        try {
+          rmSync(filePath, { force: true });
+          rmSync(`${filePath}-wal`, { force: true });
+          rmSync(`${filePath}-shm`, { force: true });
+        } catch {}
+      }
+      this.open(filePath, key);
+      const practiceDb = this.databases.get(key);
+      if (
+        practiceDb !== undefined &&
+        setupSql !== undefined &&
+        setupSql.trim().length > 0
+      ) {
+        practiceDb.exec(setupSql);
+      }
+      return;
+    }
     const database = new DatabaseSync(":memory:");
     database.exec("PRAGMA foreign_keys = ON;");
     if (setupSql !== undefined && setupSql.trim().length > 0) {
@@ -174,9 +195,10 @@ class SqliteEngine {
       const index = statementIndex;
       statementIndex += 1;
 
-      const firstLineEnd = statement.indexOf("\n");
+      const stripped = stripLeadingComments(statement);
+      const firstLineEnd = stripped.indexOf("\n");
       const firstLine = (
-        firstLineEnd === -1 ? statement : statement.slice(0, firstLineEnd)
+        firstLineEnd === -1 ? stripped : stripped.slice(0, firstLineEnd)
       )
         .trim()
         .replace(/;+\s*$/, "");
@@ -191,7 +213,7 @@ class SqliteEngine {
           );
         }
         const remainder =
-          firstLineEnd === -1 ? "" : statement.slice(firstLineEnd + 1).trim();
+          firstLineEnd === -1 ? "" : stripped.slice(firstLineEnd + 1).trim();
         if (remainder.length > 0) run(remainder);
         return;
       }
@@ -397,7 +419,7 @@ export class SqliteDriver implements EngineDriver {
       this.ensureOpen();
       return;
     }
-    sqliteEngine.initialize(setupSql, name, reset);
+    sqliteEngine.initialize(setupSql, name, reset, this.filePath);
   }
 
   public async cancel(): Promise<void> {

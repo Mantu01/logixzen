@@ -52,7 +52,7 @@ export function PageShell({
       router.back();
       return;
     }
-    router.push("/");
+    router.push("/playground");
   };
 
   return (
@@ -74,7 +74,7 @@ export function PageShell({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {backHref ? `Back to ${backHref === "/" ? "Home" : backHref}` : "Go back"}
+                {backHref ? `Back to ${backHref}` : "Go back"}
               </TooltipContent>
             </Tooltip>
           ) : null}

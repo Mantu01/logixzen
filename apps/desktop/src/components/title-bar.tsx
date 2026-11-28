@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { Settings2 } from "lucide-react";
 import { useDesktopBridge } from "@/hooks/use-desktop-bridge";
+import { getSubjectDefaultHref } from "@/lib/navigation";
+import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import {
   Tooltip,
   TooltipContent,
@@ -52,6 +55,8 @@ function CloseIcon() {
 
 export function TitleBar() {
   const connected = useDesktopBridge();
+  const activeSubjectId = useWorkspaceStore((state) => state.activeSubjectId);
+  const homeHref = getSubjectDefaultHref(activeSubjectId);
 
   const toggleMaximize = (): void => {
     if (connected) window.logixzen?.window.maximize();
@@ -64,9 +69,9 @@ export function TitleBar() {
     >
       <div className="flex min-w-0 items-center gap-2 pl-3">
         <Link
-          href="/"
+          href={homeHref}
           className="app-no-drag flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-          aria-label="LogixZen home"
+          aria-label="LogixZen workspace"
         >
           <span className="flex size-5 items-center justify-center bg-primary text-primary-foreground">
             <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
@@ -87,21 +92,19 @@ export function TitleBar() {
       </div>
 
       <div className="app-no-drag flex h-full items-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="mr-2 hidden items-center gap-1.5 text-[10.5px] text-muted-dim md:flex">
-              <span
-                className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
-              />
-              {connected ? "Desktop" : "Browser preview"}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            {connected
-              ? "Connected to Electron desktop runtime"
-              : "Browser preview mode — native database installers require the desktop app"}
-          </TooltipContent>
-        </Tooltip>
+        <div className="mr-2 hidden items-center gap-1.5 text-[10.5px] text-muted-dim md:flex">
+          <span
+            className={`size-1.5 ${connected ? "bg-success" : "bg-warning"}`}
+          />
+          {connected ? "Desktop" : "Browser"}
+        </div>
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          className="flex h-full w-9 items-center justify-center text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+        >
+          <Settings2 className="size-3.5" />
+        </Link>
         {connected ? (
           <>
             <TitleButton
@@ -116,19 +119,14 @@ export function TitleBar() {
             >
               <MaximizeIcon />
             </TitleButton>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Close window"
-                  onClick={() => window.logixzen?.window.close()}
-                  className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  <CloseIcon />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Close window</TooltipContent>
-            </Tooltip>
+            <button
+              type="button"
+              aria-label="Close window"
+              onClick={() => window.logixzen?.window.close()}
+              className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <CloseIcon />
+            </button>
           </>
         ) : (
           <div className="h-full w-2" />

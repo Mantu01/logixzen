@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Check, ChevronLeft, Plus, Search, Trash2 } from "lucide-react";
 import { PageShell } from "@/components/app-shell/page-shell";
+import { WorkspaceSwitcher } from "@/components/learn/WorkspaceSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,12 +19,20 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
+import { useSqlStore } from "@/sql/useSqlStore";
+import { dialectLabel } from "@/shared/dialect-sql";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_WORKSPACE_ID,
@@ -32,16 +41,21 @@ import {
   workspaceCategories,
   type QuestionCategory,
 } from "@/lib/categories";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { Question, Topic } from "@logixzen/shared/content";
 
 type ListSource =
   | { kind: "topic"; id: string }
   | { kind: "category"; id: string };
+
+const TYPE_LABELS: Record<Question["type"], string> = {
+  query: "SQL",
+  "debug-query": "DEBUG",
+  "dml-check": "DML",
+  "predict-output": "OUTPUT",
+  "mcq-single": "MCQ",
+  "mcq-multi": "MULTI",
+  "fill-blank": "BLANK",
+};
 
 export function QuestionListContent({
   source,
@@ -62,6 +76,7 @@ export function QuestionListContent({
   const hydrated = usePackStore((state) => state.hydrated);
   const addQuestion = usePackStore((state) => state.addQuestion);
   const removeQuestion = usePackStore((state) => state.removeQuestion);
+  const activeDialect = useSqlStore((state) => state.activeDialect);
 
   const questions = useMemo(
     () =>
@@ -81,6 +96,7 @@ export function QuestionListContent({
   const [difficulty, setDifficulty] = useState<
     "all" | "easy" | "medium" | "hard"
   >("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "unsolved">("all");
 
   const sourceQuestions = useMemo(
     () =>
@@ -90,10 +106,20 @@ export function QuestionListContent({
     [questions, source, assignments],
   );
 
+  const difficultyCounts = useMemo(() => {
+    const counts = { all: sourceQuestions.length, easy: 0, medium: 0, hard: 0 };
+    for (const q of sourceQuestions) {
+      counts[q.difficulty] += 1;
+    }
+    return counts;
+  }, [sourceQuestions]);
+
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return sourceQuestions.filter((question) => {
       if (difficulty !== "all" && question.difficulty !== difficulty)
+        return false;
+      if (statusFilter === "unsolved" && solved.has(question.id))
         return false;
       if (term === "") return true;
       return (
@@ -102,11 +128,15 @@ export function QuestionListContent({
         question.tags.some((tag) => tag.toLowerCase().includes(term))
       );
     });
-  }, [sourceQuestions, search, difficulty]);
+  }, [sourceQuestions, search, difficulty, statusFilter, solved]);
 
   const solvedCount = sourceQuestions.filter((question) =>
     solved.has(question.id),
   ).length;
+  const pct =
+    sourceQuestions.length === 0
+      ? 0
+      : Math.round((solvedCount / sourceQuestions.length) * 100);
 
   const title =
     source.kind === "topic"
@@ -117,12 +147,15 @@ export function QuestionListContent({
     <PageShell
       title={title}
       subtitle={
-        hydrated ? `${solvedCount}/${sourceQuestions.length} solved` : undefined
+        hydrated
+          ? `${solvedCount}/${sourceQuestions.length} solved (${pct}%) · ${dialectLabel(activeDialect)}`
+          : undefined
       }
       backHref="/learn"
       breadcrumbs={[{ label: "Practice", href: "/learn" }, { label: title }]}
       actions={
         <div className="flex items-center gap-2">
+          <WorkspaceSwitcher />
           <NewQuestionDialog
             source={source}
             databases={databases}
@@ -135,48 +168,56 @@ export function QuestionListContent({
               )
             }
           />
-          <Link
-            href="/learn"
-            className="flex items-center gap-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
-          >
-            <ChevronLeft className="size-3.5" />{" "}
-            {source.kind === "topic" ? "All topics" : "All categories"}
-          </Link>
+          <Button asChild variant="outline" size="sm" className="h-7 border-border text-[11px]">
+            <Link href="/learn">
+              <ChevronLeft data-icon="inline-start" />
+              {source.kind === "topic" ? "All topics" : "All categories"}
+            </Link>
+          </Button>
         </div>
       }
     >
-      <div className="mx-auto max-w-4xl px-5 py-6">
-        <div className="mb-4 flex items-center gap-1.5 font-mono text-[11px] text-muted-dim">
-          <Link href="/" className="hover:text-foreground">
-            Workspace
-          </Link>
-          <span>/</span>
-          <Link href="/learn" className="hover:text-foreground">
-            {source.kind === "topic" ? "Topics" : "Categories"}
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-foreground">{title}</span>
-        </div>
-
-        <div className="mb-4 flex items-center gap-2">
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-5">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-dim" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search questions"
+              placeholder="Search questions or tags"
+              aria-label="Search questions"
               className="h-8 w-64 pl-8"
             />
           </div>
-          <div className="flex border border-border">
+          <div className="flex border border-border bg-surface">
             {(["all", "easy", "medium", "hard"] as const).map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setDifficulty(value)}
                 className={cn(
-                  "h-8 px-3 text-[11.5px] capitalize transition-colors",
+                  "flex h-8 items-center gap-1.5 px-2.5 text-[11px] capitalize transition-colors",
                   difficulty === value
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
+                )}
+              >
+                <span>{value}</span>
+                <span className="numeric font-mono text-[9.5px] opacity-70">
+                  {difficultyCounts[value]}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="flex border border-border bg-surface">
+            {(["all", "unsolved"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setStatusFilter(value)}
+                className={cn(
+                  "h-8 px-2.5 text-[11px] capitalize transition-colors",
+                  statusFilter === value
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-dim hover:bg-surface-hover hover:text-foreground",
                 )}
@@ -190,40 +231,51 @@ export function QuestionListContent({
         {sourceQuestions.length === 0 && hydrated ? (
           <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
             No questions here yet.{" "}
-            <Link href="/import/resources" className="text-primary hover:underline">
-              Install a resource
+            <Link
+              href="/import/resources"
+              className="text-primary hover:underline"
+            >
+              Browse resources
             </Link>{" "}
             or create a question with New Question above.
           </p>
+        ) : visible.length === 0 && hydrated ? (
+          <p className="border border-border bg-surface px-4 py-10 text-center text-[12.5px] text-muted-dim">
+            No questions match the current filters.
+          </p>
         ) : null}
 
-        <div className="divide-y divide-border border border-border bg-surface">
-          {visible.map((question, index) => (
-            <QuestionRow
-              key={question.id}
-              question={question}
-              index={index}
-              source={source}
-              solved={solved.has(question.id)}
-              categories={categories}
-              currentCategoryId={assignments[question.id] ?? UNCATEGORIZED}
-              onMoveCategory={(categoryId) =>
-                setQuestionCategory(
-                  question.id,
-                  categoryId === UNCATEGORIZED ? null : categoryId,
-                )
-              }
-              onDelete={() => removeQuestion(question.id)}
-            />
-          ))}
-        </div>
+        {visible.length > 0 ? (
+          <div className="divide-y divide-border border border-border bg-surface">
+            {visible.map((question, index) => (
+              <QuestionRow
+                key={question.id}
+                question={question}
+                index={index}
+                source={source}
+                solved={solved.has(question.id)}
+                categories={categories}
+                currentCategoryId={assignments[question.id] ?? UNCATEGORIZED}
+                onMoveCategory={(categoryId) =>
+                  setQuestionCategory(
+                    question.id,
+                    categoryId === UNCATEGORIZED ? null : categoryId,
+                  )
+                }
+                onDelete={() => removeQuestion(question.id)}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </PageShell>
   );
 }
 
 function topicTitle(topics: Topic[], id: string): string {
-  return topics.find((topic) => topic.id === id)?.title ?? id.replace(/[-_]+/g, " ");
+  return (
+    topics.find((topic) => topic.id === id)?.title ?? id.replace(/[-_]+/g, " ")
+  );
 }
 
 function categoryTitle(
@@ -258,28 +310,31 @@ function QuestionRow({
   }topic=${question.topicId}&q=${question.id}`;
 
   return (
-    <div className="group flex h-12 items-center gap-3 px-4 transition-colors hover:bg-surface-hover">
+    <div className="group flex min-h-13 items-center gap-3 px-4 py-2 transition-colors hover:bg-surface-hover">
       <Link
         href={practiceHref}
         className="flex min-w-0 flex-1 items-center gap-3"
       >
         <span
           className={cn(
-            "flex size-5 shrink-0 items-center justify-center border text-[10px]",
+            "numeric flex size-6 shrink-0 items-center justify-center border font-mono text-[10px]",
             solved
               ? "border-success/40 bg-success/10 text-success"
               : "border-border text-muted-dim",
           )}
         >
-          {solved ? <Check className="size-3" /> : index + 1}
+          {solved ? <Check className="size-3.5" /> : index + 1}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-medium">
+          <span className="block truncate text-[13px] font-medium text-foreground">
             {question.title}
           </span>
           <span className="block truncate text-[10.5px] text-muted-dim">
             {question.tags.join(" · ")}
           </span>
+        </span>
+        <span className="hidden shrink-0 border border-border bg-surface-alt px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-muted-dim sm:inline">
+          {TYPE_LABELS[question.type]}
         </span>
         <span
           className={cn(
@@ -291,37 +346,29 @@ function QuestionRow({
         >
           {question.difficulty}
         </span>
-        <span className="numeric w-10 shrink-0 text-right text-[10.5px] text-muted-dim">
+        <span className="numeric w-11 shrink-0 text-right font-mono text-[10.5px] text-muted-dim">
           {question.points} pts
         </span>
       </Link>
       {categories.length > 0 ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <Select
-                value={currentCategoryId}
-                onValueChange={onMoveCategory}
-              >
-                <SelectTrigger
-                  aria-label={`Category for ${question.title}`}
-                  className="h-6 w-28 border-border bg-surface-alt px-1.5 text-[10.5px] opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={UNCATEGORIZED}>Uncategorised</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>Move question to another category</TooltipContent>
-        </Tooltip>
+        <Select value={currentCategoryId} onValueChange={onMoveCategory}>
+          <SelectTrigger
+            aria-label={`Category for ${question.title}`}
+            className="h-6 w-28 border-border bg-surface-alt px-1.5 text-[10.5px] opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value={UNCATEGORIZED}>Uncategorised</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       ) : null}
       <Tooltip>
         <TooltipTrigger asChild>
@@ -394,7 +441,11 @@ function NewQuestionDialog({
         caseSensitiveStrings: false,
       },
       testCases: [
-        { id: `${id}-tc-1`, expected: { type: "fromSolution" }, hidden: false },
+        {
+          id: `${id}-tc-1`,
+          expected: { type: "fromSolution" },
+          hidden: false,
+        },
       ],
     };
 
@@ -408,17 +459,18 @@ function NewQuestionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="size-3.5" /> New question
+        <Button size="sm" className="h-7 text-[11px]">
+          <Plus data-icon="inline-start" />
+          New question
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg p-0">
         <DialogHeader className="border-b border-border bg-surface-alt px-4 py-3">
           <DialogTitle className="text-[13px]">Create Question</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 p-4">
-          <div>
-            <label className="section-label mb-1 block">Title</label>
+        <div className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-1">
+            <label className="section-label">Title</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -427,8 +479,8 @@ function NewQuestionDialog({
             />
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="section-label mb-1 block">Difficulty</label>
+            <div className="flex flex-col gap-1">
+              <label className="section-label">Difficulty</label>
               <Select
                 value={difficulty}
                 onValueChange={(v) =>
@@ -439,14 +491,16 @@ function NewQuestionDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="section-label mb-1 block">Points</label>
+            <div className="flex flex-col gap-1">
+              <label className="section-label">Points</label>
               <Input
                 type="number"
                 value={points}
@@ -454,24 +508,26 @@ function NewQuestionDialog({
                 className="h-8"
               />
             </div>
-            <div>
-              <label className="section-label mb-1 block">Database</label>
+            <div className="flex flex-col gap-1">
+              <label className="section-label">Database</label>
               <Select value={datasetId} onValueChange={setDatasetId}>
                 <SelectTrigger size="sm">
                   <SelectValue placeholder="Database" />
                 </SelectTrigger>
                 <SelectContent>
-                  {databases.map((db) => (
-                    <SelectItem key={db.id} value={db.id}>
-                      {db.name}
-                    </SelectItem>
-                  ))}
+                  <SelectGroup>
+                    {databases.map((db) => (
+                      <SelectItem key={db.id} value={db.id}>
+                        {db.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <div>
-            <label className="section-label mb-1 block">Description</label>
+          <div className="flex flex-col gap-1">
+            <label className="section-label">Description</label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -480,20 +536,18 @@ function NewQuestionDialog({
               className="text-[12px]"
             />
           </div>
-          <div>
-            <label className="section-label mb-1 block">
-              Reference Solution SQL
-            </label>
+          <div className="flex flex-col gap-1">
+            <label className="section-label">Reference Solution SQL</label>
             <Textarea
               value={solutionSql}
               onChange={(e) => setSolutionSql(e.target.value)}
-              placeholder="SELECT * FROM students WHERE status = 'active';"
+              placeholder="SELECT * FROM students WHERE status = 'Active';"
               rows={3}
               className="font-mono text-[11.5px]"
             />
           </div>
-          <div>
-            <label className="section-label mb-1 block">Tags (comma-separated)</label>
+          <div className="flex flex-col gap-1">
+            <label className="section-label">Tags (comma-separated)</label>
             <Input
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
@@ -506,7 +560,11 @@ function NewQuestionDialog({
           <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button size="sm" disabled={title.trim().length === 0} onClick={save}>
+          <Button
+            size="sm"
+            disabled={title.trim().length === 0}
+            onClick={save}
+          >
             Save question
           </Button>
         </DialogFooter>

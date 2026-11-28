@@ -127,7 +127,11 @@ class RemotePostgres extends RemoteDriver {
       tempClient = new PgClient(this.options(tempDb));
       await tempClient.connect();
       if (setupSql.trim().length > 0) {
-        await tempClient.query(setupSql);
+        const split = splitScript(setupSql, "postgres");
+        if (split.error !== undefined) throw new Error(split.error);
+        for (const stmt of split.statements) {
+          await tempClient.query(stmt);
+        }
       }
       return await this.executeOnClient(tempClient, sql, {
         maxRows: Number.MAX_SAFE_INTEGER,
@@ -568,7 +572,7 @@ class RemoteTsql extends RemoteDriver {
     options?: SqlOptions,
   ): Promise<SqlResult[]> {
     const { statements, error } = splitScript(sql, "tsql");
-    if (error !== null) throw new Error(error);
+    if (error !== undefined) throw new Error(error);
     const maxRows = options?.maxRows ?? MAX_ROWS;
     const results: SqlResult[] = [];
 

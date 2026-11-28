@@ -33,9 +33,15 @@ export async function installResource(
 
   let dataset: Dataset;
   try {
+    const activeDialect = useSqlStore.getState().activeDialect;
     dataset = await buildDatasetFromSql(
       dbNameFromSql(files[0], "school"),
       files[0],
+      {
+        dialect: activeDialect,
+        sourceDialect: "sqlite",
+        sharedAcrossEngines: true,
+      },
     );
   } catch (error) {
     return failure([{ path: "databases", message: errorMessage(error) }]);

@@ -18,20 +18,18 @@ import {
   type PanelSize,
 } from "react-resizable-panels";
 import {
-  AlignLeft,
+  Download,
+  FileCode2,
   FolderOpen,
   Loader2,
   Plus,
-  Save,
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { SqlResult } from "@/shared/desktop-api";
-import { PageShell } from "@/components/app-shell/page-shell";
 import { SchemaPanel } from "@/components/playground/SchemaPanel";
 import { PlaygroundResultPanel } from "@/components/playground/ResultPanel";
 import {
-  CopySqlButton,
   HistoryDialog,
   RunButton,
   SnippetsDialog,
@@ -51,8 +49,8 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogTitle,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -70,14 +68,14 @@ import {
 import { usePackStore } from "@/stores/usePackStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { useQueryHistoryStore } from "@/stores/useQueryHistoryStore";
-import { useQueryFilesStore } from "@/stores/useQueryFilesStore";
+import { useQueryFilesStore, type QueryFile } from "@/stores/useQueryFilesStore";
 import { useSqlStore } from "@/sql/useSqlStore";
 import { exportToCsv, exportToJson } from "@/lib/exportUtils";
-import { saveTextFile } from "@/lib/save-file";
+import { saveTextFile, saveTextFileAs } from "@/lib/save-file";
 import { useEnsureActiveDataset } from "@/hooks/use-ensure-active-dataset";
 import { useFontZoom } from "@/hooks/use-font-zoom";
 import { cn } from "@/lib/utils";
-import { dialectLabel, formatSql, tableMapFrom } from "@/lib/sql-editor";
+import { dialectLabel, tableMapFrom } from "@/lib/sql-editor";
 import { filterDatasetsForEngine } from "@/lib/dataset-from-sql";
 import { ENGINE_CATALOG } from "@/shared/engine-catalog";
 import { splitBatches, splitSqlStatements } from "@/shared/sql";
@@ -85,6 +83,17 @@ import type { EngineOptionId, InstallationRecord } from "@/shared/engines";
 import { errorMessage, waitForJob } from "@/lib/engine-jobs";
 
 const SCHEMA_COLLAPSED_KEY = "logixzen.schemaPanel.collapsed";
+const RESULTS_OPEN_HEIGHT_KEY = "logixzen.resultsPanel.openPct";
+const DEFAULT_RESULTS_OPEN_PCT = 58;
+
+function readSavedResultsOpenPct(): number {
+  if (typeof window === "undefined") return DEFAULT_RESULTS_OPEN_PCT;
+  const raw = Number(window.localStorage.getItem(RESULTS_OPEN_HEIGHT_KEY));
+  if (!Number.isFinite(raw) || raw < 20 || raw > 80) {
+    return DEFAULT_RESULTS_OPEN_PCT;
+  }
+  return raw;
+}
 
 const SqlCodeEditor = dynamic(
   () =>
@@ -99,7 +108,11 @@ const ErDiagram = dynamic(
 
 function toEngineChoices(
   records: InstallationRecord[],
-): Array<{ id: EngineOptionId; name: string; status: InstallationRecord["status"] }> {
+): Array<{
+  id: EngineOptionId;
+  name: string;
+  status: InstallationRecord["status"];
+}> {
   return records
     .filter((record) => record.status === "ready" || record.status === "stopped")
     .map((record) => ({
@@ -131,7 +144,7 @@ export default function PlaygroundPage(): React.ReactElement {
 
 function Loading(): React.ReactElement {
   return (
-    <div className="flex h-full items-center justify-center text-muted-dim">
+    <div className="flex h-full w-full items-center justify-center text-muted-dim">
       <Loader2 className="size-4 animate-spin" />
     </div>
   );
@@ -141,7 +154,6 @@ function PlaygroundInner(): React.ReactElement {
   const router = useRouter();
   const params = useSearchParams();
   const allDatabases = usePackStore((state) => state.databases);
-  const hydrated = usePackStore((state) => state.hydrated);
   const schema = useSqlStore((state) => state.schema);
   const isLoading = useSqlStore((state) => state.isLoading);
   const activeDatasetId = useSqlStore((state) => state.activeDatasetId);
@@ -171,6 +183,8 @@ function PlaygroundInner(): React.ReactElement {
   const setContent = useQueryFilesStore((state) => state.setContent);
   const newFile = useQueryFilesStore((state) => state.newFile);
   const closeFile = useQueryFilesStore((state) => state.closeFile);
+  const renameFile = useQueryFilesStore((state) => state.renameFile);
+  const markSaved = useQueryFilesStore((state) => state.markSaved);
   const openFileTab = useQueryFilesStore((state) => state.openFile);
 
   const results = useMemo(() => lastResult ?? [], [lastResult]);
@@ -183,18 +197,24 @@ function PlaygroundInner(): React.ReactElement {
   const [executedQueries, setExecutedQueries] = useState<string[]>([]);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [snippetsOpen, setSnippetsOpen] = useState(false);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const schemaPanelRef = usePanelRef();
+  const resultsPanelRef = usePanelRef();
   const [schemaCollapsed, setSchemaCollapsed] = useState(
     () =>
       typeof window !== "undefined" &&
       window.localStorage.getItem(SCHEMA_COLLAPSED_KEY) === "true",
   );
   const collapsedRef = useRef(schemaCollapsed);
+  const [resultsCollapsed, setResultsCollapsed] = useState(
+    () => results.length === 0,
+  );
+  const resultsCollapsedRef = useRef(resultsCollapsed);
+  const [initialResultsOpenPct] = useState(readSavedResultsOpenPct);
+  const savedOpenPctRef = useRef<number>(initialResultsOpenPct);
 
   const activeOptionId = useSqlStore((state) => state.activeOptionId);
-  const activeEngineName = useSqlStore((state) => state.activeEngineName);
-  const connectionStatus = useSqlStore((state) => state.connectionStatus);
   const autoConnect = useSqlStore((state) => state.autoConnect);
   const databases = useMemo(
     () => filterDatasetsForEngine(allDatabases, activeOptionId),
@@ -235,7 +255,9 @@ function PlaygroundInner(): React.ReactElement {
       }
       const finished = await waitForJob(started.data.id);
       if (finished?.state !== "succeeded") {
-        setRunError(finished?.failure?.cause ?? "Engine switch did not complete.");
+        setRunError(
+          finished?.failure?.cause ?? "Engine switch did not complete.",
+        );
         return;
       }
       await autoConnect();
@@ -258,20 +280,51 @@ function PlaygroundInner(): React.ReactElement {
 
   const appliedInitialSql = useRef(false);
   useEffect(() => {
-    if (appliedInitialSql.current || activeFile === null) return;
+    if (appliedInitialSql.current) return;
     const initial = params.get("sql");
-    if (initial !== null && activeFile.content.length === 0) {
+    if (initial === null) return;
+    if (activeFile === null) {
+      appliedInitialSql.current = true;
+      newFile(undefined, initial);
+      return;
+    }
+    if (activeFile.content.length === 0) {
       appliedInitialSql.current = true;
       setContent(activeFile.id, initial);
     }
-  }, [params, activeFile, setContent]);
+  }, [params, activeFile, setContent, newFile]);
 
   useEnsureActiveDataset();
+
+  const expandResultsPanel = useCallback((): void => {
+    const panel = resultsPanelRef.current;
+    const targetPct = savedOpenPctRef.current;
+    if (panel) {
+      if (panel.isCollapsed()) panel.expand();
+      panel.resize(`${targetPct}%`);
+    }
+    resultsCollapsedRef.current = false;
+    setResultsCollapsed(false);
+  }, [resultsPanelRef]);
+
+  const toggleResultsPanel = useCallback((): void => {
+    if (activeFile === null) return;
+    const panel = resultsPanelRef.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) {
+      expandResultsPanel();
+    } else {
+      panel.collapse();
+      resultsCollapsedRef.current = true;
+      setResultsCollapsed(true);
+    }
+  }, [activeFile, resultsPanelRef, expandResultsPanel]);
 
   const runSqlNow = useCallback(
     async (text: string) => {
       clearError();
       setRunError(null);
+      expandResultsPanel();
       setExecutedQueries(extractStatementPreviews(text));
       await execute(text);
       const state = useSqlStore.getState();
@@ -283,10 +336,11 @@ function PlaygroundInner(): React.ReactElement {
       setRunError(failure);
       addToHistory(text, failure === null);
     },
-    [execute, clearError, addToHistory],
+    [execute, clearError, addToHistory, expandResultsPanel],
   );
 
   const run = useCallback(async () => {
+    if (activeFile === null) return;
     const text = sql.trim();
     if (text.length === 0) return;
     if (/\bDROP\s+(DATABASE|TABLE)\b|\bTRUNCATE\s+(TABLE\s+)?\w/i.test(text)) {
@@ -294,7 +348,7 @@ function PlaygroundInner(): React.ReactElement {
       return;
     }
     await runSqlNow(text);
-  }, [sql, runSqlNow]);
+  }, [activeFile, sql, runSqlNow]);
 
   const current = useMemo(
     () => results[resultIndex] ?? null,
@@ -317,16 +371,20 @@ function PlaygroundInner(): React.ReactElement {
     [current],
   );
 
-  const saveSqlFile = useCallback(async () => {
+  const exportSqlFile = useCallback(async () => {
     if (!activeFile || activeFile.content.trim().length === 0) return;
-    const saved = await saveTextFile(activeFile.name, activeFile.content, [
-      { name: "SQL", extensions: ["sql"] },
-    ]);
-    if (saved) {
-      setSavedNotice(activeFile.name);
+    const savedPath = await saveTextFileAs(
+      activeFile.filePath ?? activeFile.name,
+      activeFile.content,
+      [{ name: "SQL", extensions: ["sql"] }],
+    );
+    if (savedPath !== null) {
+      const savedName = savedPath.split(/[\\/]/).pop() ?? activeFile.name;
+      markSaved(activeFile.id, savedPath, savedName);
+      setSavedNotice(savedName);
       window.setTimeout(() => setSavedNotice(null), 1600);
     }
-  }, [activeFile]);
+  }, [activeFile, markSaved]);
 
   const openSqlFile = useCallback(async () => {
     const path = await window.logixzen?.dialog.openFile({
@@ -338,23 +396,19 @@ function PlaygroundInner(): React.ReactElement {
       const content = await window.logixzen?.files.readText(path);
       if (typeof content !== "string") return;
       const name = path.split(/[\\/]/).pop() ?? "query.sql";
-      openFileTab(name, content);
+      openFileTab(name, content, path);
     } catch (error) {
       setRunError(error instanceof Error ? error.message : String(error));
     }
   }, [openFileTab]);
 
   const toggleSchemaPanel = useCallback((): void => {
+    if (activeFile === null) return;
     const panel = schemaPanelRef.current;
     if (!panel) return;
     if (panel.isCollapsed()) panel.expand();
     else panel.collapse();
-  }, [schemaPanelRef]);
-
-  const handleFormatSql = useCallback((): void => {
-    if (!activeFile || activeFile.content.trim().length === 0) return;
-    setContent(activeFile.id, formatSql(activeFile.content));
-  }, [activeFile, setContent]);
+  }, [activeFile, schemaPanelRef]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
@@ -372,23 +426,14 @@ function PlaygroundInner(): React.ReactElement {
       const mod = event.ctrlKey || event.metaKey;
       if (!mod || event.altKey) return;
       const key = event.key.toLowerCase();
-      if (event.shiftKey && key === "c") {
-        if (sql.trim().length > 0) {
-          event.preventDefault();
-          void navigator.clipboard.writeText(sql);
-          setSavedNotice("copied");
-          window.setTimeout(() => setSavedNotice(null), 1200);
-        }
-        return;
-      }
-      if (event.shiftKey && key === "f") {
+      if (event.shiftKey && key === "s") {
         event.preventDefault();
-        handleFormatSql();
+        setSnippetsOpen((prev) => !prev);
         return;
       }
       if (key === "s") {
         event.preventDefault();
-        void saveSqlFile();
+        void exportSqlFile();
       } else if (key === "n") {
         event.preventDefault();
         newFile();
@@ -401,6 +446,9 @@ function PlaygroundInner(): React.ReactElement {
       } else if (key === "h") {
         event.preventDefault();
         setHistoryOpen((prev) => !prev);
+      } else if (key === "j" && !event.shiftKey) {
+        event.preventDefault();
+        toggleResultsPanel();
       } else if (key === "b" && !event.shiftKey) {
         event.preventDefault();
         toggleSchemaPanel();
@@ -414,52 +462,71 @@ function PlaygroundInner(): React.ReactElement {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [
-    saveSqlFile,
+    exportSqlFile,
     newFile,
     closeFile,
     activeFile,
     openSqlFile,
     run,
-    sql,
-    handleFormatSql,
     toggleSchemaPanel,
+    toggleResultsPanel,
     schema.length,
   ]);
 
-  return (
-    <PageShell
-      title="Editor"
-      subtitle={
-        activeDataset
-          ? `${activeDataset.name} · ${dialectLabel(activeDialect)} · ${schema.length} tables`
-          : hydrated
-            ? `${dialectLabel(activeDialect)} · No database selected`
-            : undefined
+  const pickHistoryOrSnippet = useCallback(
+    (picked: string) => {
+      if (activeFile) {
+        setContent(activeFile.id, picked);
+      } else {
+        newFile(undefined, picked);
       }
-      actions={
-        <>
+    },
+    [activeFile, setContent, newFile],
+  );
+
+  return (
+    <div className="flex h-full min-h-0 w-full flex-col bg-background">
+      <header className="grid h-10 shrink-0 grid-cols-[minmax(0,7fr)_minmax(max-content,3fr)] border-b border-border bg-surface">
+        <EditorTabStrip
+          files={files}
+          activeId={activeFile?.id ?? null}
+          savedNotice={savedNotice}
+          onSelect={setActive}
+          onClose={closeFile}
+          onRename={renameFile}
+        />
+
+        <div className="flex min-w-0 items-center gap-1 border-l border-border bg-surface px-2">
+          <RunButton
+            onClick={() => void run()}
+            isLoading={isLoading}
+            disabled={activeFile === null || sql.trim().length === 0}
+          />
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex h-7 items-center gap-1.5 border border-border bg-surface-alt px-2 text-[10.5px]">
-                <span
-                  className={cn(
-                    "size-1.5",
-                    connectionStatus === "ready"
-                      ? "bg-success"
-                      : connectionStatus === "connecting"
-                        ? "bg-primary animate-pulse"
-                        : "bg-destructive",
-                  )}
-                />
-                <span className="font-mono font-semibold uppercase text-foreground">
-                  {dialectLabel(activeDialect)}
-                </span>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => newFile()}
+                aria-label="New query file"
+                className="h-7 shrink-0 border-border px-2 text-[11px] font-medium"
+              >
+                <Plus data-icon="inline-start" />
+                New
+              </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Active engine: {activeEngineName} ({dialectLabel(activeDialect)} dialect)
+            <TooltipContent>
+              New query file
+              <kbd className="ml-1.5 border border-background/25 px-1 py-px font-mono text-[9px] text-background/85">
+                Ctrl+N
+              </kbd>
             </TooltipContent>
           </Tooltip>
+
+          <span className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
+
           {readyEngines.length > 0 ? (
             <Select
               value={activeOptionId ?? ""}
@@ -470,7 +537,7 @@ function PlaygroundInner(): React.ReactElement {
             >
               <SelectTrigger
                 size="sm"
-                className="w-36 border-border text-[11px]"
+                className="h-7 w-[88px] min-w-0 border-border px-1.5 text-[11px]"
                 aria-label="Active engine"
               >
                 <SelectValue placeholder="Engine" />
@@ -486,13 +553,13 @@ function PlaygroundInner(): React.ReactElement {
                       <span className="flex items-center gap-1.5">
                         <span
                           className={cn(
-                            "size-1.5",
+                            "size-1.5 shrink-0",
                             eng.status === "ready"
                               ? "bg-success"
                               : "bg-warning",
                           )}
                         />
-                        <span>{eng.name}</span>
+                        <span className="truncate">{eng.name}</span>
                         {eng.status === "stopped" ? (
                           <span className="text-[9.5px] text-muted-dim">
                             (stopped)
@@ -509,11 +576,12 @@ function PlaygroundInner(): React.ReactElement {
               asChild
               variant="outline"
               size="sm"
-              className="h-7 text-[11px] text-destructive border-destructive/40"
+              className="h-7 shrink-0 border-destructive/40 px-2 text-[11px] text-destructive"
             >
               <Link href="/setup">Install Engine</Link>
             </Button>
           )}
+
           <Select
             value={activeDatasetId ?? ""}
             onValueChange={(value) => {
@@ -526,10 +594,10 @@ function PlaygroundInner(): React.ReactElement {
           >
             <SelectTrigger
               size="sm"
-              className="w-52"
+              className="h-7 min-w-[82px] flex-1 max-w-[136px] border-border px-1.5 text-[11px]"
               aria-label="Active learning database"
             >
-              <SelectValue placeholder="Select database" />
+              <SelectValue placeholder="Database" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -552,149 +620,191 @@ function PlaygroundInner(): React.ReactElement {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <ToolIconButton
-            label="ER diagram"
-            shortcut="Ctrl+D"
-            disabled={schema.length === 0}
-            onClick={() => setDiagramOpen(true)}
-          >
-            <DiagramIcon />
-          </ToolIconButton>
-          <HistoryDialog
-            open={historyOpen}
-            onOpenChange={setHistoryOpen}
-            onPick={(picked) => {
-              if (activeFile) setContent(activeFile.id, picked);
-            }}
-          />
-          <SnippetsDialog
-            sql={sql}
-            onPick={(picked) => {
-              if (activeFile) setContent(activeFile.id, picked);
-            }}
-          />
-          <ToolIconButton
-            label="Format SQL"
-            shortcut="Ctrl+Shift+F"
-            disabled={sql.trim().length === 0}
-            onClick={handleFormatSql}
-          >
-            <AlignLeft className="size-3.5" />
-          </ToolIconButton>
-          <CopySqlButton sql={sql} />
-          <RunButton onClick={() => void run()} isLoading={isLoading} />
-        </>
-      }
-      bodyClassName="overflow-hidden"
-    >
-      <div className="flex h-full min-h-0">
-        <Group
-          id="playground-horizontal"
-          defaultLayout={{ editor: 72, schema: 28 }}
-        >
-          <Panel id="editor" defaultSize="72%" minSize="40%">
-            <Group
-              id="playground-vertical"
-              orientation="vertical"
-              defaultLayout={{ query: 45, results: 55 }}
+
+          <div className="ml-auto flex shrink-0 items-center gap-0.5">
+            <ToolIconButton
+              label="ER diagram"
+              shortcut="Ctrl+D"
+              disabled={schema.length === 0}
+              onClick={() => setDiagramOpen(true)}
             >
-              <Panel id="query" defaultSize="45%" minSize="15%">
-                <div className="flex h-full min-h-0 flex-col bg-editor">
-                  <QueryTabBar
-                    files={files}
-                    activeId={activeFile?.id ?? null}
-                    savedNotice={savedNotice}
-                    onSelect={setActive}
-                    onClose={closeFile}
-                    onNew={() => newFile()}
-                    onSave={() => void saveSqlFile()}
-                    onOpen={() => void openSqlFile()}
-                  />
-                  <div
-                    ref={editorZoomRef}
-                    className="min-h-0 flex-1 overflow-hidden"
-                  >
-                    <SqlCodeEditor
-                      value={sql}
-                      onChange={(value) => {
-                        if (activeFile) setContent(activeFile.id, value);
-                      }}
-                      onRun={() => void run()}
-                      dialect={activeDialect}
-                      fontSize={editorFontSize}
-                      tables={tableMap}
-                      placeholder="Type a SQL statement…"
-                      minHeight="100%"
-                    />
-                  </div>
-                </div>
-              </Panel>
-              <Separator className="h-px bg-border transition-colors hover:bg-primary/60" />
-              <Panel id="results" defaultSize="55%" minSize="15%">
-                <div ref={resultZoomRef} className="h-full min-h-0 bg-surface">
-                  {results.length > 1 ? (
-                    <ResultTabs
-                      results={results}
-                      queries={executedQueries}
-                      index={resultIndex}
-                      onSelect={setResultIndex}
-                    />
-                  ) : null}
-                  <PlaygroundResultPanel
-                    key={`${resultVersion}:${resultIndex}`}
-                    result={current}
-                    error={
-                      current?.error ??
-                      (results.length === 0 ? (runError ?? undefined) : undefined)
+              <DiagramIcon />
+            </ToolIconButton>
+
+            <HistoryDialog
+              open={historyOpen}
+              onOpenChange={setHistoryOpen}
+              onPick={pickHistoryOrSnippet}
+            />
+
+            <SnippetsDialog
+              sql={sql}
+              open={snippetsOpen}
+              onOpenChange={setSnippetsOpen}
+              onPick={pickHistoryOrSnippet}
+            />
+
+            <ToolIconButton
+              label="Open .sql file"
+              shortcut="Ctrl+O"
+              onClick={() => void openSqlFile()}
+            >
+              <FolderOpen className="size-3.5" />
+            </ToolIconButton>
+
+            <ToolIconButton
+              label="Export .sql file"
+              shortcut="Ctrl+S"
+              disabled={activeFile === null || sql.trim().length === 0}
+              onClick={() => void exportSqlFile()}
+            >
+              <Download className="size-3.5" />
+            </ToolIconButton>
+          </div>
+        </div>
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {activeFile === null ? (
+          <EmptyEditorState
+            onNew={() => newFile()}
+            onOpen={() => void openSqlFile()}
+          />
+        ) : (
+          <div className="flex h-full min-h-0">
+            <Group
+              id="playground-horizontal"
+              defaultLayout={{ editor: 72, schema: 28 }}
+            >
+              <Panel id="editor" defaultSize="72%" minSize="40%">
+                <Group id="playground-vertical" orientation="vertical">
+                  <Panel id="query" minSize="20%">
+                    <div
+                      ref={editorZoomRef}
+                      className="h-full min-h-0 overflow-hidden bg-editor"
+                    >
+                      <SqlCodeEditor
+                        value={sql}
+                        onChange={(value) => setContent(activeFile.id, value)}
+                        onRun={() => void run()}
+                        dialect={activeDialect}
+                        fontSize={editorFontSize}
+                        tables={tableMap}
+                        placeholder={`Type a ${dialectLabel(activeDialect)} statement…`}
+                        minHeight="100%"
+                      />
+                    </div>
+                  </Panel>
+                  <Separator className="h-px bg-border transition-colors hover:bg-primary/60" />
+                  <Panel
+                    id="results"
+                    panelRef={resultsPanelRef}
+                    defaultSize={
+                      resultsCollapsed ? 32 : `${initialResultsOpenPct}%`
                     }
-                    isLoading={isLoading}
-                    fontSize={resultFontSize}
-                    onExportCsv={() => void download("csv")}
-                    onExportJson={() => void download("json")}
-                    onCopy={() => {
-                      if (current)
-                        void navigator.clipboard.writeText(
-                          exportToCsv(current),
-                        );
+                    minSize={130}
+                    maxSize="80%"
+                    collapsible
+                    collapsedSize={32}
+                    onResize={(size: PanelSize) => {
+                      const collapsed =
+                        resultsPanelRef.current?.isCollapsed() ??
+                        size.inPixels <= 40;
+                      if (
+                        !collapsed &&
+                        size.inPixels > 60 &&
+                        size.asPercentage >= 20
+                      ) {
+                        const rounded =
+                          Math.round(size.asPercentage * 10) / 10;
+                        savedOpenPctRef.current = rounded;
+                        if (typeof window !== "undefined") {
+                          window.localStorage.setItem(
+                            RESULTS_OPEN_HEIGHT_KEY,
+                            String(rounded),
+                          );
+                        }
+                      }
+                      if (collapsed !== resultsCollapsedRef.current) {
+                        resultsCollapsedRef.current = collapsed;
+                        setResultsCollapsed(collapsed);
+                      }
                     }}
-                  />
-                </div>
+                  >
+                    <div
+                      ref={resultZoomRef}
+                      className="flex h-full min-h-0 flex-col bg-surface"
+                    >
+                      {results.length > 1 && !resultsCollapsed ? (
+                        <ResultTabs
+                          results={results}
+                          queries={executedQueries}
+                          index={resultIndex}
+                          onSelect={setResultIndex}
+                        />
+                      ) : null}
+                      <PlaygroundResultPanel
+                        key={`${resultVersion}:${resultIndex}`}
+                        result={current}
+                        error={
+                          current?.error ??
+                          (results.length === 0
+                            ? (runError ?? undefined)
+                            : undefined)
+                        }
+                        isLoading={isLoading}
+                        fontSize={resultFontSize}
+                        collapsed={resultsCollapsed}
+                        onToggleCollapse={toggleResultsPanel}
+                        onExportCsv={() => void download("csv")}
+                        onExportJson={() => void download("json")}
+                        onCopy={() => {
+                          if (current) {
+                            void navigator.clipboard.writeText(
+                              exportToCsv(current),
+                            );
+                          }
+                        }}
+                      />
+                    </div>
+                  </Panel>
+                </Group>
+              </Panel>
+              <Separator className="w-px bg-border transition-colors hover:bg-primary/60" />
+              <Panel
+                id="schema"
+                defaultSize={schemaCollapsed ? "4%" : "28%"}
+                minSize="14%"
+                collapsible
+                collapsedSize="4%"
+                panelRef={schemaPanelRef}
+                onResize={(size: PanelSize) => {
+                  const collapsed =
+                    schemaPanelRef.current?.isCollapsed() ??
+                    size.asPercentage <= 4.5;
+                  if (collapsed !== collapsedRef.current) {
+                    collapsedRef.current = collapsed;
+                    setSchemaCollapsed(collapsed);
+                    if (typeof window !== "undefined") {
+                      window.localStorage.setItem(
+                        SCHEMA_COLLAPSED_KEY,
+                        String(collapsed),
+                      );
+                    }
+                  }
+                }}
+              >
+                <SchemaPanel
+                  tables={schema}
+                  activeTable={activeTable}
+                  onSelectTable={setActiveTable}
+                  collapsed={schemaCollapsed}
+                  onToggleCollapsed={toggleSchemaPanel}
+                />
               </Panel>
             </Group>
-          </Panel>
-          <Separator className="w-px bg-border transition-colors hover:bg-primary/60" />
-          <Panel
-            id="schema"
-            defaultSize={schemaCollapsed ? "4%" : "28%"}
-            minSize="14%"
-            collapsible
-            collapsedSize="4%"
-            panelRef={schemaPanelRef}
-            onResize={(size: PanelSize) => {
-              const collapsed =
-                schemaPanelRef.current?.isCollapsed() ??
-                size.asPercentage <= 4.5;
-              if (collapsed !== collapsedRef.current) {
-                collapsedRef.current = collapsed;
-                setSchemaCollapsed(collapsed);
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    SCHEMA_COLLAPSED_KEY,
-                    String(collapsed),
-                  );
-                }
-              }
-            }}
-          >
-            <SchemaPanel
-              tables={schema}
-              activeTable={activeTable}
-              onSelectTable={setActiveTable}
-              collapsed={schemaCollapsed}
-              onToggleCollapsed={toggleSchemaPanel}
-            />
-          </Panel>
-        </Group>
+          </div>
+        )}
       </div>
 
       <AlertDialog
@@ -757,7 +867,212 @@ function PlaygroundInner(): React.ReactElement {
           </div>
         </DialogContent>
       </Dialog>
-    </PageShell>
+    </div>
+  );
+}
+
+function EmptyEditorState({
+  onNew,
+  onOpen,
+}: {
+  onNew: () => void;
+  onOpen: () => void;
+}): React.ReactElement {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-editor p-6">
+      <div className="flex max-w-sm flex-col items-center gap-4 border border-border bg-surface px-8 py-8 text-center">
+        <span className="flex size-10 items-center justify-center border border-border bg-surface-alt text-muted-dim">
+          <FileCode2 className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-[14px] font-semibold text-foreground">
+            No open SQL file
+          </h2>
+          <p className="text-[12px] leading-relaxed text-muted-dim">
+            Create a new query tab or open an existing .sql script from disk to
+            browse schema and execute queries.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={onNew} className="h-8 px-3 text-[12px]">
+            <Plus data-icon="inline-start" />
+            New file
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onOpen}
+            className="h-8 border-border px-3 text-[12px]"
+          >
+            <FolderOpen data-icon="inline-start" />
+            Open .sql
+          </Button>
+        </div>
+        <div className="flex items-center gap-3 pt-1 font-mono text-[10px] text-muted-dim">
+          <span>Ctrl+N new</span>
+          <span>Ctrl+O open</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditorTabStrip({
+  files,
+  activeId,
+  savedNotice,
+  onSelect,
+  onClose,
+  onRename,
+}: {
+  files: QueryFile[];
+  activeId: string | null;
+  savedNotice: string | null;
+  onSelect: (id: string) => void;
+  onClose: (id: string) => void;
+  onRename: (id: string, name: string) => void;
+}): React.ReactElement {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const commitRename = (id: string): void => {
+    const trimmed = draft.trim();
+    if (trimmed.length > 0) {
+      onRename(id, trimmed);
+    }
+    setEditingId(null);
+  };
+
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>): void => {
+    if (!scrollRef.current || Math.abs(event.deltaY) === 0) return;
+    scrollRef.current.scrollLeft += event.deltaY;
+  };
+
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-2 bg-surface-alt/55 px-2">
+      {files.length === 0 ? (
+        <span className="px-1 text-[11.5px] text-muted-dim">
+          No open SQL files
+        </span>
+      ) : (
+        <div
+          ref={scrollRef}
+          onWheel={handleWheel}
+          className="scrollbar-thin flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-1"
+        >
+          {files.map((file) => {
+            const active = file.id === activeId;
+            const isEditing = editingId === file.id;
+            const isDirty =
+              file.savedContent !== undefined
+                ? file.content !== file.savedContent
+                : file.content.length > 0;
+            return (
+              <div
+                key={file.id}
+                className={cn(
+                  "group relative flex h-7 min-w-[116px] max-w-[196px] shrink-0 items-center border transition-colors",
+                  active
+                    ? "border-border bg-surface text-foreground shadow-[inset_0_2px_0_0_var(--primary)]"
+                    : "border-transparent bg-transparent text-muted-dim hover:border-border/70 hover:bg-surface/60 hover:text-foreground",
+                )}
+              >
+                {isEditing ? (
+                  <div className="flex flex-1 items-center gap-1.5 px-2">
+                    <FileCode2
+                      className={cn(
+                        "size-3.5 shrink-0",
+                        active ? "text-primary" : "text-muted-dim",
+                      )}
+                    />
+                    <input
+                      autoFocus
+                      value={draft}
+                      aria-label="Rename query file"
+                      onChange={(event) => setDraft(event.target.value)}
+                      onBlur={() => commitRename(file.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          commitRename(file.id);
+                        } else if (event.key === "Escape") {
+                          event.preventDefault();
+                          setEditingId(null);
+                        }
+                      }}
+                      className="h-5 w-28 min-w-0 flex-1 border border-primary bg-background px-1 font-sans text-[11.5px] text-foreground outline-none"
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(file.id)}
+                    onDoubleClick={() => {
+                      setEditingId(file.id);
+                      setDraft(file.name);
+                    }}
+                    className="flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5 pr-1 text-left"
+                  >
+                    <FileCode2
+                      className={cn(
+                        "size-3.5 shrink-0 transition-colors",
+                        active
+                          ? "text-primary"
+                          : "text-muted-dim group-hover:text-foreground/80",
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "truncate text-[11.5px]",
+                        active ? "font-medium text-foreground" : "font-normal",
+                      )}
+                    >
+                      {file.name}
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  aria-label={`Close ${file.name}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onClose(file.id);
+                  }}
+                  className="mr-1 flex size-5 shrink-0 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
+                >
+                  {isDirty ? (
+                    <>
+                      <span
+                        className="size-1.5 bg-warning group-hover:hidden"
+                        aria-label="Unsaved changes"
+                      />
+                      <X className="hidden size-3 group-hover:block" />
+                    </>
+                  ) : (
+                    <X
+                      className={cn(
+                        "size-3 transition-opacity",
+                        active
+                          ? "opacity-65 group-hover:opacity-100"
+                          : "opacity-0 group-hover:opacity-100",
+                      )}
+                    />
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {savedNotice !== null ? (
+        <span className="shrink-0 border border-success/30 bg-success/10 px-2 py-0.5 font-mono text-[10px] text-success">
+          exported {savedNotice}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -790,7 +1105,7 @@ function ToolIconButton({
       <TooltipContent>
         {label}
         {shortcut ? (
-          <kbd className="ml-1 font-mono text-[9px] text-background/70">
+          <kbd className="ml-1.5 border border-background/25 px-1 py-px font-mono text-[9px] text-background/85">
             {shortcut}
           </kbd>
         ) : null}
@@ -834,138 +1149,6 @@ function DiagramIcon(): React.ReactElement {
       />
       <path d="M6 4h2M6 10h2" stroke="currentColor" strokeWidth="1.1" />
     </svg>
-  );
-}
-
-function QueryTabBar({
-  files,
-  activeId,
-  savedNotice,
-  onSelect,
-  onClose,
-  onNew,
-  onSave,
-  onOpen,
-}: {
-  files: Array<{ id: string; name: string }>;
-  activeId: string | null;
-  savedNotice: string | null;
-  onSelect: (id: string) => void;
-  onClose: (id: string) => void;
-  onNew: () => void;
-  onSave: () => void;
-  onOpen: () => void;
-}): React.ReactElement {
-  return (
-    <div className="flex h-8 shrink-0 items-stretch justify-between border-b border-border bg-surface">
-      <div className="flex min-w-0 flex-1 items-stretch overflow-x-auto">
-        {files.map((file) => {
-          const active = file.id === activeId;
-          return (
-            <div
-              key={file.id}
-              className={cn(
-                "group flex min-w-0 shrink-0 items-center gap-1 border-r border-border",
-                active ? "bg-editor" : "bg-surface hover:bg-surface-hover",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => onSelect(file.id)}
-                className={cn(
-                  "flex h-8 min-w-0 items-center gap-1.5 pl-3 pr-1.5 font-mono text-[11px]",
-                  active
-                    ? "text-foreground"
-                    : "text-muted-dim hover:text-foreground",
-                )}
-              >
-                {active ? (
-                  <span
-                    className="size-1.5 shrink-0 bg-primary"
-                    aria-hidden="true"
-                  />
-                ) : null}
-                <span className="max-w-40 truncate">{file.name}</span>
-              </button>
-              <button
-                type="button"
-                aria-label={`Close ${file.name}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onClose(file.id);
-                }}
-                className="flex size-5 items-center justify-center text-muted-dim opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
-              >
-                <X className="size-3" />
-              </button>
-            </div>
-          );
-        })}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label="New query file"
-              onClick={onNew}
-              className="flex w-8 shrink-0 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
-            >
-              <Plus className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            New query
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">
-              Ctrl+N
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5 px-1.5">
-        <div className="flex items-center gap-0.5">
-        {savedNotice !== null ? (
-          <span className="mr-1 font-mono text-[10px] text-success">
-            saved {savedNotice}
-          </span>
-        ) : null}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label="Open SQL file"
-              onClick={onOpen}
-              className="flex size-6 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
-            >
-              <FolderOpen className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Open .sql file
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">
-              Ctrl+O
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label="Save file to disk"
-              onClick={onSave}
-              className="flex size-6 items-center justify-center text-muted-dim transition-colors hover:bg-surface-hover hover:text-foreground"
-            >
-              <Save className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Export file to disk
-            <kbd className="ml-1 font-mono text-[9px] text-background/70">
-              Ctrl+S
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
-        </div>
-      </div>
-    </div>
   );
 }
 
